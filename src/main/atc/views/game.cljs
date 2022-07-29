@@ -6,6 +6,8 @@
 (defn stage []
   [:> px/Stage {:width js/window.innerWidth
                 :height js/window.innerHeight
+                :raf false
+                :render-on-component-change true
                 :options {:resize-to js/window}}])
 
 (defn view []
