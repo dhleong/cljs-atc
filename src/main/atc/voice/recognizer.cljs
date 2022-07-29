@@ -1,7 +1,8 @@
 (ns atc.voice.recognizer
   (:require
-   [applied-science.js-interop :as j]
    ["vosk-browser" :as Vosk]
+   [applied-science.js-interop :as j]
+   [atc.voice.const :as const]
    [promesa.core :as p]))
 
 (defonce ^:private shared-model
@@ -16,7 +17,7 @@
 
 (defn create
   ([] (create nil))
-  ([{:keys [sample-rate] :or {sample-rate 48000}}]
+  ([{:keys [sample-rate] :or {sample-rate const/default-sample-rate}}]
    (p/let [start (js/Date.now)
            model @shared-model
            KaldiRecognizer (j/get model :KaldiRecognizer)
