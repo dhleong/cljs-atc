@@ -10,7 +10,8 @@
   ;; app routes declared here:
 
   (defroute "/" []
-    (navigate! :home)))
+    ; TODO: this should be :home, but this is convenient for now
+    (navigate! :game)))
 
 (defn app-routes []
   (nav/init!)

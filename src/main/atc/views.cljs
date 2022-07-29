@@ -1,10 +1,13 @@
 (ns atc.views
-  (:require [archetype.views.error-boundary :refer [error-boundary]]
-            [archetype.util :refer [<sub]]
-            [atc.views.home :as home]))
+  (:require
+   [archetype.util :refer [<sub]]
+   [archetype.views.error-boundary :refer [error-boundary]]
+   [atc.views.game :as game]
+   [atc.views.home :as home]))
 
 (def ^:private pages
-  {:home #'home/view})
+  {:game #'game/view
+   :home #'home/view})
 
 (defn main []
   (let [[page args] (<sub [:page])

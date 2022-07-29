@@ -5,6 +5,7 @@
             [atc.routes :as routes]
             [atc.views :as views]
             [atc.fx]
+            [atc.styles]
             [atc.subs]))
 
 (defn ^:dev/after-load mount-root []
