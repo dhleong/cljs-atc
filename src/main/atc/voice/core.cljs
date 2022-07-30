@@ -9,13 +9,22 @@
   (when-let [inst (::mic @client)]
     (mic/stop! inst)))
 
-(defn create [{:keys [on-partial-result on-result]}]
-  (let [recognizer-inst (recognizer/create)
-        client (atom {::recognizer recognizer-inst})]
+(defn create [{:keys [on-partial-result on-result on-state]}]
+  (let [emit-state! (comp
+                      #(p/delay 0) ; Let the UI update, if desired
+                      (or on-state identity))
 
+        _ (emit-state! :initializing) ; Do this before creating the recognizer
+
+        recognizer-inst (recognizer/create)
+        client (atom {::recognizer recognizer-inst})]
     (p/do!
       (recognizer/await! recognizer-inst)
+
+      (emit-state! :requesting-mic)
       (mic/await! (::mic (swap! client assoc ::mic (mic/create))))
+
+      (emit-state! :opening-mic)
 
       ; Pipe the mic into the recognizer
       (let [recognizer-stream (recognizer/stream recognizer-inst)]
@@ -36,6 +45,7 @@
                                  (when on-result
                                    (on-result result)))))
 
+      (emit-state! :ready)
       (println "voice: Ready!"))
 
     client))

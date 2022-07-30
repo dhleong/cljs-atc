@@ -10,3 +10,9 @@
   :<- [::voice]
   (fn [voice]
     (:partial-text voice)))
+
+(reg-sub
+  :voice/state
+  :<- [::voice]
+  (fn [voice]
+    (:state voice)))

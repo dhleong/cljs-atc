@@ -12,11 +12,12 @@
 (defn- game []
   [stage
    [viewport
-    [:> px/Text {:text "Hey"
-                 :anchor 0.5
-                 :x 50
-                 :y 50
-                 :style text-style}]
+    (let [voice-state (<sub [:voice/state])]
+      [:> px/Text {:text (or voice-state "Hey")
+                   :anchor 0.5
+                   :x 50
+                   :y 50
+                   :style text-style}])
 
     (when-let [partial-text (<sub [:voice/partial])]
       [:> px/Text {:text partial-text

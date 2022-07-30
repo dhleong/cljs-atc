@@ -1,6 +1,7 @@
 (ns atc.events
-  (:require [re-frame.core :refer [dispatch reg-event-db reg-event-fx
-                                   inject-cofx trim-v]]
+  (:require [re-frame.core :refer [reg-event-db reg-event-fx
+                                   path
+                                   trim-v]]
             [atc.db :as db]))
 
 (reg-event-db
@@ -36,3 +37,10 @@
   [trim-v]
   (fn [_ [result]]
     (println "TODO: voice result: " result)))
+
+(reg-event-db
+  :voice/set-state
+  [(path :voice) trim-v]
+  (fn [voice [new-state]]
+    (println "state <- " new-state)
+    (assoc voice :state new-state)))

@@ -30,4 +30,9 @@
 
                           (voice/create
                             {:on-partial-result #(>evt [:voice/on-partial %])
+                             :on-state #(>evt [:voice/set-state %])
                              :on-result #(>evt [:voice/on-result %])})))))
+
+(comment
+  (>evt [:voice/start!])
+  (>evt [:voice/stop!]))
