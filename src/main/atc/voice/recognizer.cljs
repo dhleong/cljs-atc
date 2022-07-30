@@ -19,6 +19,12 @@
 (defn await! [client]
   (::ready-promise @client))
 
+(defn on-partial-result! [client callback]
+  (.on (::recognizer @client) "partialresult" callback))
+
+(defn on-result! [client callback]
+  (.on (::recognizer @client) "result" callback))
+
 (defn stream [client]
   (Duplex.
     #js {:objectMode true

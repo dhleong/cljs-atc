@@ -3,3 +3,10 @@
 
 (reg-sub :page :page)
 
+(reg-sub ::voice :voice)
+
+(reg-sub
+  :voice/partial
+  :<- [::voice]
+  (fn [voice]
+    (:partial-text voice)))
