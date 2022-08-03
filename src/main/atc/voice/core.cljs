@@ -9,14 +9,16 @@
   (when-let [inst (::mic @client)]
     (mic/stop! inst)))
 
-(defn create [{:keys [on-partial-result on-result on-state]}]
+(defn create [{:keys [on-partial-result on-result on-state use-grammar?]}]
   (let [emit-state! (comp
                       #(p/delay 0) ; Let the UI update, if desired
                       (or on-state identity))
 
         _ (emit-state! :initializing) ; Do this before creating the recognizer
 
-        recognizer-inst (recognizer/create)
+        recognizer-inst (if use-grammar?
+                          (recognizer/create {:use-grammar? true})
+                          (recognizer/create))
         client (atom {::recognizer recognizer-inst})]
     (p/do!
       (recognizer/await! recognizer-inst)

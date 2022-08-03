@@ -4,6 +4,7 @@
    ["vosk-browser" :as Vosk]
    [applied-science.js-interop :as j]
    [atc.voice.const :as const]
+   [atc.voice.grammar :as grammar]
    [promesa.core :as p]))
 
 (defonce ^:private shared-model
@@ -39,7 +40,7 @@
 
 (defn create
   ([] (create nil))
-  ([{:keys [sample-rate] :or {sample-rate const/default-sample-rate}}]
+  ([{:keys [sample-rate use-grammar?] :or {sample-rate const/default-sample-rate}}]
    (let [client (atom nil)]
      (swap!
        client
@@ -48,7 +49,12 @@
        (p/let [start (js/Date.now)
                model @shared-model
                KaldiRecognizer (j/get model :KaldiRecognizer)
-               recognizer (new KaldiRecognizer sample-rate)]
+               grammar-content (when use-grammar?
+                                 (println "Generating grammar...")
+                                 (time (grammar/generate)))
+               recognizer (if (some? grammar-content)
+                            (new KaldiRecognizer sample-rate grammar-content)
+                            (new KaldiRecognizer sample-rate))]
          (println "Prepared recognizer in " (- (js/Date.now) start) "ms")
          (swap! client assoc ::recognizer recognizer)))
      client)))

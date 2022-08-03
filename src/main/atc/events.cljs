@@ -17,8 +17,9 @@
 
 (reg-event-fx
   :voice/start!
-  (fn []
-    {:voice/start! true}))
+  [trim-v]
+  (fn [_ [?opts]]
+    {:voice/start! ?opts}))
 
 (reg-event-fx
   :voice/stop!

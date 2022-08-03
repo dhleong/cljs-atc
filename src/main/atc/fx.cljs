@@ -23,16 +23,19 @@
 
 (reg-fx
   :voice/start!
-  (fn []
+  (fn [opts]
     (swap! voice-client (fn [old]
                           (when old
                             (voice/stop! old))
 
                           (voice/create
-                            {:on-partial-result #(>evt [:voice/on-partial %])
-                             :on-state #(>evt [:voice/set-state %])
-                             :on-result #(>evt [:voice/on-result %])})))))
+                            (assoc
+                              opts
+                              :on-partial-result #(>evt [:voice/on-partial %])
+                              :on-state #(>evt [:voice/set-state %])
+                              :on-result #(>evt [:voice/on-result %])))))))
 
 (comment
   (>evt [:voice/start!])
+  (>evt [:voice/start! {:use-grammar? true}])
   (>evt [:voice/stop!]))
