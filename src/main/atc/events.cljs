@@ -16,6 +16,13 @@
     (assoc db :page page-spec)))
 
 (reg-event-fx
+  :voice/set-paused
+  [trim-v (path :voice)]
+  (fn [{voice :db} [paused?]]
+    {:voice/set-paused paused?
+     :db (assoc voice :paused? paused?)}))
+
+(reg-event-fx
   :voice/start!
   [trim-v]
   (fn [_ [?opts]]
@@ -39,9 +46,15 @@
   (fn [_ [result]]
     (println "TODO: voice result: " result)))
 
-(reg-event-db
+(reg-event-fx
   :voice/set-state
   [(path :voice) trim-v]
-  (fn [voice [new-state]]
-    (println "state <- " new-state)
-    (assoc voice :state new-state)))
+  (fn [{voice :db} [new-state]]
+    ; Default to "paused" if we didn't request to start immediately
+    (let [will-be-paused? (:paused? voice true)]
+      (println "state <- " new-state "; paused = " will-be-paused?)
+      {:db (assoc voice :state new-state
+                  :paused? will-be-paused?)
+       :fx [(when (and (= :ready new-state)
+                       will-be-paused?)
+              [:voice/set-paused true])]})))

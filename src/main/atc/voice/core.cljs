@@ -5,6 +5,14 @@
    [atc.voice.recognizer :as recognizer]
    [promesa.core :as p]))
 
+(defn pause! [client]
+  (when-let [inst (::mic @client)]
+    (mic/pause! inst)))
+
+(defn resume! [client]
+  (when-let [inst (::mic @client)]
+    (mic/resume! inst)))
+
 (defn stop! [client]
   (when-let [inst (::mic @client)]
     (mic/stop! inst)))

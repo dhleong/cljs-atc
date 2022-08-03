@@ -35,6 +35,16 @@
                               :on-state #(>evt [:voice/set-state %])
                               :on-result #(>evt [:voice/on-result %])))))))
 
+(reg-fx
+  :voice/set-paused
+  (fn [paused?]
+    (if-let [client @voice-client]
+      (if paused?
+        (voice/pause! client)
+        (voice/resume! client))
+
+      (println "WARNING: No voice client to handle :voice/set-paused" paused?))))
+
 (comment
   (>evt [:voice/start!])
   (>evt [:voice/start! {:use-grammar? true}])
