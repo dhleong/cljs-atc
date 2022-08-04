@@ -11,6 +11,9 @@
                 ; style:
                 [net.dhleong/spade "1.1.0"]
 
+                ; input processing
+                [instaparse "1.4.12"]
+
                 ; util:
                 [applied-science/js-interop "0.2.7"]
                 [com.cemerick/url "0.1.1"]

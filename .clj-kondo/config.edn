@@ -8,6 +8,7 @@
  :lint-as {applied-science.js-interop/defn clojure.core/defn
            applied-science.js-interop/let clojure.core/let
            applied-science.js-interop/fn clojure.core/fn
+           instaparse.core/defparser clojure.core/def
            promesa.core/let clojure.core/let
            promesa.core/loop clojure.core/loop
            promesa.core/plet clojure.core/let

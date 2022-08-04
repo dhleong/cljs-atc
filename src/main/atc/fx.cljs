@@ -3,6 +3,8 @@
    [archetype.nav :as nav]
    [archetype.util :refer [>evt]]
    [atc.voice.core :as voice]
+   [atc.voice.process :refer [find-command]]
+   [clojure.string :as str]
    [re-frame.core :refer [reg-fx]]))
 
 ; This effect is unused... for now (and that's okay)
@@ -46,6 +48,11 @@
         (voice/resume! client))
 
       (println "WARNING: No voice client to handle :voice/set-paused" paused?))))
+
+(reg-fx
+  :voice/process
+  (fn [input]
+    (println (find-command input))))
 
 (comment
   (>evt [:voice/start!])
