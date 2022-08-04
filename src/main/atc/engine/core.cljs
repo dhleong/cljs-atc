@@ -13,7 +13,8 @@
           dt (* time-scale
                 (if (some? last-tick)
                   (- now last-tick)
-                  0))
+                  0)
+                0.001)
 
           updated-aircraft (reduce-kv
                              (fn [m callsign aircraft]
