@@ -2,7 +2,6 @@
   (:require
    ["@inlet/react-pixi" :as px]
    ["pixi.js" :refer [TextStyle]]
-   ["react" :as React]
    [archetype.util :refer [<sub >evt]]
    [atc.views.game.graphics.aircraft :as aircraft]
    [atc.views.game.stage :refer [stage]]
@@ -14,6 +13,7 @@
 
 (defattrs game-controls-attrs []
   {:display :flex
+   :flex-direction :row
    :position :absolute
    :bottom 0
    :left 0
@@ -22,7 +22,16 @@
 (defn- game-controls []
   [:div (game-controls-attrs)
     [:button {:on-click #(>evt [:game/init])}
-     "Init Game"]])
+     "Init Game"]
+    [:button {:on-click #(>evt [:game/reset])}
+     "End Game"]
+
+    (when-let [time-scale (<sub [:game/time-scale])]
+      (if (= 0 time-scale)
+        [:button {:on-click #(>evt [:game/set-time-scale 1])}
+         "Resume"]
+        [:button {:on-click #(>evt [:game/set-time-scale 0])}
+         "Pause"]))])
 
 (defn- aircraft-entity [{:keys [callsign position]}]
   (let [{:keys [x y]} position]
@@ -31,7 +40,6 @@
 
 (defn- game []
   (let [all-aircraft (<sub [:game/aircraft])]
-    (println "all-aircraft <-" all-aircraft)
     [stage
      [viewport
       (let [voice-state (<sub [:voice/state])]
@@ -56,6 +64,7 @@
   ; NOTE: These are ugly hacks because react gets mad on the first render for... some reason.
   (r/with-let [ready? (r/atom false)
                _ (js/setTimeout #(reset! ready? true) 0)]
+    (println "mount game")
     (when @ready?
       [:<>
        [game]

@@ -4,16 +4,31 @@
    [atc.engine.model :refer [Simulated tick]]))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
-(defrecord Engine [aircraft]
+(defrecord Engine [aircraft time-scale last-tick]
   Simulated
-  (tick [this dt]
-    (let [updated-aircraft (reduce-kv
+  (tick [this _dt]
+    (let [now (js/Date.now)
+
+          dt (* time-scale
+                (if (some? last-tick)
+                  (- now last-tick)
+                  0))
+
+          updated-aircraft (reduce-kv
                              (fn [m callsign aircraft]
                                (assoc m callsign (tick aircraft dt)))
                              {}
                              aircraft)]
-      (assoc this :aircraft updated-aircraft))))
+      (assoc this
+             :aircraft updated-aircraft
+             :last-tick (when-not (= 0 time-scale)
+                          now)))))
+
+(defn next-tick-delay [^Engine engine]
+  (when-not (= 0 (:time-scale engine))
+    (* 250 (:time-scale engine))))
 
 (defn generate []
-  (-> {:aircraft {"DAL22" (aircraft/create {} "DAL22")}}
+  (-> {:aircraft {"DAL22" (aircraft/create {} "DAL22")}
+       :time-scale 1}
       (map->Engine)))

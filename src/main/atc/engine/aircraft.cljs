@@ -2,14 +2,17 @@
   (:require
    [atc.engine.model :refer [->Vec3 Vec3 Simulated]]))
 
+(defn- speed->mps [speed]
+  (* 0.514444 speed))
+
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defrecord Aircraft [config callsign
                      state
                      ^Vec3 position heading speed]
   Simulated
-  (tick [this _dt]
-    ; TODO
-    this))
+  (tick [this dt]
+    (update-in this [:position :x] + (* (/ dt 1000)
+                                        (speed->mps speed)))))
 
 (defn create [config callsign]
   (map->Aircraft {:config config

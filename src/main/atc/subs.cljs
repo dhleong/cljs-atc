@@ -25,6 +25,12 @@
 (reg-sub ::engine :engine)
 
 (reg-sub
+  :game/time-scale
+  :<- [::engine]
+  (fn [engine]
+    (:time-scale engine)))
+
+(reg-sub
   :game/aircraft-map
   :<- [::engine]
   (fn [engine]
