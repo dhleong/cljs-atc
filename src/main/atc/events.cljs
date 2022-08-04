@@ -18,6 +18,12 @@
     (assoc db :page page-spec)))
 
 (reg-event-fx
+  :command/handle
+  [trim-v]
+  (fn [_ [command]]
+    (println "TODO: handle command: " command)))
+
+(reg-event-fx
   :voice/set-paused
   [trim-v (path :voice)]
   (fn [{voice :db} [paused?]]
@@ -46,7 +52,7 @@
   :voice/on-result
   [trim-v]
   (fn [_ [result]]
-    (println "TODO: voice result: " result)))
+    {:voice/process result}))
 
 (reg-event-fx
   :voice/set-state
