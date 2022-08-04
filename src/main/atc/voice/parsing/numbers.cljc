@@ -1,5 +1,6 @@
 (ns atc.voice.parsing.numbers
-  (:require [clojure.string :as str]))
+  (:require
+   [atc.voice.parsing.core :refer [declare-alternates]]))
 
 (def digit-values
   {"zero" 0
@@ -23,12 +24,6 @@
    "eighty" 80
    "ninety" 90 })
 
-(defn declare-alternates [rule-name values]
-  (->> values
-       (map #(str "'" % "'"))
-       (str/join " | ")
-       (str rule-name " = ")))
-
 (def rules
   ["number-sequence = number (whitespace number)*"
    "number = digit | double-digit"
@@ -37,3 +32,11 @@
    (declare-alternates "digit" (keys digit-values))
    (declare-alternates "tens-value" (keys tens-values))
    ])
+
+(def transformers
+  {:digit digit-values
+   :tens-value tens-values
+   :double-digit (fn [tens ones]
+                   (+ tens ones))
+   :number identity
+   :number-sequence (fn [& values] values)})

@@ -1,5 +1,6 @@
 (ns atc.voice.process
   (:require
+   [atc.voice.parsing.callsigns :as callsigns]
    [atc.voice.parsing.numbers :as numbers]
    [clojure.string :as str]
    [instaparse.core :as insta]))
@@ -13,13 +14,22 @@
       (insta/parser
         (str/join "\n"
                   (concat
+                    callsigns/rules
                     numbers/rules
                     ["<whitespace> = <' '>"]))))))
 
+(def transformers
+  (delay
+    (merge
+      numbers/transformers
+      callsigns/transformers)))
+
 (defn find-command [input]
-  (@fsm input))
+  (->> input
+       (@fsm)
+       (insta/transform @transformers)))
 
 (comment
-  (println (find-command "one"))
-  (println (find-command "one zero two"))
-  (println (find-command "two twenty one")))
+  (println (find-command "delta one"))
+  (println (find-command "piper eight one zero two"))
+  (println (find-command "speed bird two twenty one")))
