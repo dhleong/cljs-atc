@@ -4,8 +4,9 @@
   "Anything that is managed by the simulation"
 
   (tick [this dt]
-        "Update this simulated item by [dt] ms"))
+        "Update this simulated item by [dt] seconds"))
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defprotocol Vector
   (v+ [this ^Vector other])
   (v* [this other]))

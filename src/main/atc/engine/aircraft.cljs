@@ -6,16 +6,19 @@
 (defn- speed->mps [speed]
   (* 0.514444 speed))
 
+(defn- normalize-heading [h]
+  (if (< h 0)
+    (+ h 360)
+    (mod h 360)))
+
 (defn- apply-steering [^Aircraft {from :heading :as aircraft} commanded-to dt]
-  (println "steer" aircraft)
   (if (= from commanded-to)
     aircraft
 
     ; TODO turn direction:
     (let [degrees-per-second (get-in aircraft [:config :turn-rate])
-          turn-amount (* degrees-per-second (/ dt 1000))
-          new-heading (+ from turn-amount)]
-      (println commanded-to ":" from " -> " new-heading turn-amount)
+          turn-amount (* degrees-per-second dt)
+          new-heading (normalize-heading (+ from turn-amount))]
       (if (<= (abs (- new-heading commanded-to))
               (* turn-amount 0.5))
         (assoc aircraft :heading commanded-to) ; close enough; snap to
@@ -35,8 +38,8 @@
   (tick [this dt]
     (let [this (apply-commanded-inputs this commands dt)
           ; TODO: compute velocity vector properly
-          velocity-vector (vec3 (* (/ dt 1000)
-                                   (speed->mps speed))
+          velocity-vector (vec3 (* (speed->mps speed)
+                                   dt)
                                 0
                                 0)]
       (update this :position v+ velocity-vector))))
