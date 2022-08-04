@@ -28,9 +28,12 @@
       callsigns/transformers)))
 
 (defn find-command [input]
-  (->> input
-       (@fsm)
-       (insta/transform @transformers)))
+  (let [output (->> input
+                    (@fsm)
+                    (insta/transform @transformers))]
+    (if (insta/failure? output)
+      (println "Unable to parse input: " (str output))
+      output)))
 
 (comment
   (println (find-command "delta one fly heading two zero zero"))

@@ -4,7 +4,6 @@
    [archetype.util :refer [>evt]]
    [atc.voice.core :as voice]
    [atc.voice.process :refer [find-command]]
-   [clojure.string :as str]
    [re-frame.core :refer [reg-fx]]))
 
 ; This effect is unused... for now (and that's okay)
@@ -52,7 +51,8 @@
 (reg-fx
   :voice/process
   (fn [input]
-    (println (find-command input))))
+    (when-let [cmd (find-command input)]
+      (>evt [:command/handle cmd]))))
 
 (comment
   (>evt [:voice/start!])
