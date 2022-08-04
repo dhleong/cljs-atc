@@ -12,10 +12,12 @@
 
 (def rules
   ["command = callsign instruction+"
-   "<instruction> = 'standby'
+   "<instruction> = standby
    | adjust-altitude
    | contact-other
    | steer"
+
+   "standby = <'standby'>"
 
    "adjust-altitude = (<'climb'> | <'descend'>)? <'and'>? <'maintain'> altitude"
 
@@ -23,10 +25,11 @@
 
    "steer = (<'fly'> | 'turn right' | 'turn left') <'heading'> heading"
 
-   (declare-alternates "<other-position>" handoffs)
+   (declare-alternates "other-position" handoffs)
    (declare-alternates "pleasantry" pleasantries)])
 
 (def transformers
   {:command (fn [callsign & instructions]
               {:callsign (second callsign)
-               :instructions instructions})})
+               :instructions instructions})
+   :other-position keyword})
