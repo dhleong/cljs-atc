@@ -25,7 +25,15 @@
    "ninety" 90 })
 
 (def rules
-  ["number-sequence = number (whitespace number)*"
+  ["frequency = (number-sequence whitespace)? decimal whitespace number-sequence"
+   "heading = number-sequence"
+   "<altitude> = flight-level | altitude-thousands-feet"
+   "altitude-thousands-feet = digits-number whitespace (<'thousand'> | <'thousands'>)"
+   "flight-level = <'flight level'> whitespace heading"
+
+   "<decimal> = 'point' | 'decimal'"
+   "digits-number = number-sequence"
+   "number-sequence = number (whitespace number)*"
    "number = digit | double-digit"
    "digit-sequence = digit (whitespace digit)*"
    "double-digit = tens-value whitespace digit"
@@ -33,10 +41,30 @@
    (declare-alternates "tens-value" (keys tens-values))
    ])
 
+(defn digits->number [digits]
+  (loop [numbers (reverse digits)
+         multiplier 1
+         result 0]
+    (if (empty? numbers)
+      result
+      (recur
+        (next numbers)
+        (* multiplier 10)
+        (+ result (* multiplier (first numbers)))))))
+
 (def transformers
   {:digit digit-values
    :tens-value tens-values
    :double-digit (fn [tens ones]
                    (+ tens ones))
    :number identity
-   :number-sequence (fn [& values] values)})
+   :number-sequence (fn [& values] values)
+
+   :heading (fn [values]
+              (digits->number (take-last 3 values)))
+
+   :digits-number digits->number
+   :altitude-thousands-feet (fn [thousands]
+                              (* 1000 thousands))
+   :flight-level (fn [hundreds]
+                   (* 100 hundreds))})
