@@ -9,6 +9,8 @@
   (fn [_ _]
     db/default-db))
 
+; This event is unused... for now (and that's okay)
+#_:clj-kondo/ignore
 (reg-event-db
   :navigate!
   [trim-v]

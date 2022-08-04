@@ -5,6 +5,8 @@
    [atc.voice.core :as voice]
    [re-frame.core :refer [reg-fx]]))
 
+; This effect is unused... for now (and that's okay)
+#_:clj-kondo/ignore
 (reg-fx
   :nav/replace!
   nav/replace!)
