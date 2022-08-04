@@ -2,7 +2,8 @@
   (:require [re-frame.core :refer [reg-event-db reg-event-fx
                                    path
                                    trim-v]]
-            [atc.db :as db]))
+            [atc.db :as db]
+            [atc.engine.core :as engine]))
 
 (reg-event-db
   ::initialize-db
@@ -20,8 +21,22 @@
 (reg-event-db
   :game/command
   [trim-v]
-  (fn [{:keys [_db]} [command]]
+  (fn [_db [command]]
     (println "TODO: handle command: " command)))
+
+(reg-event-db
+  :game/init
+  [trim-v]
+  (fn [db _]
+    (println "(re) Initialize game engine")
+    (assoc db :engine (engine/generate))))
+
+(reg-event-db
+  :game/reset
+  [trim-v]
+  (fn [db _]
+    (println "Clear game engine")
+    (dissoc db :engine)))
 
 (reg-event-fx
   :voice/set-paused
@@ -66,3 +81,6 @@
        :fx [(when (and (= :ready new-state)
                        will-be-paused?)
               [:voice/set-paused true])]})))
+
+(comment
+  (re-frame.core/dispatch [:game/reset]))

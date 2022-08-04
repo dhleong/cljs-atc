@@ -3,6 +3,8 @@
 
 (reg-sub :page :page)
 
+; ======= Voice ===========================================
+
 (reg-sub ::voice :voice)
 
 (reg-sub
@@ -16,3 +18,20 @@
   :<- [::voice]
   (fn [voice]
     (:state voice)))
+
+
+; ======= Game state ======================================
+
+(reg-sub ::engine :engine)
+
+(reg-sub
+  :game/aircraft-map
+  :<- [::engine]
+  (fn [engine]
+    (:aircraft engine)))
+
+(reg-sub
+  :game/aircraft
+  :<- [:game/aircraft-map]
+  (fn [aircraft]
+    (vals aircraft)))
