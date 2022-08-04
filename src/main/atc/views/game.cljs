@@ -2,6 +2,7 @@
   (:require
    ["@inlet/react-pixi" :as px]
    ["pixi.js" :refer [TextStyle]]
+   [archetype.util :refer [<sub]]
    [atc.views.game.stage :refer [stage]]
    [atc.views.game.viewport :refer [viewport]]
    [reagent.core :as r]))
@@ -11,11 +12,19 @@
 (defn- game []
   [stage
    [viewport
-    [:> px/Text {:text "Hey"
-                 :anchor 0.5
-                 :x 150
-                 :y 150
-                 :style text-style}]]])
+    (let [voice-state (<sub [:voice/state])]
+      [:> px/Text {:text (or voice-state "Hey")
+                   :anchor 0.5
+                   :x 50
+                   :y 50
+                   :style text-style}])
+
+    (when-let [partial-text (<sub [:voice/partial])]
+      [:> px/Text {:text partial-text
+                   :anchor 0
+                   :x 50
+                   :y 150
+                   :style text-style}])]])
 
 (defn view []
   ; NOTE: These are ugly hacks because react gets mad on the first render for... some reason.
