@@ -9,8 +9,7 @@
 (def tracked-aircraft-style (TextStyle. #js {:fill "#1f478f"
                                              :fontSize 8}))
 
-
-(defn tracked [callsign x y]
+(defn- tracked [callsign x y]
   [:<>
    [:> px/Text {:text "⬤"
                 :anchor 0.5
@@ -22,3 +21,8 @@
                 :x (+ x 10) ; FIXME ?
                 :y (+ y 10)
                 :style label-style}]])
+
+(defn entity [{:keys [callsign position]}]
+  (let [{:keys [x y]} position]
+    ; TODO render different graphics based on aircraft state
+    [tracked callsign x y]))
