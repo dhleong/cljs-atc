@@ -23,6 +23,7 @@
 (def transformers
   (delay
     (merge
+      instructions/transformers
       numbers/transformers
       callsigns/transformers)))
 

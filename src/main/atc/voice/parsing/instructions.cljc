@@ -12,7 +12,7 @@
 
 (def rules
   ["command = callsign whitespace instruction (whitespace instruction)*"
-   "instruction = 'standby'
+   "<instruction> = 'standby'
    | adjust-altitude
    | contact-other
    | steer"
@@ -28,5 +28,11 @@
 
    "steer = (<'fly'> | 'turn right' | 'turn left') whitespace <'heading'> whitespace heading"
 
-   (declare-alternates "other-position" handoffs)
+   (declare-alternates "<other-position>" handoffs)
    (declare-alternates "pleasantry" pleasantries)])
+
+(def transformers
+  {:command (fn [callsign & instructions]
+              (println instructions)
+              {:callsign (second callsign)
+               :instructions instructions})})
