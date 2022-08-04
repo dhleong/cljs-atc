@@ -1,7 +1,8 @@
 (ns atc.engine.aircraft
   (:require
-   [atc.engine.config :refer [AircraftConfig]]
-   [atc.engine.model :refer [->Vec3 Simulated v+ Vec3 vec3]]))
+    [clojure.math :refer [cos sin to-radians]]
+    [atc.engine.config :refer [AircraftConfig]]
+    [atc.engine.model :refer [->Vec3 Simulated v+ Vec3 vec3]]))
 
 (defn- speed->mps [speed]
   (* 0.514444 speed))
@@ -37,11 +38,15 @@
   Simulated
   (tick [this dt]
     (let [this (apply-commanded-inputs this commands dt)
-          ; TODO: compute velocity vector properly
-          velocity-vector (vec3 (* (speed->mps speed)
-                                   dt)
-                                0
-                                0)]
+          ; TODO: Vertical speed?
+          raw-speed (* (speed->mps speed) dt)
+
+          ; NOTE: We normalize the angle here such that 0 is "north" on the screen
+          heading-radians (to-radians (- (:heading this) 90))
+
+          vx (* raw-speed (cos heading-radians))
+          vy (* raw-speed (sin heading-radians))
+          velocity-vector (vec3 vx vy 0)]
       (update this :position v+ velocity-vector))))
 
 (defn create [^AircraftConfig config, callsign]
@@ -49,6 +54,6 @@
                   :callsign callsign
                   :state :flight
                   :position (->Vec3 250 250 20000)
-                  :heading 120
-                  :speed 200
-                  :commands {:heading 135}}))
+                  :heading 350
+                  :speed 10
+                  :commands {:heading 90}}))
