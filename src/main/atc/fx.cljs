@@ -52,7 +52,7 @@
   :voice/process
   (fn [input]
     (when-let [cmd (find-command input)]
-      (>evt [:command/handle cmd]))))
+      (>evt [:game/command cmd]))))
 
 (comment
   (>evt [:voice/start!])

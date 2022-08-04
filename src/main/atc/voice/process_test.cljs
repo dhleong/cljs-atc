@@ -2,7 +2,7 @@
   (:require [cljs.test :refer-macros [deftest is testing]]
             [atc.voice.process :refer [find-command]]))
 
-(deftest find-grammar-test
+(deftest find-command-test
   (testing "Simple nop with callsign"
     (is (= {:callsign "N1"
             :instructions [[:standby]]}
@@ -17,4 +17,11 @@
     (is (= {:callsign "N2"
             :instructions [[:adjust-altitude 11000]
                            [:contact-other :tower]]}
-           (find-command "piper two climb maintain one one thousand contact tower")))))
+           (find-command "piper two climb maintain one one thousand contact tower"))))
+
+   (testing "Handle unparseable input gracefully"
+     (let [{:keys [instructions]} (find-command
+                                    "piper one fly heading two three four have fun")]
+       (is (= [[:steer 234]]
+              (pop instructions)))
+       (is (= :error (-> instructions last first))))))

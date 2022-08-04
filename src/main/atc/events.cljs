@@ -17,10 +17,10 @@
   (fn [db page-spec]
     (assoc db :page page-spec)))
 
-(reg-event-fx
-  :command/handle
+(reg-event-db
+  :game/command
   [trim-v]
-  (fn [_ [command]]
+  (fn [{:keys [_db]} [command]]
     (println "TODO: handle command: " command)))
 
 (reg-event-fx
