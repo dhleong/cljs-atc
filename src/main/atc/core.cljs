@@ -1,17 +1,22 @@
 (ns atc.core
-  (:require [reagent.dom :as rdom]
-            [re-frame.core :as re-frame]
-            [atc.events :as events]
-            [atc.routes :as routes]
-            [atc.views :as views]
-            [atc.fx]
-            [atc.styles]
-            [atc.subs]))
+  (:require
+   ["react-dom/client" :rename {createRoot create-react-root}]
+   [atc.events :as events]
+   [atc.fx]
+   [atc.routes :as routes]
+   [atc.styles]
+   [atc.subs]
+   [atc.views :as views]
+   [goog.dom :as gdom]
+   [re-frame.core :as re-frame]
+   [reagent.core :as r]))
+
+(defonce ^:private root (create-react-root
+                          (gdom/getElement "app")))
 
 (defn ^:dev/after-load mount-root []
   (re-frame/clear-subscription-cache!)
-  (rdom/render [views/main]
-               (.getElementById js/document "app")))
+  (.render root (r/as-element [views/main])))
 
 (defn ^:export init []
   (re-frame/dispatch-sync [::events/initialize-db])

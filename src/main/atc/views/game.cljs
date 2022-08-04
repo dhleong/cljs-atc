@@ -14,7 +14,7 @@
    [viewport
     (let [voice-state (<sub [:voice/state])]
       [:> px/Text {:text (or voice-state "Hey")
-                   :anchor 0.5
+                   :anchor 0
                    :x 50
                    :y 50
                    :style text-style}])
