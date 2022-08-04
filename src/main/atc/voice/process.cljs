@@ -17,8 +17,8 @@
                   (concat
                     instructions/rules
                     callsigns/rules
-                    numbers/rules
-                    ["<whitespace> = <' '>"]))))))
+                    numbers/rules))
+        :auto-whitespace :standard))))
 
 (def transformers
   (delay
@@ -32,7 +32,7 @@
                     (@fsm)
                     (insta/transform @transformers))]
     (if (insta/failure? output)
-      (println "Unable to parse input: " (str output))
+      (println "Unable to parse input: " output)
       output)))
 
 (comment

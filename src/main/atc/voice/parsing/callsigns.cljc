@@ -11,8 +11,8 @@
 
 (def rules
   ["callsign = airline-callsign | civil-callsign"
-   "airline-callsign = airline-names whitespace number-sequence"
-   "civil-callsign = <('november' | plane-type)> whitespace number-sequence" ; TODO letter
+   "airline-callsign = airline-names number-sequence"
+   "civil-callsign = <('november' | plane-type)> number-sequence" ; TODO letter
    (declare-alternates "<plane-type>" plane-types)
    (declare-alternates "airline-names" (keys airlines))])
 

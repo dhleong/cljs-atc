@@ -25,18 +25,18 @@
    "ninety" 90 })
 
 (def rules
-  ["frequency = (number-sequence whitespace)? decimal whitespace number-sequence"
+  ["frequency = number-sequence? decimal number-sequence"
    "heading = number-sequence"
    "<altitude> = flight-level | altitude-thousands-feet"
-   "altitude-thousands-feet = digits-number whitespace (<'thousand'> | <'thousands'>)"
-   "flight-level = <'flight level'> whitespace heading"
+   "altitude-thousands-feet = digits-number (<'thousand'> | <'thousands'>)"
+   "flight-level = <'flight level'> heading"
 
    "<decimal> = 'point' | 'decimal'"
    "digits-number = number-sequence"
-   "number-sequence = number (whitespace number)*"
+   "number-sequence = number+"
    "number = digit | double-digit"
-   "digit-sequence = digit (whitespace digit)*"
-   "double-digit = tens-value whitespace digit"
+   "digit-sequence = digit+"
+   "double-digit = tens-value digit"
    (declare-alternates "digit" (keys digit-values))
    (declare-alternates "tens-value" (keys tens-values))
    ])
