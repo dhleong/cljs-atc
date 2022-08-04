@@ -1,5 +1,6 @@
 (ns atc.engine.core
   (:require
+   [atc.data.aircraft-configs :as configs]
    [atc.engine.aircraft :as aircraft]
    [atc.engine.model :refer [Simulated tick]]))
 
@@ -26,9 +27,9 @@
 
 (defn next-tick-delay [^Engine engine]
   (when-not (= 0 (:time-scale engine))
-    (* 250 (:time-scale engine))))
+    (* 250 (/ 1 (:time-scale engine)))))
 
 (defn generate []
-  (-> {:aircraft {"DAL22" (aircraft/create {} "DAL22")}
+  (-> {:aircraft {"DAL22" (aircraft/create configs/common-jet "DAL22")}
        :time-scale 1}
       (map->Engine)))
