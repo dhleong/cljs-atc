@@ -4,25 +4,27 @@
    ["pixi.js" :refer [TextStyle]]))
 
 (def label-style (TextStyle. #js {:fill "#00ff00" ; TODO
-                                  :fontSize 8}))
+                                  :fontSize 12}))
 
 (def tracked-aircraft-style (TextStyle. #js {:fill "#1f478f"
                                              :fontSize 8}))
 
-(defn- tracked [callsign x y]
+(defn- tracked [callsign]
+  ; TODO: Adjust label location?
   [:<>
    [:> px/Text {:text "⬤"
                 :anchor 0.5
-                :x x
-                :y y
+                :x 0
+                :y 0
                 :style tracked-aircraft-style}]
    [:> px/Text {:text callsign
                 :anchor 0.5
-                :x (+ x 10) ; FIXME ?
-                :y (+ y 10)
+                :x 0
+                :y 20
                 :style label-style}]])
 
-(defn entity [{:keys [callsign position]}]
+(defn entity [{:keys [scale]} {:keys [callsign position]}]
   (let [{:keys [x y]} position]
-    ; TODO render different graphics based on aircraft state
-    [tracked callsign x y]))
+    [:> px/Container {:x x :y y :scale scale}
+     ; TODO render different graphics based on aircraft state
+     [tracked callsign]]))

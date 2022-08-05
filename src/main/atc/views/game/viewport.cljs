@@ -7,12 +7,18 @@
 (def PixiViewportComponent
   (px/PixiComponent
     "Viewport"
-    #js {:create (j/fn [^:js {:keys [app plugins] :as _props}]
-                   ; TODO: pull other viewport props from _props
+    #js {:create (j/fn [^:js {:keys [app plugins] :as js-props}]
+                   ; TODO: pull other viewport props from js-props
                    (let [viewport (Viewport.
                                     #js {:ticker (j/get app :ticker)
                                          :interaction (j/get-in app [:renderer :plugins :interaction])})
+
+                         ; NOTE: reagent is "helpfully" converting to camel case here:
+                         on-scale (j/get js-props :onScale)
+
                          render! (fn []
+                                   (when on-scale
+                                     (on-scale (j/get viewport :scaled)))
                                    (j/call-in app [:renderer :render] (j/get app :stage)))]
 
                      ; enable plugins

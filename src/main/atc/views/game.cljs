@@ -18,26 +18,34 @@
    :left 0
    :right 0})
 
+(defn- all-aircraft [scale-atom]
+  [:<>
+   (let [scale (/ 1 @scale-atom)]
+     (for [a (<sub [:game/aircraft])]
+       ^{:key (:callsign a)}
+       [aircraft/entity {:scale scale} a]))])
+
 (defn- game []
-  [stage
-   [viewport
-    (let [voice-state (<sub [:voice/state])]
-      [:> px/Text {:text (or voice-state "Hey")
-                   :anchor 0
-                   :x 50
-                   :y 50
-                   :style text-style}])
+  (r/with-let [scale-atom (r/atom 1)
+               set-scale! (partial reset! scale-atom)]
+    [stage
+     [viewport {:plugins ["drag" "pinch" "wheel"]
+                :on-scale set-scale!}
+      (let [voice-state (<sub [:voice/state])]
+        [:> px/Text {:text (or voice-state "Hey")
+                     :anchor 0
+                     :x 50
+                     :y 50
+                     :style text-style}])
 
-    (when-let [partial-text (<sub [:voice/partial])]
-      [:> px/Text {:text partial-text
-                   :anchor 0
-                   :x 50
-                   :y 150
-                   :style text-style}])
+      (when-let [partial-text (<sub [:voice/partial])]
+        [:> px/Text {:text partial-text
+                     :anchor 0
+                     :x 50
+                     :y 150
+                     :style text-style}])
 
-    (for [a (<sub [:game/aircraft])]
-      ^{:key (:callsign a)}
-      [aircraft/entity a])]])
+      [all-aircraft scale-atom]]]))
 
 (defn view []
   ; NOTE: These are ugly hacks because react gets mad on the first render for... some reason.
