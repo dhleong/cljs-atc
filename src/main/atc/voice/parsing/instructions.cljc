@@ -1,4 +1,4 @@
-(ns atc.voice.parsing.instructions 
+(ns atc.voice.parsing.instructions
   (:require
    [atc.voice.parsing.core :refer [declare-alternates]]))
 
@@ -32,4 +32,12 @@
   {:command (fn [callsign & instructions]
               {:callsign (second callsign)
                :instructions instructions})
+
+   :steer (fn [?direction ?heading]
+            (if ?heading
+              [:steer ?heading (case ?direction
+                                 "turn right" :right
+                                 "turn left" :left)]
+              [:steer ?direction]))
+
    :other-position keyword})

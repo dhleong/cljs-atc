@@ -4,6 +4,19 @@
     [atc.engine.config :refer [AircraftConfig]]
     [atc.engine.model :refer [->Vec3 Simulated v+ Vec3 vec3]]))
 
+
+; ======= Instruction dispatch ============================
+
+(defmulti dispatch-instruction (fn [_craft [instruction]] instruction))
+
+(defmethod dispatch-instruction
+  :steer
+  [craft [_ heading steer-direction]]
+  (update craft :commands assoc :heading heading :steer-direction steer-direction))
+
+
+; ======= Physics =========================================
+
 (defn- speed->mps [speed]
   (* 0.514444 speed))
 
@@ -50,6 +63,9 @@
   (cond-> aircraft
     (:heading commands) (apply-steering (:heading commands) dt)))
 
+
+; ======= Main record =====================================
+
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defrecord Aircraft [^AircraftConfig config
                      ^String callsign
@@ -66,7 +82,10 @@
           vx (* raw-speed (cos heading-radians))
           vy (* raw-speed (sin heading-radians))
           velocity-vector (vec3 vx vy 0)]
-      (update this :position v+ velocity-vector))))
+      (update this :position v+ velocity-vector)))
+
+  (command [this instruction]
+    (dispatch-instruction this instruction)))
 
 (defn create [^AircraftConfig config, callsign]
   (map->Aircraft {:config config

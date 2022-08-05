@@ -2,7 +2,7 @@
   (:require
    [atc.db :as db]
    [atc.engine.core :as engine]
-   [atc.engine.model :refer [tick]]
+   [atc.engine.model :as engine-model]
    [re-frame.core :refer [path reg-event-db reg-event-fx trim-v]]))
 
 (reg-event-db
@@ -20,9 +20,10 @@
 
 (reg-event-db
   :game/command
-  [trim-v]
-  (fn [_db [command]]
-    (println "TODO: handle command: " command)))
+  [trim-v (path :engine)]
+  (fn [engine [command]]
+    (println "dispatching command: " command)
+    (engine-model/command engine command)))
 
 (reg-event-fx
   :game/init
@@ -38,7 +39,8 @@
   [(path :engine)]
   (fn [{engine :db} _]
     (when engine
-      (let [updated-engine (tick engine nil)]
+      (let [updated-engine (engine-model/tick engine nil)]
+        ; TODO: Maybe here, dispatch the next queued radio call (if not transmitting)
         {:db updated-engine
          :fx [(when-let [delay-ms (engine/next-tick-delay updated-engine)]
                 [:dispatch-later
@@ -94,7 +96,7 @@
 
 (reg-event-fx
   :voice/set-state
-  [(path :voice) trim-v]
+  [trim-v (path :voice)]
   (fn [{voice :db} [new-state]]
     ; Default to "paused" if we didn't request to start immediately
     (let [will-be-paused? (:paused? voice true)]
