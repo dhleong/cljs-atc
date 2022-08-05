@@ -12,17 +12,38 @@
     (+ h 360)
     (mod h 360)))
 
-(defn- apply-steering [^Aircraft {from :heading :as aircraft} commanded-to dt]
+(defn- heading->radians [heading]
+  ; NOTE: We normalize the angle here such that 0 is "north" on the screen
+  (to-radians (- heading 90)))
+
+(defn shorter-steer-direction [from to]
+  ; With thanks to: https://math.stackexchange.com/a/2898118
+  (let [delta (- (mod (- to from -540)
+                      360)
+                 180)]
+    (if (>= delta 0)
+      :right
+      :left)))
+
+(defn- apply-steering [^Aircraft {from :heading commands :commands :as aircraft}
+                       commanded-to dt]
   (if (= from commanded-to)
     aircraft
 
-    ; TODO turn direction:
-    (let [degrees-per-second (get-in aircraft [:config :turn-rate])
+    ; TODO at slower speeds, small craft might use a turn 2 rate (IE: 2x turn rate)
+    ; TODO similarly, at higher speeds, large craft might use a half turn rate
+    (let [turn-sign (case (or (:steer-direction commands)
+                              (shorter-steer-direction from commanded-to))
+                      :right  1
+                      :left  -1)
+          degrees-per-second (get-in aircraft [:config :turn-rate])
           turn-amount (* degrees-per-second dt)
-          new-heading (normalize-heading (+ from turn-amount))]
-      (if (<= (abs (- new-heading commanded-to))
+          new-heading (normalize-heading (+ from (* turn-sign turn-amount)))]
+      (if (<= (abs (- commanded-to new-heading))
               (* turn-amount 0.5))
-        (assoc aircraft :heading commanded-to) ; close enough; snap to
+        (-> aircraft
+            (assoc :heading commanded-to)  ; close enough; snap to
+            (dissoc :steer-direction))
         (assoc aircraft :heading new-heading)))))
 
 (defn- apply-commanded-inputs [^Aircraft aircraft, commands dt]
@@ -40,9 +61,7 @@
     (let [this (apply-commanded-inputs this commands dt)
           ; TODO: Vertical speed?
           raw-speed (* (speed->mps speed) dt)
-
-          ; NOTE: We normalize the angle here such that 0 is "north" on the screen
-          heading-radians (to-radians (- (:heading this) 90))
+          heading-radians (heading->radians (:heading this))
 
           vx (* raw-speed (cos heading-radians))
           vy (* raw-speed (sin heading-radians))
