@@ -1,8 +1,9 @@
 (ns atc.events
-  (:require [re-frame.core :refer [reg-event-db reg-event-fx
-                                   path
-                                   trim-v]]
-            [atc.db :as db]))
+  (:require
+   [atc.db :as db]
+   [atc.engine.core :as engine]
+   [atc.engine.model :as engine-model]
+   [re-frame.core :refer [path reg-event-db reg-event-fx trim-v]]))
 
 (reg-event-db
   ::initialize-db
@@ -19,9 +20,48 @@
 
 (reg-event-db
   :game/command
+  [trim-v (path :engine)]
+  (fn [engine [command]]
+    (println "dispatching command: " command)
+    (engine-model/command engine command)))
+
+(reg-event-fx
+  :game/init
   [trim-v]
-  (fn [{:keys [_db]} [command]]
-    (println "TODO: handle command: " command)))
+  (fn [{:keys [db]} _]
+    (println "(re) Initialize game engine")
+    (let [new-engine (engine/generate)]
+      {:db (assoc db :engine new-engine)
+       :dispatch [:game/tick]})))
+
+(reg-event-fx
+  :game/tick
+  [(path :engine)]
+  (fn [{engine :db} _]
+    (when engine
+      (let [updated-engine (engine-model/tick engine nil)]
+        ; TODO: Maybe here, dispatch the next queued radio call (if not transmitting)
+        {:db updated-engine
+         :fx [(when-let [delay-ms (engine/next-tick-delay updated-engine)]
+                [:dispatch-later
+                 {:ms delay-ms
+                  :dispatch [:game/tick]}])]}))))
+
+(reg-event-db
+  :game/reset
+  [trim-v]
+  (fn [db _]
+    (println "Clear game engine")
+    (dissoc db :engine)))
+
+(reg-event-fx
+  :game/set-time-scale
+  [trim-v (path :engine)]
+  (fn [{engine :db} [scale]]
+    {:db (cond-> (assoc engine :time-scale scale)
+           (= 0 scale) (assoc :last-tick nil))
+     :fx [(when-not (= 0 scale)
+            [:dispatch [:game/tick]])]}))
 
 (reg-event-fx
   :voice/set-paused
@@ -56,7 +96,7 @@
 
 (reg-event-fx
   :voice/set-state
-  [(path :voice) trim-v]
+  [trim-v (path :voice)]
   (fn [{voice :db} [new-state]]
     ; Default to "paused" if we didn't request to start immediately
     (let [will-be-paused? (:paused? voice true)]
@@ -66,3 +106,6 @@
        :fx [(when (and (= :ready new-state)
                        will-be-paused?)
               [:voice/set-paused true])]})))
+
+(comment
+  (re-frame.core/dispatch [:game/reset]))

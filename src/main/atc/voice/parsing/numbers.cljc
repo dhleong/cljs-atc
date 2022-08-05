@@ -6,13 +6,17 @@
   {"zero" 0
    "one" 1
    "two" 2
+   "to" 2
+   "tree" 3
    "three" 3
    "four" 4
+   "fife" 5
    "five" 5
    "six" 6
    "seven" 7
    "eight" 8
-   "nine" 9})
+   "nine" 9
+   "niner" 9})
 
 (def tens-values
   {"twenty" 20
