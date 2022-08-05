@@ -55,6 +55,7 @@
 
 (defn view []
   ; NOTE: These are ugly hacks because react gets mad on the first render for... some reason.
+  ; See: https://github.com/inlet/react-pixi/issues/337
   (r/with-let [ready? (r/atom false)
                _ (js/setTimeout #(reset! ready? true) 0)]
     (when @ready?

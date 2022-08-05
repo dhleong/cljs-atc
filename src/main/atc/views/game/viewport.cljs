@@ -44,9 +44,7 @@
                          (when-not (or (#{"plugins" "children" "app"} prop)
                                        (= (j/get new-props prop)
                                           (j/get old-props prop)))
-                           (j/assoc! viewport (j/get new-props prop)))))
-
-         :didMount #(println "Mounted viewport")}))
+                           (j/assoc! viewport (j/get new-props prop)))))}))
 
 (defn- viewport-fn [props children]
   (let [app (px/useApp)]
