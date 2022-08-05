@@ -78,10 +78,10 @@
 (reg-event-fx
   ::speech-check-queue
   [trim-v]
-  (fn [{:keys [speech] :as db}]
-    ; TODO: check if mic is active, as well
+  (fn [{{:keys [speech] :as db} :db}]
     (when (and (not (:speaking? speech))
-               (:paused? (:voice db)))
+               (or (:paused? (:voice db))
+                   (nil? (:voice db))))
       (when-let [enqueued (first (:queue speech))]
         {:db (-> db
                  (assoc-in [:speech :speaking?] true)
