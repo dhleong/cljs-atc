@@ -43,7 +43,6 @@
   ; NOTE: These are ugly hacks because react gets mad on the first render for... some reason.
   (r/with-let [ready? (r/atom false)
                _ (js/setTimeout #(reset! ready? true) 0)]
-    (println "mount game")
     (when @ready?
       [:<>
        [game]
