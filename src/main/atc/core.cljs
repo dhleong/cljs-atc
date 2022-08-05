@@ -8,7 +8,8 @@
     [atc.views :as views]
     [atc.fx]
     [atc.styles]
-    [atc.subs]))
+    [atc.subs]
+    [atc.speech :as speech]))
 
 ; (defonce ^:private root (create-react-root
 ;                           (gdom/getElement "app")))
@@ -19,6 +20,7 @@
 
 (defn ^:dev/after-load mount-root []
   (re-frame/clear-subscription-cache!)
+  (speech/init)
   (rdom/render [views/main]
                (gdom/getElement "app")))
 

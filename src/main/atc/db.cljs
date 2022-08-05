@@ -2,5 +2,9 @@
 
 (def default-db
   ; NOTE: default to game, for now
-  {:page [:game]})
+  {:page [:game]
+
+   :speech {:available? nil
+            :speaking? false
+            :queue #queue []}})
 

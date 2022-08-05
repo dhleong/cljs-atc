@@ -1,9 +1,16 @@
 (ns atc.engine.aircraft
   (:require
-    [clojure.math :refer [cos sin to-radians]]
-    [atc.engine.config :refer [AircraftConfig]]
-    [atc.engine.model :refer [->Vec3 Simulated v+ Vec3 vec3]]))
+   [archetype.util :refer [>evt]]
+   [atc.engine.config :refer [AircraftConfig]]
+   [atc.engine.model :refer [->Vec3 Simulated v+ Vec3 vec3]]
+   [atc.engine.pilot :as pilot]
+   [clojure.math :refer [cos sin to-radians]]
+   [clojure.string :as str]))
 
+(defn- radio! [^Aircraft craft message]
+  (>evt [:speech/enqueue {:message message
+                          :from (assoc (:pilot craft)
+                                       :name (:callsign craft))}]))
 
 ; ======= Instruction dispatch ============================
 
@@ -12,6 +19,19 @@
 (defmethod dispatch-instruction
   :steer
   [craft [_ heading steer-direction]]
+  (let [heading-str (-> heading
+                        (str)
+                        (str/split #"")
+                        (next)
+                        (as-> numbers
+                          ; TODO 9 -> niner, etc.
+                          (str/join " " numbers)))]
+    ; TODO We need to a "human readable" string for viewing history (probably)
+    ; and a speech-friendly string---for which we need the original
+    ; airline/aircraft type and not the raw callsign
+    (radio! craft (str (when steer-direction (name steer-direction))
+                       " "
+                       heading-str ", " (:callsign craft))))
   (update craft :commands assoc :heading heading :steer-direction steer-direction))
 
 
@@ -68,7 +88,7 @@
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defrecord Aircraft [^AircraftConfig config
-                     ^String callsign
+                     ^String callsign pilot
                      state
                      ^Vec3 position heading speed
                      commands]
@@ -91,6 +111,7 @@
   (map->Aircraft {:config config
                   :callsign callsign
                   :state :flight
+                  :pilot (pilot/generate nil) ; TODO Pass in a preferred voice
                   :position (->Vec3 250 250 20000)
                   :heading 350
                   :speed 10
