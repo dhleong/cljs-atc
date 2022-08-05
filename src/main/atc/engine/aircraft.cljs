@@ -24,11 +24,14 @@
                         (str/split #"")
                         (next)
                         (as-> numbers
+                          ; TODO 9 -> niner, etc.
                           (str/join " " numbers)))]
     ; TODO We need to a "human readable" string for viewing history (probably)
     ; and a speech-friendly string---for which we need the original
     ; airline/aircraft type and not the raw callsign
-    (radio! craft (str heading-str ", " (:callsign craft))))
+    (radio! craft (str (when steer-direction (name steer-direction))
+                       " "
+                       heading-str ", " (:callsign craft))))
   (update craft :commands assoc :heading heading :steer-direction steer-direction))
 
 

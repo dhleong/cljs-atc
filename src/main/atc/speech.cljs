@@ -13,6 +13,8 @@
                ::instance instance}))
        (filterv #(str/starts-with? (:lang %) "en"))))
 
+(def ^:private state (atom {:active nil}))
+
 ; NOTE: We shouldn't need this ultimately, but it'll be convenient for now...
 (def ^:private shared-voices
   (delay
@@ -30,11 +32,15 @@
              :or {rate 1 pitch 1}}]
   (p/create
     (fn [p-resolve p-reject]
-      (js/window.speechSynthesis.speak
-        (doto (js/SpeechSynthesisUtterance. message)
-          (j/assoc! :rate rate)
-          (j/assoc! :pitch pitch)
-          (j/assoc! :voice (::instance voice voice))
+      (let [clear-active #(swap! state dissoc :active)
+            utt (doto (js/SpeechSynthesisUtterance. message)
+                  (j/assoc! :rate rate)
+                  (j/assoc! :pitch pitch)
+                  (j/assoc! :voice (::instance voice voice))
 
-          (.addEventListener "end" p-resolve)
-          (.addEventListener "error" p-reject))))))
+                  (.addEventListener "end" (comp p-resolve clear-active))
+                  (.addEventListener "error" (comp p-reject clear-active)))]
+        ; NOTE: We stash the utterance in some state to avoid it getting GC'd before
+        ; it completes (which could result in listeners not firing)
+        (swap! state assoc :active utt)
+        (js/window.speechSynthesis.speak utt)))))
