@@ -2,8 +2,10 @@
   (:require
    [archetype.nav :as nav]
    [archetype.util :refer [>evt]]
+   [atc.speech :as speech]
    [atc.voice.core :as voice]
    [atc.voice.process :refer [find-command]]
+   [promesa.core :as p]
    [re-frame.core :refer [reg-fx]]))
 
 ; This effect is unused... for now (and that's okay)
@@ -11,6 +13,9 @@
 (reg-fx
   :nav/replace!
   nav/replace!)
+
+
+; ======= Voice input =====================================
 
 (def voice-client (atom nil))
 
@@ -53,6 +58,16 @@
   (fn [input]
     (when-let [cmd (find-command input)]
       (>evt [:game/command cmd]))))
+
+
+; ======= Speech Output ===================================
+
+(reg-fx
+  :speech/say
+  (fn [{:keys [message on-complete] :as opts}]
+    (-> (speech/say! opts)
+        (p/catch (fn [e] (println "Failed to speak `" message "`: " e)))
+        (p/finally on-complete))))
 
 (comment
   (>evt [:voice/start!])

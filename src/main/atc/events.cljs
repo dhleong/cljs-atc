@@ -63,6 +63,36 @@
      :fx [(when-not (= 0 scale)
             [:dispatch [:game/tick]])]}))
 
+
+; ======= Speech synthesis ================================
+
+(reg-event-fx
+  :speech/enqueue
+  [trim-v (path :speech)]
+  (fn [_speech [{:keys [from message] :as obj}]]
+    (println "enqueue: " obj)
+    ; TODO: enqueue, check if mic is active, etc.
+    {:speech/say {:message message
+                  :voice (:voice from)
+
+                  ; TODO track "speaking" state
+                  :on-complete println}}))
+
+(reg-event-db
+  :speech/unavailable
+  [(path :speech)]
+  (fn [speech _]
+    (assoc speech :available? false)))
+
+(reg-event-db
+  :speech/on-voices-changed
+  [trim-v (path :speech)]
+  (fn [speech [voices]]
+    (assoc speech :voices voices :available? true)))
+
+
+; ======= Voice input =====================================
+
 (reg-event-fx
   :voice/set-paused
   [trim-v (path :voice)]
