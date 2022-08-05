@@ -10,6 +10,9 @@
    [reagent.core :as r]
    [spade.core :refer [defattrs]]))
 
+; Basically a 3x a ~100 km CTR controller's radius, I guess
+(def default-world-dimension (* 2 3 100 1000))
+
 (def text-style (TextStyle. #js {:fill "#ffffff"}))
 
 (defattrs game-controls-container-attrs []
@@ -29,8 +32,11 @@
   (r/with-let [scale-atom (r/atom 1)
                set-scale! (partial reset! scale-atom)]
     [stage
+     ; NOTE: The max world size should *maybe* be based on the airport?
      [viewport {:plugins ["drag" "pinch" "wheel"]
-                :on-scale set-scale!}
+                :on-scale set-scale!
+                :world-width default-world-dimension
+                :world-height default-world-dimension}
       (let [voice-state (<sub [:voice/state])]
         [:> px/Text {:text (or voice-state "Hey")
                      :anchor 0

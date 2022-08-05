@@ -8,22 +8,29 @@
   (px/PixiComponent
     "Viewport"
     #js {:create (j/fn [^:js {:keys [app plugins] :as js-props}]
-                   ; TODO: pull other viewport props from js-props
-                   (let [viewport (Viewport.
-                                    #js {:ticker (j/get app :ticker)
-                                         :interaction (j/get-in app [:renderer :plugins :interaction])})
+                   (let [options (-> (js/Object.assign
+                                       #js {:ticker (j/get app :ticker)
+                                            :interaction (j/get-in app [:renderer :plugins :interaction])}
+                                       js-props)
 
-                         ; NOTE: reagent is "helpfully" converting to camel case here:
-                         on-scale (j/get js-props :onScale)
+                                     ; NBD but we don't have a better way to remove these
+                                     (j/assoc! :children js/undefined)
+                                     (j/assoc! :app js/undefined))
+
+                         viewport (Viewport. options)
 
                          render! (fn []
-                                   (when on-scale
+                                   (when-let [on-scale (j/get viewport :onScale)]
                                      (on-scale (j/get viewport :scaled)))
                                    (j/call-in app [:renderer :render] (j/get app :stage)))]
 
-                     ; enable plugins
+                     ; Enable plugins
                      (doseq [plugin plugins]
                        (j/call viewport plugin))
+
+                     ; Stash this for use in the above callback:
+                     ; NOTE: reagent "helpfully" converts to camel case here:
+                     (j/assoc! viewport :onScale (j/get js-props :onScale))
 
                      ; Ensure render on move
                      ; FIXME: moved doesn't seem to be emitted on drag...
@@ -32,9 +39,12 @@
 
                      viewport))
 
-         :applyProps (fn [_viewport _old-props _new-props]
-                       ; TODO remove plugins, children; set changed props on viewport instance
-                       #_(let [old-]))
+         :applyProps (fn [viewport old-props new-props]
+                       (doseq [prop (js/Object.keys new-props)]
+                         (when-not (or (#{"plugins" "children" "app"} prop)
+                                       (= (j/get new-props prop)
+                                          (j/get old-props prop)))
+                           (j/assoc! viewport (j/get new-props prop)))))
 
          :didMount #(println "Mounted viewport")}))
 
