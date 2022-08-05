@@ -21,6 +21,7 @@
                                (assoc m callsign (tick aircraft dt)))
                              {}
                              aircraft)]
+
       (assoc this
              :aircraft updated-aircraft
              :last-tick (when-not (= 0 time-scale)
@@ -31,6 +32,11 @@
     (* 250 (/ 1 (:time-scale engine)))))
 
 (defn generate []
-  (-> {:aircraft {"DAL22" (aircraft/create configs/common-jet "DAL22")}
-       :time-scale 1}
-      (map->Engine)))
+  (let [aircraft [["DAL22" configs/common-jet]]]
+    (-> {:aircraft (reduce
+                     (fn [m [callsign config]]
+                       (assoc m callsign (aircraft/create config callsign)))
+                     {}
+                     aircraft)
+         :time-scale 1}
+        (map->Engine))))
