@@ -3,7 +3,7 @@
    [atc.db :as db]
    [atc.engine.core :as engine]
    [atc.engine.model :as engine-model]
-   [re-frame.core :refer [path reg-event-db reg-event-fx trim-v]]))
+   [re-frame.core :refer [dispatch path reg-event-db reg-event-fx trim-v]]))
 
 (reg-event-db
   ::initialize-db
@@ -69,14 +69,35 @@
 (reg-event-fx
   :speech/enqueue
   [trim-v (path :speech)]
-  (fn [_speech [{:keys [from message] :as obj}]]
+  (fn [{speech :db} [{:keys [from message] :as obj}]]
     (println "enqueue: " obj)
-    ; TODO: enqueue, check if mic is active, etc.
-    {:speech/say {:message message
-                  :voice (:voice from)
+    {:db (update speech :queue conj {:message message
+                                     :voice (:voice from)})
+     :dispatch [::speech-check-queue]}))
 
-                  ; TODO track "speaking" state
-                  :on-complete println}}))
+(reg-event-fx
+  ::speech-check-queue
+  [trim-v]
+  (fn [{:keys [speech] :as db}]
+    ; TODO: check if mic is active, as well
+    (when (and (not (:speaking? speech))
+               (:paused? (:voice db)))
+      (when-let [enqueued (first (:queue speech))]
+        {:db (-> db
+                 (assoc-in [:speech :speaking?] true)
+                 (update-in [:speech :queue] pop))
+         :speech/say (assoc enqueued :on-complete #(dispatch [::speech-utterance-complete]))}))))
+
+(def delay-between-enqueued-radio-ms 1250)
+
+(reg-event-fx
+  ::speech-utterance-complete
+  [trim-v (path :speech)]
+  (fn [{speech :db}]
+    {:db (assoc speech :speaking? false)
+     :dispatch-later {:dispatch [::speech-check-queue]
+                      ; TODO Perhaps, randomize this a bit:
+                      :ms delay-between-enqueued-radio-ms}}))
 
 (reg-event-db
   :speech/unavailable
@@ -98,7 +119,8 @@
   [trim-v (path :voice)]
   (fn [{voice :db} [paused?]]
     {:voice/set-paused paused?
-     :db (assoc voice :paused? paused?)}))
+     :db (assoc voice :paused? paused?)
+     :dispatch [::speech-check-queue]}))
 
 (reg-event-fx
   :voice/start!
@@ -138,4 +160,4 @@
               [:voice/set-paused true])]})))
 
 (comment
-  (re-frame.core/dispatch [:game/reset]))
+  (dispatch [:game/reset]))
