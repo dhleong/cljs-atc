@@ -11,6 +11,8 @@
       #(>evt [:voice/disable-keypresses])))
 
   [:<>
+   [:button {:on-click #(>evt [:voice/stop!])}
+    "Disable Mic"]
    [:button {:on-mouse-down #(>evt [:voice/set-paused false])
              :on-mouse-up #(>evt [:voice/set-paused true])}
     "MIC (hold this or space)"]
