@@ -41,7 +41,11 @@
     ; NOTE: The Engine actually receives a full Command object so we know where
     ; to dispatch it and to whom.
     (let [{:keys [callsign instructions]} command]
-      (update-in this [:aircraft callsign] dispatch-instructions instructions))))
+      (if (some? (get-in this [:aircraft callsign]))
+        (update-in this [:aircraft callsign] dispatch-instructions instructions)
+
+        ; There is no ~~spoon~~such aircraft:
+        this))))
 
 (defn next-tick-delay [^Engine engine]
   (when-not (= 0 (:time-scale engine))
