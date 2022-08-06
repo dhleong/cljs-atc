@@ -36,6 +36,9 @@
 (defn find-command [input]
   (let [output (->> input
                     (parse-input)
+
+                    ; NOTE: clj-kondo seems confused but this fn definitely exists!
+                    #_{:clj-kondo/ignore [:unresolved-var]}
                     (insta/transform @transformers))]
     (if (insta/failure? output)
       (let [failure (insta/get-failure output)
