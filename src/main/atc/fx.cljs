@@ -70,6 +70,7 @@
         (p/finally on-complete))))
 
 (comment
+  (>evt [:voice/set-paused false])
   (>evt [:voice/start!])
   (>evt [:voice/start! {:use-grammar? true}])
   (>evt [:voice/stop!]))

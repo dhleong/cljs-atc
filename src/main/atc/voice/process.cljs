@@ -30,6 +30,9 @@
 (defn- parse-input [input]
   (insta/parse @fsm input :total true))
 
+(defn grammar []
+  (:grammar @fsm))
+
 (defn find-command [input]
   (let [output (->> input
                     (parse-input)
