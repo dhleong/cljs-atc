@@ -3,6 +3,7 @@
    ["readable-stream" :refer [Duplex]]
    ["vosk-browser" :as Vosk]
    [applied-science.js-interop :as j]
+   [atc.config :as config]
    [atc.voice.const :as const]
    [atc.voice.grammar :as grammar]
    [promesa.core :as p]))
@@ -10,7 +11,7 @@
 (defonce ^:private shared-model
   (delay
     (p/let [start (js/Date.now)
-            model (Vosk/createModel "voice-model.tar.gz")]
+            model (Vosk/createModel (str config/server-root "voice-model.tar.gz"))]
       (println "Loaded model in " (- (js/Date.now) start) "ms")
       model)))
 

@@ -52,7 +52,7 @@ jobs:
 
     - name: Build for Deploy
       if: github.ref == 'refs/heads/main'
-      run: yarn build
+      run: yarn build:gh-pages
 
     - name: Deploy
       if: github.ref == 'refs/heads/main'
