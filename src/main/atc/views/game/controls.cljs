@@ -30,17 +30,20 @@
    :flex-direction :row})
 
 (defn game-controls []
-  [:div (game-controls-attrs)
-    [:button {:on-click #(>evt [:game/init])}
-     "Init Game"]
-    [:button {:on-click #(>evt [:game/reset])}
-     "End Game"]
+  (let [time-scale (<sub [:game/time-scale])
+        game-running? (some? time-scale)]
+    [:div (game-controls-attrs)
+     (if game-running?
+       [:button {:on-click #(>evt [:game/reset])}
+        "End Game"]
+       [:button {:on-click #(>evt [:game/init])}
+        "Init Game"])
 
-    (when-let [time-scale (<sub [:game/time-scale])]
-      (if (= 0 time-scale)
-        [:button {:on-click #(>evt [:game/set-time-scale 1])}
-         "Resume"]
-        [:button {:on-click #(>evt [:game/set-time-scale 0])}
-         "Pause"]))
+     (when game-running?
+       (if (= 0 time-scale)
+         [:button {:on-click #(>evt [:game/set-time-scale 1])}
+          "Resume"]
+         [:button {:on-click #(>evt [:game/set-time-scale 0])}
+          "Pause"]))
 
-    [voice-controls]])
+     [voice-controls]]))
