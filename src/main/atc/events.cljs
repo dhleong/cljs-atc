@@ -22,8 +22,9 @@
   :game/command
   [trim-v (path :engine)]
   (fn [engine [command]]
-    (println "dispatching command: " command)
-    (engine-model/command engine command)))
+    (when engine
+      (println "dispatching command: " command)
+      (engine-model/command engine command))))
 
 (reg-event-fx
   :game/init
@@ -144,6 +145,7 @@
   :voice/on-result
   [trim-v]
   (fn [_ [result]]
+    (println "voice/on-result" result)
     {:voice/process result}))
 
 (reg-event-fx

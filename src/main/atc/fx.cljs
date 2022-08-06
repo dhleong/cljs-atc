@@ -71,6 +71,7 @@
 
 (comment
   (>evt [:voice/set-paused false])
+  (>evt [:voice/set-paused true])
   (>evt [:voice/start!])
   (>evt [:voice/start! {:use-grammar? true}])
   (>evt [:voice/stop!]))

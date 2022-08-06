@@ -24,7 +24,9 @@
   (.on (::recognizer @client) "partialresult" callback))
 
 (defn on-result! [client callback]
-  (.on (::recognizer @client) "result" callback))
+  (.on (::recognizer @client) "result"
+       (j/fn [ev]
+         (callback (j/get-in ev [:result :text])))))
 
 (defn stream [client]
   (Duplex.
