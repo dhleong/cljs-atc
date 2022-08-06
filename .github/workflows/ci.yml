@@ -1,0 +1,62 @@
+name: Continuous Integration
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node_version: [12]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Setup Clojure
+      uses: DeLaGuardo/setup-clojure@3.0
+      with:
+        cli: '1.10.1.469'
+
+    - name: Clojure dependency cache
+      uses: actions/cache@v2
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('shadow-cljs.edn') }}
+        restore-keys: |
+          ${{ runner.os }}-m2-
+    - name: Node dependency cache
+      uses: actions/cache@v2
+      with:
+        path: '**/node_modules'
+        key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install dependencies
+      run: yarn
+
+    - name: Start shadow server
+      run: yarn start
+
+    - name: Verify Lint
+      run: yarn lint
+
+    - name: Verify Tests
+      run: yarn test
+
+    - name: Build for Deploy
+      if: github.ref == 'refs/heads/main'
+      run: yarn build
+
+    - name: Deploy
+      if: github.ref == 'refs/heads/main'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./resources/public
