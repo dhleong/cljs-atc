@@ -28,6 +28,7 @@
         "lint:init": "clojure -Sdeps '{:deps {clj-kondo/clj-kondo {:mvn/version \"RELEASE\"}}}' -M -m clj-kondo.main --lint \"$(shadow-cljs classpath)\" --config .clj-kondo/config.edn",
         "build": "shadow-cljs release :app",
         "dev": "shadow-cljs start && shadow-cljs watch :app",
+        "start": "shadow-cljs start",
         "stop": "shadow-cljs stop",
         "test": "shadow-cljs compile ci && karma start --single-run"
     },
