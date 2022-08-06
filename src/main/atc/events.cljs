@@ -123,6 +123,12 @@
      :db (assoc voice :paused? paused?)
      :dispatch [::speech-check-queue]}))
 
+(reg-event-db
+  :voice/busy
+  [trim-v (path :voice)]
+  (fn [voice [busy?]]
+    (assoc voice :busy? busy?)))
+
 (def default-voice-opts {:use-grammar? true})
 
 (reg-event-fx

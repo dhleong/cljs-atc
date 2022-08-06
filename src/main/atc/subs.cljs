@@ -17,7 +17,9 @@
   :voice/state
   :<- [::voice]
   (fn [voice]
-    (:state voice)))
+    (if (:busy? voice)
+      :busy
+      (:state voice))))
 
 
 ; ======= Game state ======================================

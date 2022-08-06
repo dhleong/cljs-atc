@@ -17,7 +17,7 @@
 
 ; ======= Voice input =====================================
 
-(def voice-client (atom nil))
+(defonce voice-client (atom nil))
 
 (reg-fx
   :voice/stop!
@@ -56,6 +56,7 @@
 (reg-fx
   :voice/process
   (fn [input]
+    (println "Processing: " input)
     (when-let [cmd (find-command input)]
       (>evt [:game/command cmd]))))
 
