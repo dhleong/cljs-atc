@@ -22,7 +22,8 @@
       nil [:button {:on-click #(>evt [:voice/start!])}
            "Enable Microphone"]
       :ready [:f> voice-controls-active]
-      [:div (name state)])))
+      [:button {:disabled true}
+       "(" (name state) ")"])))
 
 (defattrs game-controls-attrs []
   {:display :flex
