@@ -29,12 +29,30 @@
                         (assoc state :recording? true))
                     state))))
 
+(defn- terminate! [state]
+  (p/do!
+    ; NOTE: It's not entirely clear why, but we need to *manually* suspend the
+    ; AudioContext and stop the mic track...
+    (j/call-in (::stream state) [:context :suspend])
+    (-> (::media state) (.getTracks) (aget 0) (.stop))
+
+    ; ... then *wait a frame*...
+    (p/delay 0)
+
+    ; ... before proceeding with the normal MicrophoneStream cleanup, in order to
+    ; avoid Safari continuing to badge our tab as "producing audio." The "recording audio"
+    ; indicator would be gone in this situation, at least.... But with this hack, at last
+    ; no indicator remains!
+    (.stop (::stream state))
+
+    (println "Stopped recording")))
+
 (defn stop! [client]
   (swap! client (fn [state]
                   (if-not (:stopped? state)
-                    (do (.stop (::stream state))
-                        (println "Stopped recording")
-                        (assoc state :recording? false :stopped? true))
+                    (do
+                      (terminate! state)
+                      (assoc state :recording? false :stopped? true))
                     state))))
 
 (defn create []
