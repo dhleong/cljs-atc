@@ -2,6 +2,7 @@
   (:require
    [atc.voice.parsing.callsigns :as callsigns]
    [atc.voice.parsing.instructions :as instructions]
+   [atc.voice.parsing.letters :as letters]
    [atc.voice.parsing.numbers :as numbers]
    [clojure.string :as str]
    [instaparse.core :as insta]))
@@ -16,6 +17,7 @@
         (str/join "\n"
                   (concat
                     instructions/rules
+                    letters/rules
                     callsigns/rules
                     numbers/rules))
         :auto-whitespace :standard))))
@@ -24,6 +26,7 @@
   (delay
     (merge
       instructions/transformers
+      letters/transformers
       numbers/transformers
       callsigns/transformers)))
 

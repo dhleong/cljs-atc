@@ -10,9 +10,9 @@
   ["piper"])
 
 (def rules
-  ["callsign = airline-callsign | civil-callsign"
+  ["callsign = airline-callsign | ga-callsign"
    "airline-callsign = airline-names number-sequence"
-   "civil-callsign = <('november' | plane-type)> number-sequence" ; TODO letter
+   "ga-callsign = <('november' | plane-type)> number-sequence (letter-sequence)?"
    (declare-alternates "<plane-type>" plane-types)
    (declare-alternates "airline-names" (keys airlines))])
 
@@ -20,5 +20,12 @@
   {:airline-names airlines
    :airline-callsign (fn [airline numbers]
                        (apply str airline numbers))
-   :civil-callsign (fn [numbers] ; TODO letter
-                     (apply str "N" numbers))})
+
+   :ga-callsign (fn [numbers letters]
+                  ; NOTE: per the FAA this *should* be:
+                  ; N + 5 numbers,
+                  ; N + 4 numbers and a letter, or
+                  ; N + 3 numbers + 2 letters, AND
+                  ; the first number must not be 0 AND
+                  ; letters O and I should not be used
+                  (apply str "N" (concat numbers letters)))})

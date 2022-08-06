@@ -13,6 +13,11 @@
             :instructions [[:standby]]}
            (find-command "piper one standby"))))
 
+  (testing "General Aviation callsigns"
+    (is (= "N827DJ"
+           (:callsign
+             (find-command "piper eight two seven delta juliet standby")))))
+
   (testing "Airline callsigns"
     (is (= "BAW4251"
            (:callsign
