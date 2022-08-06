@@ -16,7 +16,10 @@
   (testing "Airline callsigns"
     (is (= "BAW4251"
            (:callsign
-             (find-command "speed bird fourty two fifty one standby")))))
+             (find-command "speed bird fourty two fifty one standby"))))
+    (is (= "BAW112"
+           (:callsign
+             (find-command "speed bird one twelve standby")))))
 
    (testing "Multiple instructions"
     (is (= {:callsign "N2"

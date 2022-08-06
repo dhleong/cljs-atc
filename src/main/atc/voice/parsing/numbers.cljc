@@ -6,7 +6,6 @@
   {"zero" 0
    "one" 1
    "two" 2
-   "to" 2
    "tree" 3
    "three" 3
    "four" 4
@@ -17,6 +16,17 @@
    "eight" 8
    "nine" 9
    "niner" 9})
+
+(def teens-values
+  {"eleven" 11
+   "twelve" 12
+   "thirteen" 13
+   "fourteen" 14
+   "fifteen" 15
+   "sixteen" 16
+   "seventeen" 17
+   "eighteen" 18
+   "nineteen" 19})
 
 (def tens-values
   {"twenty" 20
@@ -40,9 +50,10 @@
    "number-sequence = number+"
    "number = digit | double-digit"
    "digit-sequence = digit+"
-   "double-digit = tens-value digit"
+   "double-digit = (tens-value digit) | teens-value"
    (declare-alternates "digit" (keys digit-values))
    (declare-alternates "tens-value" (keys tens-values))
+   (declare-alternates "teens-value" (keys teens-values))
    ])
 
 (defn digits->number [digits]
@@ -59,8 +70,11 @@
 (def transformers
   {:digit digit-values
    :tens-value tens-values
+   :teens-value teens-values
    :double-digit (fn [tens ones]
-                   (+ tens ones))
+                   (if (some? ones)
+                     (+ tens ones)
+                     tens))
    :number identity
    :number-sequence (fn [& values] values)
 
