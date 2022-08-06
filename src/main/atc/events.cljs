@@ -123,11 +123,13 @@
      :db (assoc voice :paused? paused?)
      :dispatch [::speech-check-queue]}))
 
+(def default-voice-opts {:use-grammar? true})
+
 (reg-event-fx
   :voice/start!
   [trim-v]
   (fn [_ [?opts]]
-    {:voice/start! ?opts}))
+    {:voice/start! (merge default-voice-opts ?opts)}))
 
 (reg-event-fx
   :voice/stop!
