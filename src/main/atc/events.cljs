@@ -3,7 +3,9 @@
    [atc.db :as db]
    [atc.engine.core :as engine]
    [atc.engine.model :as engine-model]
-   [re-frame.core :refer [dispatch path reg-event-db reg-event-fx trim-v]]))
+   [goog.events.KeyCodes :as KeyCodes]
+   [re-frame.core :refer [dispatch path reg-event-db reg-event-fx trim-v]]
+   [re-pressed.core :as rp]))
 
 (reg-event-db
   ::initialize-db
@@ -128,6 +130,25 @@
   [trim-v (path :voice)]
   (fn [voice [busy?]]
     (assoc voice :busy? busy?)))
+
+(reg-event-fx
+  :voice/enable-keypresses
+  (fn []
+    {:dispatch-n [[::rp/set-keydown-rules
+                   {:event-keys [[[:voice/set-paused false]
+                                  [{:keyCode KeyCodes/SPACE}]]]}]
+                  [::rp/set-keyup-rules
+                   {:event-keys [[[:voice/set-paused true]
+                                  [{:keyCode KeyCodes/SPACE}]]]}]]}))
+
+(reg-event-fx
+  :voice/disable-keypresses
+  (fn []
+    {:dispatch-n [[::rp/set-keydown-rules
+                   {:event-keys []}]
+                  [::rp/set-keyup-rules
+                   {:event-keys []}]]}))
+
 
 (def default-voice-opts {:use-grammar? true})
 

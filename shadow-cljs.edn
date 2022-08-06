@@ -13,6 +13,7 @@
 
                 ; input processing
                 [instaparse "1.4.12"]
+                [re-pressed "0.3.2"]
 
                 ; util:
                 [applied-science/js-interop "0.2.7"]
