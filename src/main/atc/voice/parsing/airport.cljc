@@ -8,5 +8,5 @@
                                      (assoc m pronunciation id))
                                    {}
                                    (:navaids airport))]
-    {:rules [(declare-alternates "navaids" (map :pronunciation (:navaids airport)))]
-     :instructions {:navaids navaids-by-pronunciation}}))
+    {:rules [(declare-alternates "navaid" (map :pronunciation (:navaids airport)))]
+     :transformers {:navaid navaids-by-pronunciation}}))

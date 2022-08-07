@@ -8,6 +8,7 @@
    [clojure.string :as str]))
 
 (defn- radio! [^Aircraft craft message]
+  ; FIXME: We need to coalesce acks for all instructions into a single message...
   (>evt [:speech/enqueue {:message message
                           :from (assoc (:pilot craft)
                                        :name (:callsign craft))}]))
@@ -34,6 +35,18 @@
                        heading-str ", " (:callsign craft))))
   (update craft :commands assoc :heading heading :steer-direction steer-direction))
 
+(defmethod dispatch-instruction
+  :direct
+  [craft [_ fix-id]]
+  ; TODO We need to get the fix location out of the engine
+  (radio! craft (str "direct " fix-id ", " (:callsign craft)))
+  craft)
+
+(defmethod dispatch-instruction
+  :default
+  [craft [instruction]]
+  (println "TODO: Unhandled craft instruction: " instruction)
+  craft)
 
 ; ======= Physics =========================================
 

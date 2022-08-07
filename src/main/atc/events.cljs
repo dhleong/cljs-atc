@@ -3,7 +3,7 @@
    [atc.data.airports.kjfk :as kjfk]
    [atc.data.core :refer [local-xy]]
    [atc.db :as db]
-   [atc.engine.core :as engine :refer [engine-grammar]]
+   [atc.engine.core :as engine]
    [atc.engine.model :as engine-model]
    [goog.events.KeyCodes :as KeyCodes]
    [re-frame.core :refer [dispatch path reg-event-db reg-event-fx trim-v]]
@@ -182,7 +182,7 @@
   [trim-v]
   (fn [{:keys [db]} [result]]
     (println "voice/on-result" result)
-    {:voice/process {:machine (engine-grammar (:engine db))
+    {:voice/process {:machine (:parsing-machine (:engine db))
                      :input result}}))
 
 (reg-event-fx
