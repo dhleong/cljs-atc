@@ -50,7 +50,6 @@
   (fn [{engine :db} _]
     (when engine
       (let [updated-engine (engine-model/tick engine nil)]
-        ; TODO: Maybe here, dispatch the next queued radio call (if not transmitting)
         {:db updated-engine
          :fx [(when-let [delay-ms (engine/next-tick-delay updated-engine)]
                 [:dispatch-later
