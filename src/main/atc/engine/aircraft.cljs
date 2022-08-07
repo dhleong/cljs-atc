@@ -15,11 +15,11 @@
 
 ; ======= Instruction dispatch ============================
 
-(defmulti dispatch-instruction (fn [_craft [instruction]] instruction))
+(defmulti dispatch-instruction (fn [_craft _context [instruction]] instruction))
 
 (defmethod dispatch-instruction
   :steer
-  [craft [_ heading steer-direction]]
+  [craft _ [_ heading steer-direction]]
   (let [heading-str (-> heading
                         (str)
                         (str/split #"")
@@ -37,14 +37,19 @@
 
 (defmethod dispatch-instruction
   :direct
-  [craft [_ fix-id]]
-  ; TODO We need to get the fix location out of the engine
-  (radio! craft (str "direct " fix-id ", " (:callsign craft)))
+  [craft context [_ fix-id]]
+  (if-let [fix (get-in context [:airport :navaids-by-id fix-id])]
+    (let [position (:position fix)]
+      (println "TODO: nav toward" position)
+      (radio! craft (str "direct " (:pronunciation fix) ", " (:callsign craft))))
+
+    ; TODO: Handle GA aircraft without the fix
+    (radio! craft (str "Unable; I don't know where that is," (:callsign craft))))
   craft)
 
 (defmethod dispatch-instruction
   :default
-  [craft [instruction]]
+  [craft _context [instruction]]
   (println "TODO: Unhandled craft instruction: " instruction)
   craft)
 
@@ -118,7 +123,7 @@
       (update this :position v+ velocity-vector)))
 
   (command [this instruction]
-    (dispatch-instruction this instruction)))
+    (dispatch-instruction this (:context (meta instruction)) instruction)))
 
 (defn create [^AircraftConfig config, callsign]
   (map->Aircraft {:config config
