@@ -11,8 +11,7 @@
    [spade.core :refer [defattrs]]))
 
 ; Basically a 3x a ~100 km CTR controller's radius, I guess
-; (temporarily smaller for visibility)
-(def default-world-dimension (* 3 2 1000))
+(def default-world-dimension (* 3 100 1000))
 
 (defattrs game-controls-container-attrs []
   {:position :absolute

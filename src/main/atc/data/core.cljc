@@ -1,21 +1,21 @@
 (ns atc.data.core
   (:require
-   [clojure.math :refer [atan2 cos PI pow sin sqrt]]
+   [clojure.math :refer [atan2 cos pow sin sqrt to-radians]]
    [clojure.string :as str]))
 
-(def deg->rad
-  #?(:clj Math/toRadians
-     :cljs (partial * (/ js/Math.PI 180)))
-  )
+(def ^:private deg->rad to-radians)
 
 (defprotocol Angle
-  (coord-decimal [this])
-  (coord-radians [this]))
+  (coord-degrees [this]))
 
 (defprotocol Coordinate
   (latlng [this] "Unpack this as a vector of lat, lng")
   (local-xy [this reference]
             "`reference` must also be a Coordinate of Angles"))
+
+(defn- latlng-degrees [^Coordinate coord]
+  (let [[lat lng] (latlng coord)]
+    [(coord-degrees lat) (coord-degrees lng)]))
 
 (defn- ->float [^String v]
   #?(:clj (Double/parseDouble v)
@@ -24,12 +24,11 @@
 (extend-protocol Angle
   #?(:clj java.lang.Number
      :cljs number)
-  (coord-decimal [this] this)
-  (coord-radians [this] (deg->rad this))
+  (coord-degrees [this] this)
 
   #?(:clj clojure.lang.Keyword
       :cljs cljs.core/Keyword)
-  (coord-decimal [this]
+  (coord-degrees [this]
     ; eg: :N42*10'32 or :N42.12345
     (when-let [match (str/split (name this) #"[nsewNSEW*']")]
       (let [[_ d m s] match
@@ -38,33 +37,29 @@
                    (\s \S \w \W) -1)
             m (when m (/ (->float m) 60))
             s (when s (/ (->float s) 3600))]
-        (* sign (+ (->float d) m s)))))
-  (coord-radians [this]
-    (deg->rad (coord-decimal this))))
+        (* sign (+ (->float d) m s))))))
 
 (def ^:private earth-radius-m 6371000)
 
 (defn coord-distance
   "Returns the distance in meters from `from` to `to`, via the Haversine formula"
   [^Coordinate from ^Coordinate to]
-  (let [[flat flng] (latlng from)
-        [tlat tlng] (latlng to)
+  (let [[flat flng] (latlng-degrees from)
+        [tlat tlng] (latlng-degrees to)
 
-        flat (coord-radians flat)
-        flng (coord-radians flng)
-        tlat (coord-radians tlat)
-        tlng (coord-radians tlng)
+        flat-radians (deg->rad flat)
+        tlat-radians (deg->rad tlat)
         dlat (deg->rad (- flat tlat))
         dlng (deg->rad (- flng tlng))
 
         a (+ (pow (sin (/ dlat 2)) 2.)
-             (* (cos flat) (cos tlat)
+             (* (cos flat-radians) (cos tlat-radians)
                 (pow (sin (/ dlng 2)) 2.)))
 
         angular-radians (atan2
                           (sqrt a)
                           (sqrt (- 1 a)))]
-    (* angular-radians 2 PI earth-radius-m)))
+    (* angular-radians 2 earth-radius-m)))
 
 (defn- adjust-by-magnetic-north [x y magnetic-north]
   ; FIXME openscope adds magnetic north; why is this flipped?
