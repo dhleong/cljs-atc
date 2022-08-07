@@ -3,7 +3,7 @@
    [atc.data.airports.kjfk :as kjfk]
    [atc.data.core :refer [local-xy]]
    [atc.db :as db]
-   [atc.engine.core :as engine]
+   [atc.engine.core :as engine :refer [engine-grammar]]
    [atc.engine.model :as engine-model]
    [goog.events.KeyCodes :as KeyCodes]
    [re-frame.core :refer [dispatch path reg-event-db reg-event-fx trim-v]]
@@ -156,13 +156,14 @@
                    {:event-keys []}]]}))
 
 
-(def default-voice-opts {:use-grammar? true})
-
 (reg-event-fx
   :voice/start!
   [trim-v]
-  (fn [_ [?opts]]
-    {:voice/start! (merge default-voice-opts ?opts)}))
+  (fn [{:keys [db]} [?opts]]
+    (when-not (:engine db)
+      (println "WARNING: Initializing voice without a game engine"))
+    {:voice/start! (assoc ?opts
+                          :engine (:engine db))}))
 
 (reg-event-fx
   :voice/stop!
@@ -179,9 +180,10 @@
 (reg-event-fx
   :voice/on-result
   [trim-v]
-  (fn [_ [result]]
+  (fn [{:keys [db]} [result]]
     (println "voice/on-result" result)
-    {:voice/process result}))
+    {:voice/process {:machine (engine-grammar (:engine db))
+                     :input result}}))
 
 (reg-event-fx
   :voice/set-state

@@ -1,6 +1,16 @@
 (ns atc.voice.process-test
-  (:require [cljs.test :refer-macros [deftest is testing]]
-            [atc.voice.process :refer [find-command]]))
+  (:require
+   [atc.data.airports.kjfk :as kjfk]
+   [atc.voice.parsing.airport :as airport-parsing]
+   [atc.voice.process :rename {find-command actual-find-command} :refer [build-machine]]
+   [cljs.test :refer-macros [deftest is testing]]))
+
+(def machine
+  (delay
+    (build-machine (airport-parsing/generate-parsing-context kjfk/airport))))
+
+(defn find-command [input]
+  (actual-find-command @machine input))
 
 (defn find-instructions [input]
   (-> input

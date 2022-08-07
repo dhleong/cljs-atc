@@ -55,9 +55,9 @@
 
 (reg-fx
   :voice/process
-  (fn [input]
+  (fn [{:keys [machine input]}]
     (println "Processing: " input)
-    (when-let [cmd (find-command input)]
+    (when-let [cmd (find-command machine input)]
       (>evt [:game/command cmd]))))
 
 
