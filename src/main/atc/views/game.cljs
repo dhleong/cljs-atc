@@ -1,10 +1,10 @@
 (ns atc.views.game
   (:require
    ["@inlet/react-pixi" :as px]
-   ["pixi.js" :refer [TextStyle]]
    [archetype.util :refer [<sub]]
    [atc.views.game.controls :refer [game-controls]]
    [atc.views.game.graphics.aircraft :as aircraft]
+   [atc.views.game.graphics.navaid :as navaid]
    [atc.views.game.stage :refer [stage]]
    [atc.views.game.viewport :refer [viewport]]
    [reagent.core :as r]
@@ -12,9 +12,7 @@
 
 ; Basically a 3x a ~100 km CTR controller's radius, I guess
 ; (temporarily smaller for visibility)
-(def default-world-dimension (* 3 10 1000))
-
-(def text-style (TextStyle. #js {:fill "#ffffff"}))
+(def default-world-dimension (* 3 2 1000))
 
 (defattrs game-controls-container-attrs []
   {:position :absolute
@@ -22,51 +20,45 @@
    :left 0
    :right 0})
 
-(defn- all-aircraft [scale-atom]
-  [:<>
-   (let [scale (/ 1 @scale-atom)]
-     (for [a (<sub [:game/aircraft])]
-       ^{:key (:callsign a)}
-       [aircraft/entity {:scale scale} a]))])
+(defn- positioner [scale entity & children]
+  (let [position (:position entity)
+        x (:x entity (:x position))
+        y (:y entity (:y position))]
+    (into [:> px/Container {:x x :y y :scale scale}] children)))
 
-(defn- all-navaids [scale-atom]
+(defn- entities-renderer [{:keys [scale key-fn render] subscription :<sub
+                           :or {key-fn :id}}]
   [:<>
-   (let [scale (/ 1 @scale-atom)]
-     (for [{:keys [x y id]} (<sub [:game/airport-navaids])]
-       ^{:key id}
-       [:> px/Text {:anchor 0.5
-                    :x x
-                    :y y
-                    :scale scale
-                    :style text-style
-                    :text id}]))])
+   (for [entity (<sub subscription)]
+     ^{:key (key-fn entity)}
+     [positioner scale entity
+      [render entity]])])
+
+(defn- all-aircraft [scale]
+  [entities-renderer {:scale scale
+                      :<sub [:game/aircraft]
+                      :key-fn :callsign
+                      :render aircraft/entity}])
+
+(defn- all-navaids [scale]
+  [entities-renderer {:scale scale
+                      :<sub [:game/airport-navaids]
+                      :render navaid/entity}])
 
 (defn- game []
   (r/with-let [scale-atom (r/atom 1)
-               set-scale! (partial reset! scale-atom)]
-    [stage
-     ; NOTE: The max world size should *maybe* be based on the airport?
-     [viewport {:plugins ["drag" "pinch" "wheel"]
-                :center {:x 0 :y 0}
-                :on-scale set-scale!
-                :world-width default-world-dimension
-                :world-height default-world-dimension}
-      (let [voice-state (<sub [:voice/state])]
-        [:> px/Text {:text (or voice-state "Hey")
-                     :anchor 0
-                     :x 50
-                     :y 50
-                     :style text-style}])
+               set-scale! #(reset! scale-atom (/ 1 %))]
+    (let [entity-scale @scale-atom]
+      [stage
+       ; NOTE: The max world size should *maybe* be based on the airport?
+       [viewport {:plugins ["drag" "pinch" "wheel"]
+                  :center {:x 0 :y 0}
+                  :on-scale set-scale!
+                  :world-width default-world-dimension
+                  :world-height default-world-dimension}
 
-      (when-let [partial-text (<sub [:voice/partial])]
-        [:> px/Text {:text partial-text
-                     :anchor 0
-                     :x 50
-                     :y 150
-                     :style text-style}])
-
-      [all-aircraft scale-atom]
-      [all-navaids scale-atom]]]))
+        [all-aircraft entity-scale]
+        [all-navaids entity-scale]]])))
 
 (defn view []
   ; NOTE: These are ugly hacks because react gets mad on the first render for... some reason.
