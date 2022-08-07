@@ -11,7 +11,8 @@
    [spade.core :refer [defattrs]]))
 
 ; Basically a 3x a ~100 km CTR controller's radius, I guess
-(def default-world-dimension (* 2 3 100 1000))
+; (temporarily smaller for visibility)
+(def default-world-dimension (* 3 10 1000))
 
 (def text-style (TextStyle. #js {:fill "#ffffff"}))
 
@@ -28,12 +29,25 @@
        ^{:key (:callsign a)}
        [aircraft/entity {:scale scale} a]))])
 
+(defn- all-navaids [scale-atom]
+  [:<>
+   (let [scale (/ 1 @scale-atom)]
+     (for [{:keys [x y id]} (<sub [:game/airport-navaids])]
+       ^{:key id}
+       [:> px/Text {:anchor 0.5
+                    :x x
+                    :y y
+                    :scale scale
+                    :style text-style
+                    :text id}]))])
+
 (defn- game []
   (r/with-let [scale-atom (r/atom 1)
                set-scale! (partial reset! scale-atom)]
     [stage
      ; NOTE: The max world size should *maybe* be based on the airport?
      [viewport {:plugins ["drag" "pinch" "wheel"]
+                :center {:x 0 :y 0}
                 :on-scale set-scale!
                 :world-width default-world-dimension
                 :world-height default-world-dimension}
@@ -51,7 +65,8 @@
                      :y 150
                      :style text-style}])
 
-      [all-aircraft scale-atom]]]))
+      [all-aircraft scale-atom]
+      [all-navaids scale-atom]]]))
 
 (defn view []
   ; NOTE: These are ugly hacks because react gets mad on the first render for... some reason.

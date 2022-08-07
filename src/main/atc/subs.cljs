@@ -1,5 +1,7 @@
 (ns atc.subs
-  (:require [re-frame.core :refer [reg-sub]]))
+  (:require
+   [atc.data.core :refer [local-xy]]
+   [re-frame.core :refer [reg-sub]]))
 
 (reg-sub :page :page)
 
@@ -43,3 +45,19 @@
   :<- [:game/aircraft-map]
   (fn [aircraft]
     (vals aircraft)))
+
+(reg-sub
+  :game/airport
+  :<- [::engine]
+  (fn [engine]
+    (:airport engine)))
+
+(reg-sub
+  :game/airport-navaids
+  :<- [:game/airport]
+  (fn [airport]
+    (when airport
+      (->> airport
+           :navaids
+           (map (fn [{:keys [position] :as navaid}]
+                  (merge navaid (local-xy position airport))))))))

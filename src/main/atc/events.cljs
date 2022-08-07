@@ -1,5 +1,7 @@
 (ns atc.events
   (:require
+   [atc.data.airports.kjfk :as kjfk]
+   [atc.data.core :refer [local-xy]]
    [atc.db :as db]
    [atc.engine.core :as engine]
    [atc.engine.model :as engine-model]
@@ -31,11 +33,16 @@
 (reg-event-fx
   :game/init
   [trim-v]
-  (fn [{:keys [db]} _]
-    (println "(re) Initialize game engine")
-    (let [new-engine (engine/generate)]
-      {:db (assoc db :engine new-engine)
-       :dispatch [:game/tick]})))
+  (fn [{:keys [db]} [airport]]
+    (let [airport (or airport kjfk/airport)]
+      (println "(re) Initialize game engine")
+      (let [new-engine (engine/generate airport)]
+        (println "AC" (-> new-engine :aircraft vals first :position))
+        (let [lga (-> new-engine :airport :navaids (nth 2))]
+          (println (:id lga) (local-xy (-> lga :position)
+                                       (-> new-engine :airport))))
+        {:db (assoc db :engine new-engine)
+         :dispatch [:game/tick]}))))
 
 (reg-event-fx
   :game/tick

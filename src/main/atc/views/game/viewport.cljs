@@ -4,16 +4,27 @@
    ["@inlet/react-pixi" :as px]
    [applied-science.js-interop :as j]))
 
+(defn- apply-center! [^Viewport viewport center]
+  (when-not (= (j/get viewport :initial-center)
+               center)
+    (when center
+      (j/assoc! viewport :initial-center center)
+      (.moveCenter viewport (j/get center :x) (j/get center :y))
+      ; TODO how big should it actually be...?
+      (.fitHeight viewport (j/get viewport :worldHeight) true)
+      (j/call viewport :render!))))
+
 (def PixiViewportComponent
   (px/PixiComponent
     "Viewport"
-    #js {:create (j/fn [^:js {:keys [app plugins] :as js-props}]
+    #js {:create (j/fn [^:js {:keys [app center plugins] :as js-props}]
                    (let [options (-> (js/Object.assign
                                        #js {:ticker (j/get app :ticker)
                                             :interaction (j/get-in app [:renderer :plugins :interaction])}
                                        js-props)
 
                                      ; NBD but we don't have a better way to remove these
+                                     (j/assoc! :center js/undefined)
                                      (j/assoc! :children js/undefined)
                                      (j/assoc! :app js/undefined))
 
@@ -32,6 +43,10 @@
                      ; NOTE: reagent "helpfully" converts to camel case here:
                      (j/assoc! viewport :onScale (j/get js-props :onScale))
 
+                     (j/assoc! viewport :render! render!)
+
+                     (apply-center! viewport center)
+
                      ; Ensure render on move
                      ; FIXME: moved doesn't seem to be emitted on drag...
                      (.on viewport "moved" render!)
@@ -41,10 +56,11 @@
 
          :applyProps (fn [viewport old-props new-props]
                        (doseq [prop (js/Object.keys new-props)]
-                         (when-not (or (#{"plugins" "children" "app"} prop)
+                         (when-not (or (#{"plugins" "center" "children" "app"} prop)
                                        (= (j/get new-props prop)
                                           (j/get old-props prop)))
-                           (j/assoc! viewport (j/get new-props prop)))))}))
+                           (j/assoc! viewport (j/get new-props prop)))
+                         (apply-center! viewport (:center new-props))))}))
 
 (defn- viewport-fn [props children]
   (let [app (px/useApp)]

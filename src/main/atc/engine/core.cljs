@@ -12,7 +12,7 @@
       simulated)))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
-(defrecord Engine [aircraft time-scale last-tick]
+(defrecord Engine [airport aircraft time-scale last-tick]
   ; NOTE: It is sort of laziness that we're implementing Simulated here,
   ; since we aren't, properly. Technically we should have a separate Simulator
   ; protocol and implement that to be more correct...
@@ -51,12 +51,13 @@
   (when-not (= 0 (:time-scale engine))
     (* 250 (/ 1 (:time-scale engine)))))
 
-(defn generate []
+(defn generate [airport]
   (let [aircraft [["DAL22" configs/common-jet]]]
     (-> {:aircraft (reduce
                      (fn [m [callsign config]]
                        (assoc m callsign (aircraft/create config callsign)))
                      {}
                      aircraft)
+         :airport airport
          :time-scale 1}
         (map->Engine))))
