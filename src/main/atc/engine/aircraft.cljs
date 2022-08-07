@@ -114,5 +114,5 @@
                   :pilot (pilot/generate nil) ; TODO Pass in a preferred voice
                   :position (->Vec3 250 250 20000)
                   :heading 350
-                  :speed 10
+                  :speed 200
                   :commands {:heading 90}}))

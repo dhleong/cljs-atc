@@ -23,8 +23,6 @@
                 :y 20
                 :style label-style}]])
 
-(defn entity [{:keys [scale]} {:keys [callsign position]}]
-  (let [{:keys [x y]} position]
-    [:> px/Container {:x x :y y :scale scale}
-     ; TODO render different graphics based on aircraft state
-     [tracked callsign]]))
+(defn entity [{:keys [callsign]}]
+  ; TODO render different graphics based on aircraft state
+  [tracked callsign])
