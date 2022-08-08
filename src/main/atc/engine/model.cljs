@@ -52,5 +52,9 @@
 
 (defn bearing-to [from to]
   (let [{dx :x dy :y} (v- (vec3 to) from)]
-    (to-degrees (atan2 dy dx))))
+    ; NOTE: This may or may not be the right move, but We want 0 degrees to
+    ; point "north" on the screen, and so transform that in the Aircraft engine
+    ; object with `(- heading 90)`, which means we have to do the opposite
+    ; here....
+    (+ (to-degrees (atan2 dy dx)) 90)))
 
