@@ -43,7 +43,7 @@
 
 (defn create
   ([] (create nil))
-  ([{:keys [sample-rate use-grammar?] :or {sample-rate const/default-sample-rate}}]
+  ([{:keys [sample-rate grammar] :or {sample-rate const/default-sample-rate}}]
    (let [client (atom nil)]
      (swap!
        client
@@ -52,9 +52,9 @@
        (p/let [start (js/Date.now)
                model @shared-model
                KaldiRecognizer (j/get model :KaldiRecognizer)
-               grammar-content (when use-grammar?
-                                 (println "Generating grammar...")
-                                 (time (grammar/generate)))
+               grammar-content (when grammar
+                                 (println "Generating grammar..." grammar)
+                                 (time (grammar/generate grammar)))
                recognizer (if (some? grammar-content)
                             (new KaldiRecognizer sample-rate grammar-content)
                             (new KaldiRecognizer sample-rate))]

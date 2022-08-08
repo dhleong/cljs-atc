@@ -1,6 +1,5 @@
 (ns atc.voice.grammar
   (:require
-   [atc.voice.process :as process]
    [clojure.string :as str]))
 
 (defmulti generate-from-model (comp :tag :subject))
@@ -50,21 +49,19 @@
   nil)
 
 
-(defn from-command-model
-  ([] (from-command-model nil))
-  ([{:keys [model root-rule amount]
-     :or {root-rule :command
-          amount 10}}]
-   (let [model (or model (process/grammar))
-         generate-ctx {:root model
-                       :subject (get model root-rule)}]
-     (->> (range amount)
-          (map (fn [_] (->> (generate-from-model generate-ctx)
-                            (str/join " "))))))))
+(defn from-command-model [{:keys [model root-rule amount]
+                           :or {root-rule :command
+                                amount 10}}]
+  (let [generate-ctx {:root model
+                      :subject (get model root-rule)}]
+    (->> (range amount)
+         (map (fn [_] (->> (generate-from-model generate-ctx)
+                           (str/join " ")))))))
 
-(defn generate []
+(defn generate [command-model]
   (->> (concat
-         (from-command-model {:amount 200})
+         (from-command-model {:amount 200
+                              :model command-model})
          ["[unk]"])
        to-array
        (js/JSON.stringify)))

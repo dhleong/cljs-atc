@@ -2,6 +2,7 @@
   (:require
    [applied-science.js-interop :as j]
    [archetype.util :refer [>evt]]
+   [atc.engine.core :refer [engine-grammar]]
    [atc.voice.mic :as mic]
    [atc.voice.recognizer :as recognizer]
    [promesa.core :as p]))
@@ -36,15 +37,15 @@
   (when-let [inst (::mic @client)]
     (mic/stop! inst)))
 
-(defn create [{:keys [on-partial-result on-result on-state use-grammar?]}]
+(defn create [{:keys [on-partial-result on-result on-state engine]}]
   (let [emit-state! (comp
                       #(p/delay 0) ; Let the UI update, if desired
                       (or on-state identity))
 
         _ (emit-state! :initializing) ; Do this before creating the recognizer
 
-        recognizer-inst (if use-grammar?
-                          (recognizer/create {:use-grammar? true})
+        recognizer-inst (if engine
+                          (recognizer/create {:grammar (engine-grammar engine)})
                           (recognizer/create))
         client (atom {::recognizer recognizer-inst})]
     (p/do!

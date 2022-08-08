@@ -6,8 +6,59 @@
    [atc.engine.core :as engine]
    [atc.engine.model :as engine-model]
    [goog.events.KeyCodes :as KeyCodes]
-   [re-frame.core :refer [dispatch path reg-event-db reg-event-fx trim-v]]
-   [re-pressed.core :as rp]))
+   [re-frame.core :refer [->interceptor dispatch get-coeffect get-effect
+                          inject-cofx path reg-event-db reg-event-fx trim-v]]
+   [re-frame.interceptor :refer [update-coeffect update-effect]]
+   [re-pressed.core :as rp]
+   [vimsical.re-frame.cofx.inject :as inject]))
+
+(def injected-subscriptions
+  [[:game/navaids-by-id]])
+
+(def engine-injections
+  (->> injected-subscriptions
+       (map #(inject-cofx ::inject/sub %))))
+
+(def injected-subscription-keys (map first injected-subscriptions))
+
+(defn merge-injections [engine cofx]
+  (merge engine (select-keys cofx injected-subscription-keys)))
+
+(defn remove-injections [engine]
+  (apply dissoc engine injected-subscription-keys))
+
+; This interceptor composes the subscription cofx listed above, assoc's them into the
+; :engine in the DB for dispatching in updates, etc. then cleans them up after. It should
+; be provided *before* any (path) interceptors
+(def injected-engine
+  (->interceptor
+    {:id :injected-engine
+     :before (fn [context]
+               (let [context' (reduce
+                                (fn [ctx {:keys [before]}]
+                                  (if before
+                                    (before ctx)
+                                    ctx))
+                                context
+                                engine-injections)]
+                 (if (not= ::not-found (get (get-effect context' :db) :engine ::not-found))
+                   (update-coeffect context' :db
+                                    update :engine
+                                    merge-injections (get-coeffect context'))
+                   context')))
+     :after (fn [context]
+              (let [context' (reduce
+                               (fn [ctx {:keys [after]}]
+                                 (if after
+                                   (after ctx)
+                                   ctx))
+                               context
+                               engine-injections)]
+                (if (not= ::not-found (get-effect context' :db ::not-found))
+                  (update-effect context' :db update :engine remove-injections)
+                  context')))}))
+
+; ======= Subscriptions ===================================
 
 (reg-event-db
   ::initialize-db
@@ -24,7 +75,7 @@
 
 (reg-event-db
   :game/command
-  [trim-v (path :engine)]
+  [injected-engine trim-v (path :engine)]
   (fn [engine [command]]
     (when engine
       (println "dispatching command: " command)
@@ -46,7 +97,7 @@
 
 (reg-event-fx
   :game/tick
-  [(path :engine)]
+  [injected-engine (path :engine)]
   (fn [{engine :db} _]
     (when engine
       (let [updated-engine (engine-model/tick engine nil)]
@@ -56,12 +107,13 @@
                  {:ms delay-ms
                   :dispatch [:game/tick]}])]}))))
 
-(reg-event-db
+(reg-event-fx
   :game/reset
   [trim-v]
-  (fn [db _]
+  (fn [{:keys [db]} _]
     (println "Clear game engine")
-    (dissoc db :engine)))
+    {:db (dissoc db :engine)
+     :dispatch [:voice/stop!]}))
 
 (reg-event-fx
   :game/set-time-scale
@@ -156,13 +208,14 @@
                    {:event-keys []}]]}))
 
 
-(def default-voice-opts {:use-grammar? true})
-
 (reg-event-fx
   :voice/start!
   [trim-v]
-  (fn [_ [?opts]]
-    {:voice/start! (merge default-voice-opts ?opts)}))
+  (fn [{:keys [db]} [?opts]]
+    (when-not (:engine db)
+      (println "WARNING: Initializing voice without a game engine"))
+    {:voice/start! (assoc ?opts
+                          :engine (:engine db))}))
 
 (reg-event-fx
   :voice/stop!
@@ -179,9 +232,10 @@
 (reg-event-fx
   :voice/on-result
   [trim-v]
-  (fn [_ [result]]
+  (fn [{:keys [db]} [result]]
     (println "voice/on-result" result)
-    {:voice/process result}))
+    {:voice/process {:machine (:parsing-machine (:engine db))
+                     :input result}}))
 
 (reg-event-fx
   :voice/set-state

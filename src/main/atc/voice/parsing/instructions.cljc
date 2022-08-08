@@ -15,6 +15,7 @@
    "<instruction> = standby
    | adjust-altitude
    | contact-other
+   | direct
    | steer"
 
    "standby = <'standby'>"
@@ -22,6 +23,8 @@
    "adjust-altitude = (<'climb'> | <'descend'>)? <'and'>? <'maintain'> altitude"
 
    "contact-other = <'contact'> other-position <frequency>? pleasantry?"
+
+   "direct = <'proceed direct'> navaid"
 
    "steer = (<'fly'> | 'turn right' | 'turn left') <'heading'> heading"
 

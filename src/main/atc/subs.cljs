@@ -53,11 +53,20 @@
     (:airport engine)))
 
 (reg-sub
-  :game/airport-navaids
+  :game/navaids-by-id
   :<- [:game/airport]
   (fn [airport]
     (when airport
-      (->> airport
-           :navaids
-           (map (fn [{:keys [position] :as navaid}]
-                  (merge navaid (local-xy position airport))))))))
+      (reduce
+        (fn [m {:keys [position] :as navaid}]
+          (assoc m (:id navaid)
+                 (merge navaid (local-xy position airport))))
+        {}
+        (:navaids airport)))))
+
+(reg-sub
+  :game/airport-navaids
+  :<- [:game/navaids-by-id]
+  (fn [navaids]
+    (when navaids
+      (vals navaids))))

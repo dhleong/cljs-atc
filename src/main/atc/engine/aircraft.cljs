@@ -2,23 +2,24 @@
   (:require
    [archetype.util :refer [>evt]]
    [atc.engine.config :refer [AircraftConfig]]
-   [atc.engine.model :refer [->Vec3 Simulated v+ Vec3 vec3]]
+   [atc.engine.model :refer [bearing-to Simulated v+ Vec3 vec3]]
    [atc.engine.pilot :as pilot]
    [clojure.math :refer [cos sin to-radians]]
    [clojure.string :as str]))
 
 (defn- radio! [^Aircraft craft message]
+  ; FIXME: We need to coalesce acks for all instructions into a single message...
   (>evt [:speech/enqueue {:message message
                           :from (assoc (:pilot craft)
                                        :name (:callsign craft))}]))
 
 ; ======= Instruction dispatch ============================
 
-(defmulti dispatch-instruction (fn [_craft [instruction]] instruction))
+(defmulti dispatch-instruction (fn [_craft _context [instruction]] instruction))
 
 (defmethod dispatch-instruction
   :steer
-  [craft [_ heading steer-direction]]
+  [craft _ [_ heading steer-direction]]
   (let [heading-str (-> heading
                         (str)
                         (str/split #"")
@@ -32,8 +33,30 @@
     (radio! craft (str (when steer-direction (name steer-direction))
                        " "
                        heading-str ", " (:callsign craft))))
-  (update craft :commands assoc :heading heading :steer-direction steer-direction))
+  (-> craft
+      (update :commands dissoc :direct)
+      (update :commands assoc :heading heading :steer-direction steer-direction)))
 
+(defmethod dispatch-instruction
+  :direct
+  [craft context [_ fix-id]]
+  (if-let [fix (get-in context [:game/navaids-by-id fix-id])]
+    ; TODO this fix should probably already have its "world coordinates..."
+    (do
+      (radio! craft (str "direct " (:pronunciation fix) ", " (:callsign craft)))
+      (-> craft
+          (update :commands assoc :heading)
+          (update :commands assoc :direct fix)))
+
+    ; TODO: Handle GA aircraft without the fix
+    (do (radio! craft (str "Unable; I don't know where that is," (:callsign craft)))
+        craft)))
+
+(defmethod dispatch-instruction
+  :default
+  [craft _context [instruction]]
+  (println "TODO: Unhandled craft instruction: " instruction)
+  craft)
 
 ; ======= Physics =========================================
 
@@ -79,9 +102,18 @@
             (dissoc :steer-direction))
         (assoc aircraft :heading new-heading)))))
 
+(defn- apply-direct [^Aircraft a
+                     commanded-to dt]
+  ; NOTE: This is temporary; the real logic should account for resuming course,
+  ; intercept heading, crossing altitude, etc.
+  (let [bearing-to-destination (bearing-to (:position a) commanded-to)]
+    (println "steer toward " (normalize-heading bearing-to-destination) " (at " (:heading a) ") ")
+    (apply-steering a bearing-to-destination dt)))
+
 (defn- apply-commanded-inputs [^Aircraft aircraft, commands dt]
   (cond-> aircraft
-    (:heading commands) (apply-steering (:heading commands) dt)))
+    (:heading commands) (apply-steering (:heading commands) dt)
+    (:direct commands) (apply-direct (:direct commands) dt)))
 
 
 ; ======= Main record =====================================
@@ -105,14 +137,14 @@
       (update this :position v+ velocity-vector)))
 
   (command [this instruction]
-    (dispatch-instruction this instruction)))
+    (dispatch-instruction this (:context (meta instruction)) instruction)))
 
 (defn create [^AircraftConfig config, callsign]
   (map->Aircraft {:config config
                   :callsign callsign
                   :state :flight
                   :pilot (pilot/generate nil) ; TODO Pass in a preferred voice
-                  :position (->Vec3 250 250 20000)
+                  :position (vec3 250 250 20000)
                   :heading 350
                   :speed 200
                   :commands {:heading 90}}))

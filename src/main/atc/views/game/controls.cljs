@@ -42,10 +42,13 @@
         "Init Game"])
 
      (when game-running?
+       [:<>
        (if (= 0 time-scale)
          [:button {:on-click #(>evt [:game/set-time-scale 1])}
           "Resume"]
          [:button {:on-click #(>evt [:game/set-time-scale 0])}
-          "Pause"]))
+          "Pause"])
 
-     [voice-controls]]))
+       ; NOTE: We require a running game to initialize voice, since the voice grammar
+       ; depends on the airport
+       [voice-controls]])]))
