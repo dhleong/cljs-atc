@@ -1,4 +1,6 @@
-(ns atc.engine.model)
+(ns atc.engine.model
+  (:require
+   [clojure.math :refer [atan2 to-degrees]]))
 
 (defprotocol Simulated
   "Anything that is managed by the simulation"
@@ -12,6 +14,7 @@
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defprotocol Vector
   (v+ [this ^Vector other])
+  (v- [this ^Vector other])
   (v* [this other]))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
@@ -22,6 +25,12 @@
            :x (+ x (:x other))
            :y (+ y (:y other))
            :z (+ z (:z other 0))))
+
+  (v- [this ^Vec3 other]
+    (assoc this
+           :x (- x (:x other))
+           :y (- y (:y other))
+           :z (- z (:z other 0))))
 
   (v* [this other]
     (if (number? other)
@@ -35,5 +44,13 @@
              :y (* y (:y other))
              :z (* z (:z other 1))))))
 
-(defn vec3 [x y z]
-  (->Vec3 x y z))
+(defn vec3
+  ([v] (if (instance? Vec3 v) v
+         (->Vec3 (:x v) (:y v) (:z v))))
+  ([x y z]
+   (->Vec3 x y z)))
+
+(defn bearing-to [from to]
+  (let [{dx :x dy :y} (v- (vec3 to) from)]
+    (to-degrees (atan2 dy dx))))
+
