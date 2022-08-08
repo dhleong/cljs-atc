@@ -34,16 +34,18 @@
   (->interceptor
     {:id :injected-engine
      :before (fn [context]
-               (let [ctx' (reduce
-                            (fn [ctx {:keys [before]}]
-                              (if before
-                                (before ctx)
-                                ctx))
-                            context
-                            engine-injections)]
-                 (update-coeffect ctx' :db
-                                  update :engine
-                                  merge-injections (get-coeffect ctx'))))
+               (let [context' (reduce
+                                (fn [ctx {:keys [before]}]
+                                  (if before
+                                    (before ctx)
+                                    ctx))
+                                context
+                                engine-injections)]
+                 (if (not= ::not-found (get (get-effect context' :db) :engine ::not-found))
+                   (update-coeffect context' :db
+                                    update :engine
+                                    merge-injections (get-coeffect context'))
+                   context')))
      :after (fn [context]
               (let [context' (reduce
                                (fn [ctx {:keys [after]}]
