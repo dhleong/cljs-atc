@@ -6,8 +6,57 @@
    [atc.engine.core :as engine]
    [atc.engine.model :as engine-model]
    [goog.events.KeyCodes :as KeyCodes]
-   [re-frame.core :refer [dispatch path reg-event-db reg-event-fx trim-v]]
-   [re-pressed.core :as rp]))
+   [re-frame.core :refer [->interceptor dispatch get-coeffect get-effect
+                          inject-cofx path reg-event-db reg-event-fx trim-v]]
+   [re-frame.interceptor :refer [update-coeffect update-effect]]
+   [re-pressed.core :as rp]
+   [vimsical.re-frame.cofx.inject :as inject]))
+
+(def injected-subscriptions
+  [[:game/navaids-by-id]])
+
+(def engine-injections
+  (->> injected-subscriptions
+       (map #(inject-cofx ::inject/sub %))))
+
+(def injected-subscription-keys (map first injected-subscriptions))
+
+(defn merge-injections [engine cofx]
+  (merge engine (select-keys cofx injected-subscription-keys)))
+
+(defn remove-injections [engine]
+  (apply dissoc engine injected-subscription-keys))
+
+; This interceptor composes the subscription cofx listed above, assoc's them into the
+; :engine in the DB for dispatching in updates, etc. then cleans them up after. It should
+; be provided *before* any (path) interceptors
+(def injected-engine
+  (->interceptor
+    {:id :injected-engine
+     :before (fn [context]
+               (let [ctx' (reduce
+                            (fn [ctx {:keys [before]}]
+                              (if before
+                                (before ctx)
+                                ctx))
+                            context
+                            engine-injections)]
+                 (update-coeffect ctx' :db
+                                  update :engine
+                                  merge-injections (get-coeffect ctx'))))
+     :after (fn [context]
+              (let [context' (reduce
+                               (fn [ctx {:keys [after]}]
+                                 (if after
+                                   (after ctx)
+                                   ctx))
+                               context
+                               engine-injections)]
+                (if (not= ::not-found (get-effect context' :db ::not-found))
+                  (update-effect context' :db update :engine remove-injections)
+                  context')))}))
+
+; ======= Subscriptions ===================================
 
 (reg-event-db
   ::initialize-db
@@ -24,7 +73,7 @@
 
 (reg-event-db
   :game/command
-  [trim-v (path :engine)]
+  [injected-engine trim-v (path :engine)]
   (fn [engine [command]]
     (when engine
       (println "dispatching command: " command)
@@ -46,7 +95,7 @@
 
 (reg-event-fx
   :game/tick
-  [(path :engine)]
+  [injected-engine (path :engine)]
   (fn [{engine :db} _]
     (when engine
       (let [updated-engine (engine-model/tick engine nil)]

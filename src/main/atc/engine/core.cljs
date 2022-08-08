@@ -3,8 +3,8 @@
    [atc.data.aircraft-configs :as configs]
    [atc.engine.aircraft :as aircraft]
    [atc.engine.model :as engine-model :refer [Simulated tick]]
-   [atc.voice.process :refer [build-machine]]
-   [atc.voice.parsing.airport :as airport-parsing]))
+   [atc.voice.parsing.airport :as airport-parsing]
+   [atc.voice.process :refer [build-machine]]))
 
 (defn- dispatch-instructions [^Simulated simulated, context instructions]
   (when simulated
@@ -59,14 +59,6 @@
   (when-not (= 0 (:time-scale engine))
     (* 250 (/ 1 (:time-scale engine)))))
 
-(defn- index-airport [airport]
-  (assoc airport
-         :navaids-by-id (reduce
-                          (fn [m navaid]
-                            (assoc m (:id navaid) navaid))
-                          {}
-                          (:navaids airport))))
-
 (defn generate [airport]
   ; TODO: Probably, generate the parsing-machine elsewhere for better loading states
   (let [aircraft [["DAL22" configs/common-jet]]]
@@ -75,7 +67,7 @@
                        (assoc m callsign (aircraft/create config callsign)))
                      {}
                      aircraft)
-         :airport (index-airport airport)
+         :airport airport
          :parsing-machine (build-machine (airport-parsing/generate-parsing-context airport))
          :time-scale 1}
         (map->Engine))))

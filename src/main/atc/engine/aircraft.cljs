@@ -40,7 +40,7 @@
 (defmethod dispatch-instruction
   :direct
   [craft context [_ fix-id]]
-  (if-let [fix (get-in context [:airport :navaids-by-id fix-id])]
+  (if-let [fix (get-in context [:game/navaids-by-id fix-id])]
     ; TODO this fix should probably already have its "world coordinates..."
     (do
       (radio! craft (str "direct " (:pronunciation fix) ", " (:callsign craft)))
