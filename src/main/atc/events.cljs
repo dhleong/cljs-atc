@@ -107,12 +107,13 @@
                  {:ms delay-ms
                   :dispatch [:game/tick]}])]}))))
 
-(reg-event-db
+(reg-event-fx
   :game/reset
   [trim-v]
-  (fn [db _]
+  (fn [{:keys [db]} _]
     (println "Clear game engine")
-    (dissoc db :engine)))
+    {:db (dissoc db :engine)
+     :dispatch [:voice/stop!]}))
 
 (reg-event-fx
   :game/set-time-scale
