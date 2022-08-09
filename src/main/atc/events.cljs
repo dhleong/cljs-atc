@@ -41,7 +41,7 @@
                                     ctx))
                                 context
                                 engine-injections)]
-                 (if (not= ::not-found (get (get-effect context' :db) :engine ::not-found))
+                 (if (not= ::not-found (get (get-coeffect context' :db) :engine ::not-found))
                    (update-coeffect context' :db
                                     update :engine
                                     merge-injections (get-coeffect context'))
