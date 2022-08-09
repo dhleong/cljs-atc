@@ -1,20 +1,29 @@
 (ns atc.engine.core
   (:require
+   [archetype.util :refer [>evt]]
    [atc.data.aircraft-configs :as configs]
    [atc.engine.aircraft :as aircraft]
-   [atc.engine.model :as engine-model :refer [Simulated tick]]
+   [atc.engine.model :as engine-model :refer [consume-pending-communication
+                                              pending-communication
+                                              prepare-pending-communication Simulated tick]]
    [atc.voice.parsing.airport :as airport-parsing]
    [atc.voice.process :refer [build-machine]]))
 
 (defn- dispatch-instructions [^Simulated simulated, context instructions]
   (when simulated
-    (if (seq instructions)
-      (recur (engine-model/command simulated (with-meta
-                                               (first instructions)
-                                               {:context context}))
-             context
-             (next instructions))
-      simulated)))
+    (loop [simulated (prepare-pending-communication simulated)
+           instructions (vec instructions)]
+      (if (seq instructions)
+        (recur (engine-model/command simulated (with-meta
+                                                 (first instructions)
+                                                 {:context context}))
+               (next instructions))
+
+        (do
+          ; Done! Dispatch any pending communication
+          (when-let [utterance (pending-communication simulated)]
+            (>evt [:speech/enqueue utterance]))
+          (consume-pending-communication simulated))))))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defrecord Engine [airport aircraft parsing-machine time-scale elapsed-s last-tick]

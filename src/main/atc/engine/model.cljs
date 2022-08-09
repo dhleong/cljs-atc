@@ -11,6 +11,12 @@
   (command [this instruction]
            "Process an instruction, of the form [:instruction ...args]"))
 
+(defprotocol ICommunicator
+  (pending-communication [this])
+  (prepare-pending-communication [this])
+  (consume-pending-communication [this]))
+
+
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defprotocol Vector
   (v+ [this ^Vector other])

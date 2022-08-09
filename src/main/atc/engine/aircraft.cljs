@@ -1,17 +1,10 @@
 (ns atc.engine.aircraft
   (:require
-   [archetype.util :refer [>evt]]
    [atc.engine.config :refer [AircraftConfig]]
-   [atc.engine.model :refer [bearing-to Simulated v+ Vec3 vec3]]
+   [atc.engine.model :refer [bearing-to ICommunicator Simulated v+ Vec3 vec3]]
    [atc.engine.pilot :as pilot]
    [clojure.math :refer [cos sin to-radians]]
    [clojure.string :as str]))
-
-(defn- radio! [^Aircraft craft message]
-  ; FIXME: We need to coalesce acks for all instructions into a single message...
-  (>evt [:speech/enqueue {:message message
-                          :from (assoc (:pilot craft)
-                                       :name (:callsign craft))}]))
 
 ; ======= Instruction dispatch ============================
 
@@ -27,30 +20,29 @@
                         (as-> numbers
                           ; TODO 9 -> niner, etc.
                           (str/join " " numbers)))]
-    ; TODO We need to a "human readable" string for viewing history (probably)
-    ; and a speech-friendly string---for which we need the original
-    ; airline/aircraft type and not the raw callsign
-    (radio! craft (str (when steer-direction (name steer-direction))
-                       " "
-                       heading-str ", " (:callsign craft))))
-  (-> craft
-      (update :commands dissoc :direct)
-      (update :commands assoc :heading heading :steer-direction steer-direction)))
+    (-> craft
+        ; TODO We need to a "human readable" string for viewing history (probably)
+        ; and a speech-friendly string---for which we need the original
+        ; airline/aircraft type and not the raw callsign
+        (update ::utterance-parts conj (str (when steer-direction (name steer-direction))
+                                            " "
+                                            heading-str))
+
+        (update :commands dissoc :direct)
+        (update :commands assoc :heading heading :steer-direction steer-direction))))
 
 (defmethod dispatch-instruction
   :direct
   [craft context [_ fix-id]]
   (if-let [fix (get-in context [:game/navaids-by-id fix-id])]
-    ; TODO this fix should probably already have its "world coordinates..."
-    (do
-      (radio! craft (str "direct " (:pronunciation fix) ", " (:callsign craft)))
-      (-> craft
-          (update :commands assoc :heading)
-          (update :commands assoc :direct fix)))
+    (-> craft
+        (update ::utterance-parts conj (str "direct " (:pronunciation fix)))
+        (update :commands assoc :heading)
+        (update :commands assoc :direct fix))
 
     ; TODO: Handle GA aircraft without the fix
-    (do (radio! craft (str "Unable; I don't know where that is," (:callsign craft)))
-        craft)))
+    (-> craft
+        (update ::utterance-parts conj "unable direct"))))
 
 (defmethod dispatch-instruction
   :default
@@ -107,13 +99,27 @@
   ; NOTE: This is temporary; the real logic should account for resuming course,
   ; intercept heading, crossing altitude, etc.
   (let [bearing-to-destination (bearing-to (:position a) commanded-to)]
-    (println "steer toward " (normalize-heading bearing-to-destination) " (at " (:heading a) ") ")
     (apply-steering a bearing-to-destination dt)))
 
 (defn- apply-commanded-inputs [^Aircraft aircraft, commands dt]
   (cond-> aircraft
     (:heading commands) (apply-steering (:heading commands) dt)
     (:direct commands) (apply-direct (:direct commands) dt)))
+
+
+; ======= Radiology =======================================
+
+(defn build-utterance [craft parts]
+  ; TODO We need to a "human readable" string for viewing history (probably)
+  ; and a speech-friendly string---for which we need the original
+  ; airline/aircraft type and not just the raw callsign
+  (let [full-message (str
+                       (str/join ", " parts)
+                       ", "
+                       (:callsign craft))]
+    {:message full-message
+     :from (assoc (:pilot craft)
+                  :name (:callsign craft))}))
 
 
 ; ======= Main record =====================================
@@ -137,7 +143,17 @@
       (update this :position v+ velocity-vector)))
 
   (command [this instruction]
-    (dispatch-instruction this (:context (meta instruction)) instruction)))
+    (dispatch-instruction this (:context (meta instruction)) instruction))
+
+  ICommunicator
+  (pending-communication [this]
+    (build-utterance this (::utterance-parts this)))
+
+  (prepare-pending-communication [this]
+    (assoc this ::utterance-parts []))
+
+  (consume-pending-communication [this]
+    (dissoc this ::utterance-parts)))
 
 (defn create [^AircraftConfig config, callsign]
   (map->Aircraft {:config config
