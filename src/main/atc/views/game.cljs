@@ -34,10 +34,15 @@
       [render entity]])])
 
 (defn- all-aircraft [scale]
-  [entities-renderer {:scale scale
-                      :<sub [:game/aircraft]
-                      :key-fn :callsign
-                      :render aircraft/entity}])
+  [:<>
+   [entities-renderer {:scale scale
+                       :<sub [:game/aircraft-historical]
+                       :key-fn (juxt :history-n :callsign)
+                       :render aircraft/entity-historical}]
+   [entities-renderer {:scale scale
+                       :<sub [:game/aircraft]
+                       :key-fn :callsign
+                       :render aircraft/entity}]])
 
 (defn- all-navaids [scale]
   [entities-renderer {:scale scale

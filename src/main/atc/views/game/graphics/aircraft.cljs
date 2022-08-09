@@ -26,3 +26,13 @@
 (defn entity [{:keys [callsign]}]
   ; TODO render different graphics based on aircraft state
   [tracked callsign])
+
+(defn entity-historical [_entity]
+  ; TODO Can we do this in a more composable way?
+  [:> px/Text {:text "⬤"
+               :anchor 0.5
+               :x 0
+               :y 0
+               :alpha 0.3
+               :style tracked-aircraft-style}])
+

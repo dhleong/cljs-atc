@@ -1,6 +1,7 @@
 (ns atc.subs
   (:require
    [atc.data.core :refer [local-xy]]
+   [atc.structures.rolling-history :refer [most-recent-n]]
    [re-frame.core :refer [reg-sub]]))
 
 (reg-sub :page :page)
@@ -27,6 +28,13 @@
 ; ======= Game state ======================================
 
 (reg-sub ::engine :engine)
+(reg-sub ::game-history :game-history)
+
+(reg-sub
+  :game/recent-history
+  :<- [::game-history]
+  (fn [history]
+    (reverse (most-recent-n 8 history))))
 
 (reg-sub
   :game/time-scale
@@ -45,6 +53,20 @@
   :<- [:game/aircraft-map]
   (fn [aircraft]
     (vals aircraft)))
+
+(reg-sub
+  :game/aircraft-historical
+  :<- [:game/aircraft]
+  :<- [:game/recent-history]
+  (fn [[current history]]
+    (->> current
+         (mapcat (fn [{:keys [callsign]}]
+                   (map-indexed
+                     (fn [i history-entry]
+                       (-> history-entry
+                           (get-in [:aircraft callsign])
+                           (assoc :history-n i)))
+                     history))))))
 
 (reg-sub
   :game/airport

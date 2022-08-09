@@ -17,7 +17,7 @@
       simulated)))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
-(defrecord Engine [airport aircraft parsing-machine time-scale last-tick]
+(defrecord Engine [airport aircraft parsing-machine time-scale elapsed-s last-tick]
   ; NOTE: It is sort of laziness that we're implementing Simulated here,
   ; since we aren't, properly. Technically we should have a separate Simulator
   ; protocol and implement that to be more correct...
@@ -39,6 +39,7 @@
 
       (assoc this
              :aircraft updated-aircraft
+             :elapsed-s (+ (:elapsed-s this) dt)
              :last-tick (when-not (= 0 time-scale)
                           now))))
 
@@ -69,5 +70,6 @@
                      aircraft)
          :airport airport
          :parsing-machine (build-machine (airport-parsing/generate-parsing-context airport))
+         :elapsed-s 0
          :time-scale 1}
         (map->Engine))))
