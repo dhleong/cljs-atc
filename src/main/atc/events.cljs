@@ -12,6 +12,10 @@
    [re-pressed.core :as rp]
    [vimsical.re-frame.cofx.inject :as inject]))
 
+(def seconds-between-game-snapshots 4)
+
+; ======= Engine data injection ===========================
+
 (def injected-subscriptions
   [[:game/navaids-by-id]])
 
@@ -97,12 +101,18 @@
 
 (reg-event-fx
   :game/tick
-  [injected-engine (path :engine)]
-  (fn [{engine :db} _]
-    (when engine
-      (let [updated-engine (engine-model/tick engine nil)]
-        {:db updated-engine
-         :fx [(when-let [delay-ms (engine/next-tick-delay updated-engine)]
+  [injected-engine]
+  (fn [{:keys [db]} _]
+    (when-let [engine (:engine db)]
+      (let [engine' (engine-model/tick engine nil)
+            db' (assoc db :engine engine')
+
+            seconds-since-last-snapshot (- (:elapsed-s engine')
+                                           (:elapsed-s (peek (:game-history db))))]
+        {:db (if (>= seconds-since-last-snapshot seconds-between-game-snapshots)
+               (update db' :game-history conj engine')
+               db')
+         :fx [(when-let [delay-ms (engine/next-tick-delay engine')]
                 [:dispatch-later
                  {:ms delay-ms
                   :dispatch [:game/tick]}])]}))))
@@ -112,7 +122,9 @@
   [trim-v]
   (fn [{:keys [db]} _]
     (println "Clear game engine")
-    {:db (dissoc db :engine)
+    {:db (-> db
+             (dissoc :engine)
+             (update :game-history empty))
      :dispatch [:voice/stop!]}))
 
 (reg-event-fx
