@@ -9,9 +9,9 @@
                center)
     (when center
       (j/assoc! viewport :initial-center center)
-      (.moveCenter viewport (j/get center :x) (j/get center :y))
+      (j/call viewport :moveCenter (j/get center :x) (j/get center :y))
       ; TODO how big should it actually be...?
-      (.fitHeight viewport (j/get viewport :worldHeight) true)
+      (j/call viewport :fitHeight (j/get viewport :worldHeight) true)
       (j/call viewport :render!))))
 
 (def PixiViewportComponent
