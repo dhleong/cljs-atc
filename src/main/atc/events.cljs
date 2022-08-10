@@ -5,6 +5,7 @@
    [atc.db :as db]
    [atc.engine.core :as engine]
    [atc.engine.model :as engine-model]
+   [atc.radio :refer [->speakable]]
    [goog.events.KeyCodes :as KeyCodes]
    [re-frame.core :refer [->interceptor dispatch get-coeffect get-effect
                           inject-cofx path reg-event-db reg-event-fx trim-v]]
@@ -143,8 +144,9 @@
   :speech/enqueue
   [trim-v (path :speech)]
   (fn [{speech :db} [{:keys [from message] :as obj}]]
+    ; TODO: Save all "readable" radio comms for (optional) rendering
     (println "enqueue: " obj)
-    {:db (update speech :queue conj {:message message
+    {:db (update speech :queue conj {:message (->speakable message)
                                      :voice (:voice from)})
      :dispatch [::speech-check-queue]}))
 

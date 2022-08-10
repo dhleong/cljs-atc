@@ -21,12 +21,9 @@
                           ; TODO 9 -> niner, etc.
                           (str/join " " numbers)))]
     (-> craft
-        ; TODO We need to a "human readable" string for viewing history (probably)
-        ; and a speech-friendly string---for which we need the original
-        ; airline/aircraft type and not the raw callsign
-        (update ::utterance-parts conj (str (when steer-direction (name steer-direction))
-                                            " "
-                                            heading-str))
+        (update ::utterance-parts conj [(when steer-direction (name steer-direction))
+                                        {:pronunciation heading-str
+                                         :text heading}])
 
         (update :commands dissoc :direct)
         (update :commands assoc :heading heading :steer-direction steer-direction))))
@@ -36,7 +33,7 @@
   [craft context [_ fix-id]]
   (if-let [fix (get-in context [:game/navaids-by-id fix-id])]
     (-> craft
-        (update ::utterance-parts conj (str "direct " (:pronunciation fix)))
+        (update ::utterance-parts conj ["direct " fix])
         (update :commands assoc :heading)
         (update :commands assoc :direct fix))
 
@@ -110,23 +107,16 @@
 ; ======= Radiology =======================================
 
 (defn build-utterance [craft parts]
-  ; TODO We need to a "human readable" string for viewing history (probably)
-  ; and a speech-friendly string---for which we need the original
-  ; airline/aircraft type and not just the raw callsign
-  (let [full-message (str
-                       (str/join ", " parts)
-                       ", "
-                       (:callsign craft))]
-    {:message full-message
-     :from (assoc (:pilot craft)
-                  :name (:callsign craft))}))
+  {:message (conj parts ["," craft])
+   :from (assoc (:pilot craft)
+                :name (:callsign craft))})
 
 
 ; ======= Main record =====================================
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defrecord Aircraft [^AircraftConfig config
-                     ^String callsign pilot
+                     ^String callsign, ^String radio-name, pilot
                      state
                      ^Vec3 position heading speed
                      commands]
@@ -155,11 +145,12 @@
   (consume-pending-communication [this]
     (dissoc this ::utterance-parts)))
 
-(defn create [^AircraftConfig config, callsign]
+(defn create [^AircraftConfig config, {:keys [callsign radio-name]}]
   (map->Aircraft {:config config
                   :callsign callsign
+                  :radio-name radio-name
                   :state :flight
-                  :pilot (pilot/generate nil) ; TODO Pass in a preferred voice
+                  :pilot (pilot/generate nil) ; TODO Pass in a preferred voice?
                   :position (vec3 250 250 20000)
                   :heading 350
                   :speed 200

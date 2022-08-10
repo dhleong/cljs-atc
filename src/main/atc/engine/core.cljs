@@ -71,10 +71,12 @@
 
 (defn generate [airport]
   ; TODO: Probably, generate the parsing-machine elsewhere for better loading states
-  (let [aircraft [["DAL22" configs/common-jet]]]
+  (let [aircraft [["DAL22" "delta twenty two" configs/common-jet]]]
     (-> {:aircraft (reduce
-                     (fn [m [callsign config]]
-                       (assoc m callsign (aircraft/create config callsign)))
+                     (fn [m [callsign radio-name config]]
+                       (assoc m callsign
+                              (aircraft/create config {:callsign callsign
+                                                       :radio-name radio-name})))
                      {}
                      aircraft)
          :airport airport
