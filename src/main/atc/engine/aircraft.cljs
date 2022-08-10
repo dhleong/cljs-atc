@@ -107,9 +107,10 @@
 ; ======= Radiology =======================================
 
 (defn build-utterance [craft parts]
-  {:message (conj parts ["," craft])
-   :from (assoc (:pilot craft)
-                :name (:callsign craft))})
+  (when (seq parts)
+    {:message (conj parts ["," craft])
+     :from (assoc (:pilot craft)
+                  :name (:callsign craft))}))
 
 
 ; ======= Main record =====================================
