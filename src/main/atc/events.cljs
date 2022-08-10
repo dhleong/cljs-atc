@@ -6,6 +6,7 @@
    [atc.engine.core :as engine]
    [atc.engine.model :as engine-model]
    [atc.radio :refer [->speakable]]
+   [clojure.string :as str]
    [goog.events.KeyCodes :as KeyCodes]
    [re-frame.core :refer [->interceptor dispatch get-coeffect get-effect
                           inject-cofx path reg-event-db reg-event-fx trim-v]]
@@ -195,7 +196,13 @@
   (fn [{voice :db} [paused?]]
     {:voice/set-paused paused?
      :db (assoc voice :paused? paused?)
-     :dispatch [::speech-check-queue]}))
+     :dispatch-n [(when paused?
+                    [::voice-process-pending])
+
+                  ; TODO: probably, do this after some delay... although,
+                  ; realistically, any responses to this input will probably
+                  ; need to be *inserted* into the queue...
+                  [::speech-check-queue]]}))
 
 (reg-event-db
   :voice/busy
@@ -228,7 +235,8 @@
   (fn [{:keys [db]} [?opts]]
     (when-not (:engine db)
       (println "WARNING: Initializing voice without a game engine"))
-    {:voice/start! (assoc ?opts
+    {:db (assoc db :voice {:pending-results []})
+     :voice/start! (assoc ?opts
                           :engine (:engine db))}))
 
 (reg-event-fx
@@ -247,9 +255,30 @@
   :voice/on-result
   [trim-v]
   (fn [{:keys [db]} [result]]
-    (println "voice/on-result" result)
-    {:voice/process {:machine (:parsing-machine (:engine db))
-                     :input result}}))
+    (println "voice/on-result" result (:voice db))
+    {:db (update-in db [:voice :pending-results] conj result)
+     :dispatch [::voice-process-pending]}))
+
+(reg-event-fx
+  ::voice-process-pending
+  [trim-v]
+  (fn [{:keys [db]}]
+    (println "voice/process? :" (:voice db))
+    (when (and
+            ; If not :paused? the user is still holding down PTT---IE they're not
+            ; done with this input!
+            (:paused? (:voice db))
+
+            ; IE: Not still waiting for a result:
+            (empty? (get-in db [:voice :partial-text]))
+            (false? (get-in db [:voice :busy?]))
+
+            (seq (get-in db [:voice :pending-results])))
+      (let [full-input (str/join " " (get-in db [:voice :pending-results]))]
+        (println "voice/process:" full-input (:voice db))
+        {:db (update-in db [:voice :pending-results] empty)
+         :voice/process {:machine (:parsing-machine (:engine db))
+                         :input full-input}}))))
 
 (reg-event-fx
   :voice/set-state

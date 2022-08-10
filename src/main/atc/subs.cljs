@@ -2,6 +2,7 @@
   (:require
    [atc.data.core :refer [local-xy]]
    [atc.structures.rolling-history :refer [most-recent-n]]
+   [clojure.string :as str]
    [re-frame.core :refer [reg-sub]]))
 
 (reg-sub :page :page)
@@ -14,7 +15,9 @@
   :voice/partial
   :<- [::voice]
   (fn [voice]
-    (:partial-text voice)))
+    (str/join " " (conj
+                    (:pending-results voice)
+                    (:partial-text voice)))))
 
 (reg-sub
   :voice/state
