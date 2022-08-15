@@ -237,7 +237,7 @@
     (with-open [in (clojure.java.io/input-stream "/Users/daniel/Downloads/28DaySubscription_Effective_2022-07-14/APT.txt")]
       (time
         (let [data (find-airport-data in "KJFK")]
-          (println (dissoc data :rmk)))))
+          (clojure.pprint/pprint (dissoc data :rmk)))))
     (catch Throwable e
       (prn (ex-message e)
            (ex-data e))
