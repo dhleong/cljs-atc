@@ -1,16 +1,9 @@
 (ns atc.nasr
   (:require
-   [clojure.string :as str])
-  (:import (java.nio.charset Charset)
-           (okio Buffer Okio)))
-
-(defn- justified-string
-  ([bytes-length] (justified-string bytes-length nil))
-  ([bytes-length charset]
-   (let [charset-obj (if (some? charset)
-                       (Charset/forName charset)
-                       (Charset/defaultCharset))]
-     #(str/trim (.readString % bytes-length charset-obj)))))
+   [atc.okay :as okay :refer [compile-record compile-record-part
+                              fixed-record-sequence ignore-bytes justified-float
+                              justified-int justified-string optional-string read-record]]
+   [clojure.string :as str]))
 
 (defn- justified-keyword [bytes-length]
   (comp
@@ -18,35 +11,6 @@
     #(str/replace % #" " "-")
     str/lower-case
     (justified-string bytes-length)))
-
-(defn- ignore-bytes [bytes-count]
-  (fn
-    ([^Buffer frame]
-     (.skip frame bytes-count)
-     ::ignored-value)
-    ([output ^Buffer frame]
-     (ignore-bytes frame)
-     output)))
-
-(defn- optional-string [parser]
-  (fn optional [v]
-    (when-not (str/blank? v)
-      (parser v))))
-
-(defn- justified-string-number [str->number bytes-length & {:keys [optional?]}]
-  (let [f #(try (str->number %)
-                (catch Throwable cause
-                  (throw (ex-info (str "Failed to parse `" % "` into a number")
-                                  {:value %}
-                                  cause))))]
-    (comp
-      (if optional?
-        (optional-string f)
-        f)
-      (justified-string bytes-length))))
-
-(def ^:private justified-int (partial justified-string-number #(Long/parseLong %)))
-(def ^:private justified-float (partial justified-string-number #(Double/parseDouble %)))
 
 (def ^:private formatted-coordinate
   (comp
@@ -65,29 +29,6 @@
                               {:input formatted-s
                                :cause e})))))))
     (justified-string 15)))
-
-(defn- compile-record-part [part]
-  (cond
-    (vector? part) (let [[k reader] part]
-                     (fn [output frame]
-                       (try
-                         (let [read-value (reader frame)]
-                           (if-not (= ::ignored-value read-value)
-                             (assoc output k read-value)
-                             output))
-                         (catch Throwable cause
-                           (throw (ex-info (str "Failed to read " k)
-                                           {:frame frame
-                                            :output output}
-                                           cause))))))
-
-    ; TODO wrap with exception handler
-    (fn? part) part
-
-    :else (throw (ex-info (str "Unexpected record part:" part) {:part part}))))
-
-(defn- compile-record [& parts]
-  (map compile-record-part parts))
 
 (def apt-record
   (compile-record
@@ -154,16 +95,6 @@
     [::reciprocal-end-lighting (ignore-bytes 20)]
     [::reciprocal-end-object (ignore-bytes 39)]))
 
-(defn read-record
-  ([record frame] (read-record record frame {}))
-  ([record frame initial-output]
-   (reduce
-     (fn [output record-part]
-       (record-part output frame))
-     initial-output
-     record)))
-
-
 (def record-type->record
   {:apt apt-record
    :rwy rwy-record})
@@ -177,21 +108,8 @@
        ; otherwise, ignore
        (assoc output ::ignored? true)))])
 
-(defn- read-sequence [in record]
-  (let [source (-> (Okio/source in) (Okio/buffer))
-        frame (Buffer.)
-        frame-length 1533
-        read-next (fn read-next []
-                    (.clear frame)
-                    (.readFully source frame frame-length)
-                    (read-record record frame))
-        read-seq (fn read-seq []
-                   (cons (read-next)
-                         (lazy-seq (read-seq))))]
-    (read-seq)))
-
 (defn find-airport-data [in expected-icao]
-  (loop [all-records (read-sequence in apt-file-record)
+  (loop [all-records (fixed-record-sequence apt-file-record 1533 in)
          found? false
          result {}]
     (let [current (first all-records)
