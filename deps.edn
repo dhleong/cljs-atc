@@ -2,7 +2,7 @@
 
  :deps {org.clojure/data.xml {:mvn/version "0.2.0-alpha7"}
         org.clojure/data.zip {:mvn/version "1.0.0"}
-        org.clj-commons/gloss {:mvn/version "0.3.0"}}
+        com.squareup.okio/okio {:mvn/version "3.2.0"}}
 
  :aliases {:tool/repl {:extra-deps {cider/cider-nrepl {:mvn/version "0.28.5"}
                                     refactor-nrepl/refactor-nrepl {:mvn/version "3.5.4"}}

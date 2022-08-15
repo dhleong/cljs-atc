@@ -1,48 +1,57 @@
 (ns atc.nasr
   (:require
-   [clojure.string :as str]
-   [gloss.core :as g :refer [defcodec header]]
-   [gloss.data.bytes.core :refer [drop-bytes take-contiguous-bytes]]
-   [gloss.io :refer [decode lazy-decode-all]]))
+   [clojure.string :as str])
+  (:import (java.nio.charset Charset)
+           (okio Buffer Okio)))
 
-(defn- left-justified [frame]
-  (g/compile-frame
-    frame
-    identity
-    str/trimr))
+(defn- justified-string
+  ([bytes-length] (justified-string bytes-length nil))
+  ([bytes-length charset]
+   (let [charset-obj (if (some? charset)
+                       (Charset/forName charset)
+                       (Charset/defaultCharset))]
+     #(str/trim (.readString % bytes-length charset-obj)))))
 
-(defn- left-justified-string [length]
-  (left-justified
-    (g/string :utf-8 :length length)))
+(defn- justified-keyword [bytes-length]
+  (comp
+    keyword
+    #(str/replace % #" " "-")
+    str/lower-case
+    (justified-string bytes-length)))
 
-(defn- left-justified-keyword [length]
-  (g/compile-frame
-    (left-justified-string length)
-    (comp str/upper-case name)
-    (comp keyword #(str/replace % #"[ ]" "-") str/lower-case)))
+(defn- ignore-bytes [bytes-count]
+  (fn
+    ([^Buffer frame]
+     (.skip frame bytes-count)
+     ::ignored-value)
+    ([output ^Buffer frame]
+     (ignore-bytes frame)
+     output)))
 
-(defn- ignored-chars [chars-count]
-  (g/string :utf-8 :length chars-count :char-sequence true))
+(defn- optional-string [parser]
+  (fn optional [v]
+    (when-not (str/blank? v)
+      (parser v))))
 
-(defn- right-justified-number [parse chars-count]
-  (g/compile-frame
-    (g/string :ascii :length chars-count)
-    identity
+(defn- justified-string-number [str->number bytes-length & {:keys [optional?]}]
+  (let [f #(try (str->number %)
+                (catch Throwable cause
+                  (throw (ex-info (str "Failed to parse `" % "` into a number")
+                                  {:value %}
+                                  cause))))]
     (comp
-      #(if (str/blank? %)
-         nil
-         (parse %))
-      str/triml)))
+      (if optional?
+        (optional-string f)
+        f)
+      (justified-string bytes-length))))
 
-(def ^:private right-justified-int (partial right-justified-number #(Long/parseLong %)))
-(def ^:private right-justified-float (partial right-justified-number #(Double/parseDouble %)))
+(def ^:private justified-int (partial justified-string-number #(Long/parseLong %)))
+(def ^:private justified-float (partial justified-string-number #(Double/parseDouble %)))
 
 (def ^:private formatted-coordinate
-  (g/compile-frame
-    (left-justified-string 15)
-    identity
-    (fn [formatted-s]
-      (delay
+  (comp
+    (optional-string
+      (fn [formatted-s]
         (let [[degrees minutes seconds-and-declination] (str/split formatted-s #"-")]
           (try
             (keyword
@@ -54,148 +63,183 @@
             (catch Exception e
               (throw (ex-info (str "Failed to parse coordinate: `" formatted-s "`: " e)
                               {:input formatted-s
-                               :cause e})))))))))
+                               :cause e})))))))
+    (justified-string 15)))
 
-(defcodec apt-file-record-type
-  (left-justified-keyword 3))
+(defn- compile-record-part [part]
+  (cond
+    (vector? part) (let [[k reader] part]
+                     (fn [output frame]
+                       (try
+                         (let [read-value (reader frame)]
+                           (if-not (= ::ignored-value read-value)
+                             (assoc output k read-value)
+                             output))
+                         (catch Throwable cause
+                           (throw (ex-info (str "Failed to read " k)
+                                           {:frame frame
+                                            :output output}
+                                           cause))))))
 
-(defn apt-file-frame [content]
-  ; NOTE: The record is 1531 bytes + \r\n, but that includes the 3-byte "type" header
-  (g/finite-frame 1530 content))
+    ; TODO wrap with exception handler
+    (fn? part) part
 
-(defcodec apt-record
-  (apt-file-frame
-    (g/ordered-map
-      :type :apt
-      :site-number (left-justified-string 11)
-      :facility-type (left-justified-keyword 13)
-      :id (left-justified-keyword 4)
-      :effective-date (left-justified-string 10)
+    :else (throw (ex-info (str "Unexpected record part:" part) {:part part}))))
 
-      :faa-region-code (left-justified-string 3)
-      :faa-district-code (left-justified-string 4)
-      :associated-state-code (left-justified-string 2)
-      :associated-state-name (left-justified-string 20)
-      :associated-county-name (left-justified-string 21)
-      :associated-county-state-code (left-justified-string 2)
-      :associated-city-name (left-justified-string 40)
-      :name (left-justified-string 50)
+(defn- compile-record [& parts]
+  (map compile-record-part parts))
 
-      :ownership-data (ignored-chars 340)
-      :geographic-data (ignored-chars 114) ; TODO magnetic variation, probably
+(def apt-record
+  (compile-record
+    [:site-number (justified-string 11)]
+    [:facility-type (justified-keyword 13)]
+    [:id (justified-keyword 4)]
+    [:effective-date (justified-string 10)]
 
-      :boundary-artcc-id (left-justified-string 4)
+    [:faa-region-code (justified-string 3)]
+    [:faa-district-code (justified-string 4)]
+    [:associated-state-code (justified-string 2)]
+    [:associated-state-name (justified-string 20)]
+    [:associated-county-name (justified-string 21)]
+    [:associated-county-state-code (justified-string 2)]
+    [:associated-city-name (justified-string 40)]
+    [:name (justified-string 50)]
 
-      ::rest (g/string :ascii)
-      )))
+    [::ownership-data (ignore-bytes 340)]
+    [::geographic-data (ignore-bytes 114)]  ; TODO magnetic variation, probably
 
-(defcodec rwy-record
-  (apt-file-frame
-    (g/ordered-map
-      :type :rwy
-      :site-number (left-justified-string 11)
-      :state-code (left-justified-string 2)
-      :id (left-justified-string 7)
-      :length (right-justified-int 5)
-      :width (right-justified-int 4)
-      ::physical-data (ignored-chars 33)
+    [:boundary-artcc-id (justified-string 4)]
 
-      :base-end-id (left-justified-string 3)
-      ::base-end-misc (ignored-chars 20)
+    [::misc (ignore-bytes 569)]
 
-      :base-end-latitude formatted-coordinate
-      ::base-end-lat (ignored-chars 12)
+    [:icao (justified-string 7)]))
 
-      :base-end-longitude formatted-coordinate
-      ::base-end-longitude (ignored-chars 12)
+(def rwy-record
+  (compile-record
+    [:site-number (justified-string 11)]
+    [:state-code (justified-string 2)]
+    [:id (justified-string 7)]
+    [:length (justified-int 5)]
+    [:width (justified-int 4)]
 
-      :base-end-elevation (right-justified-float 7)
+    [::physical-data (ignore-bytes 33)]
 
-      ::base-end-misc (ignored-chars 79)
-      ::base-end-lighting (ignored-chars 20)
-      ::base-end-object (ignored-chars 39)
+    [:base-end-id (justified-string 3)]
+    [::base-end-misc (ignore-bytes 20)]
 
-      :reciprocal-end-id (left-justified-string 3)
-      ::reciprocal-end-misc (ignored-chars 20)
+    [:base-end-latitude formatted-coordinate]
+    [::base-end-lat (ignore-bytes 12)]
 
-      :reciprocal-end-latitude formatted-coordinate
-      ::reciprocal-end-lat (ignored-chars 12)
+    [:base-end-longitude formatted-coordinate]
+    [::base-end-longitude (ignore-bytes 12)]
 
-      :reciprocal-end-longitude formatted-coordinate
-      ::reciprocal-end-longitude (ignored-chars 12)
+    [:base-end-elevation (justified-float 7 :optional? true)]
 
-      :reciprocal-end-elevation (right-justified-float 7)
+    [::base-end-misc (ignore-bytes 79)]
+    [::base-end-lighting (ignore-bytes 20)]
+    [::base-end-object (ignore-bytes 39)]
 
-      ::reciprocal-end-misc (ignored-chars 79)
-      ::reciprocal-end-lighting (ignored-chars 20)
-      ::reciprocal-end-object (ignored-chars 39)
+    [:reciprocal-end-id (justified-string 3)]
+    [::reciprocal-end-misc (ignore-bytes 20)]
 
-      ::rest (g/string :ascii))))
+    [:reciprocal-end-latitude formatted-coordinate]
+    [::reciprocal-end-lat (ignore-bytes 12)]
 
-(defn ignored [type-kw]
-  (apt-file-frame
-    (g/ordered-map
-      :type type-kw
-      ::rest (g/string :ascii))))
+    [:reciprocal-end-longitude formatted-coordinate]
+    [::reciprocal-end-longitude (ignore-bytes 12)]
 
-(def record-type->codec
+    [:reciprocal-end-elevation (justified-float 7 :optional? true)]
+
+    [::reciprocal-end-misc (ignore-bytes 79)]
+    [::reciprocal-end-lighting (ignore-bytes 20)]
+    [::reciprocal-end-object (ignore-bytes 39)]))
+
+(defn read-record
+  ([record frame] (read-record record frame {}))
+  ([record frame initial-output]
+   (reduce
+     (fn [output record-part]
+       (record-part output frame))
+     initial-output
+     record)))
+
+
+(def record-type->record
   {:apt apt-record
    :rwy rwy-record})
 
-(defcodec apt-file-record
-  (header
-    apt-file-record-type
-    (fn [record-type]
-      (get record-type->codec record-type (ignored record-type)))
-    :type))
+(def apt-file-record
+  [(compile-record-part [:type (justified-keyword 3)])
+   (fn [output frame]
+     (if-let [record (get record-type->record (:type output))]
+       (read-record record frame output)
 
-(defcodec apt-file-raw-record
-  (g/finite-frame
-    1533
-    (g/ordered-map
-      :type apt-file-record-type
-      :data (g/finite-block 1530))))
+       ; otherwise, ignore
+       (assoc output ::ignored? true)))])
 
-(defn scan-for [reader expected-icao]
-  (let [all-records (lazy-decode-all apt-file-raw-record reader)
-        skipped (->> all-records
-                     #_(take 500)
-                     (drop-while #(not (and (= :apt (:type %))
+(defn- read-sequence [in record]
+  (let [source (-> (Okio/source in) (Okio/buffer))
+        frame (Buffer.)
+        frame-length 1533
+        read-next (fn read-next []
+                    (.clear frame)
+                    (.readFully source frame frame-length)
+                    (read-record record frame))
+        read-seq (fn read-seq []
+                   (cons (read-next)
+                         (lazy-seq (read-seq))))]
+    (read-seq)))
 
-                                            (let [icao-buffer (-> (:data %)
-                                                                  (drop-bytes 1207)
-                                                                  (take-contiguous-bytes 7))
-                                                  icao (str/trim
-                                                         (str (char (.get icao-buffer))
-                                                              (char (.get icao-buffer))
-                                                              (char (.get icao-buffer))
-                                                              (char (.get icao-buffer))
-                                                              (char (.get icao-buffer))
-                                                              (char (.get icao-buffer))
-                                                              (char (.get icao-buffer))))]
-                                              (= expected-icao icao))))))]
-    (println (decode apt-record (:data (first skipped))))
-    (println (first skipped))))
+(defn find-airport-data [in expected-icao]
+  (loop [all-records (read-sequence in apt-file-record)
+         found? false
+         result {}]
+    (let [current (first all-records)
+          did-find? (and (= :apt (:type current))
+                         (= expected-icao (:icao current)))]
+      (cond
+        (not found?)
+        (recur (next all-records)
+               (or found? did-find?)
+               (if did-find?
+                 (assoc result :apt current)
+                 result))
+
+        ; new apt record
+        (and found? (= :apt (:type current)))
+        result
+
+        :else
+        (recur
+          (next all-records)
+          true
+          (update result (:type current) conj current))))))
+
+#_(defn scan-for [in expected-icao]
+  (let [source (-> (Okio/source in) (Okio/buffer))
+        frame (Buffer.)
+        frame-length 1533
+        charset (Charset/forName "ascii")]
+    (loop []
+      (.clear frame)
+      (.readFully source frame frame-length)
+
+      (let [icao-buffer (doto (.copy frame)
+                            (.skip 1210))
+              icao (str/trim (.readString icao-buffer 7 charset))]
+          (if (= icao expected-icao)
+            (read-record apt-record frame)
+            (recur))))))
 
 (comment
   #_:clj-kondo/ignore
-  (with-open [reader (clojure.java.io/reader "/Users/daniel/Downloads/28DaySubscription_Effective_2022-07-14/APT.txt")]
-    (time
-      (scan-for reader "KJFK")
-      #_(let [site-number (atom nil)
-            entries (->> (lazy-decode-all apt-file-record reader)
-                         (transduce
-                           (comp
-                             (drop-while #(not= "JFK" (:id %)))
-                             (take-while #(if (nil? @site-number)
-                                            (reset! site-number (:site-number %))
-                                            (not= :apt (:type %)))))
-                           conj [])
-                         #_(group-by :site-number)
-                         #_(filter #(= (:type %) :apt))
-                         #_(filter #(= (:type %) :rwy)))]
-        #_(doseq [a entries]
-            (prn "At:" (:type a) (:site-number a) (:id a) (:associated-city-name a) (:name a)))
-        (prn (first entries))))
-    )
-  )
+  (try
+    (with-open [in (clojure.java.io/input-stream "/Users/daniel/Downloads/28DaySubscription_Effective_2022-07-14/APT.txt")]
+      (time
+        (let [data (find-airport-data in "KJFK")]
+          (println (dissoc data :rmk)))))
+    (catch Throwable e
+      (prn (ex-message e)
+           (ex-data e))
+      (prn (ex-message (ex-cause e)))
+      #_(.printStackTrace e))))
