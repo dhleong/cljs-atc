@@ -13,7 +13,7 @@
     (justified-string bytes-length)))
 
 (def ^:private formatted-coordinate
-  (comp
+  (okay/compose
     (optional-string
       (fn [formatted-s]
         (let [[degrees minutes seconds-and-declination] (str/split formatted-s #"-")]
@@ -51,7 +51,19 @@
     [:name (justified-string 50)]
 
     [::ownership-data (ignore-bytes 340)]
-    [::geographic-data (ignore-bytes 114)]  ; TODO magnetic variation, probably
+    ; [::geo-data (ignore-bytes 114)]
+
+    [:latitude formatted-coordinate]
+    [::lat (ignore-bytes 12)]
+    [:longitude formatted-coordinate]
+    [::lon (ignore-bytes 12)]
+    [::ref-point-method (ignore-bytes 1)]
+
+    [:elevation (justified-float 7)]
+    [::elevation-method (ignore-bytes 1)]
+    [:magnetic-variation (justified-string 3)]
+
+    [::remaining-geographic-data (ignore-bytes 48)]
 
     [:boundary-artcc-id (justified-string 4)]
 
@@ -122,10 +134,9 @@
        apt-record))))
 
 (defn find-airport-data [in expected-icao]
-  (when-let [subsequent-frames (time
-                                 (okay/search-for-fixed-record
-                                   in apt-icao-record
-                                   :icao (partial = expected-icao)))]
+  (when-let [subsequent-frames (okay/search-for-fixed-record
+                                 in apt-icao-record
+                                 :icao (partial = expected-icao))]
     (loop [all-records (map (partial okay/read-record apt-file-record) subsequent-frames)
            result {}]
       (let [current (first all-records)]
@@ -145,7 +156,9 @@
         (let [data (find-airport-data in "KJFK")]
           (clojure.pprint/pprint (dissoc data :rmk)))))
     (catch Throwable e
-      (prn (ex-message e)
+      (prn e)
+      (prn (type e)
+           (ex-message e)
            (ex-data e))
       (prn (ex-message (ex-cause e)))
       #_(.printStackTrace e))))

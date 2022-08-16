@@ -145,7 +145,8 @@
   (if-let [frame-length-bytes (fixed-record-length record)]
     frame-length-bytes
     (throw (ex-info "Provided record does not have a fixed length"
-                    {:record record}))))
+                    {:record record
+                     :meta (meta record)}))))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn fixed-record-sequence
@@ -163,7 +164,7 @@
                                   (fn [offset part]
                                     (if (= k (:key (meta part)))
                                       (reduced [offset part])
-                                      (+ offset (:bytes-count (meta part)))))
+                                      (+ offset (require-fixed-record-length part))))
                                   0
                                   record)
         frame-length-bytes (require-fixed-record-length record)]
