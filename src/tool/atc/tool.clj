@@ -1,5 +1,6 @@
 (ns atc.tool
   (:require
+   [atc.data.core :refer [coord-distance]]
    [atc.nasr :as nasr]
    [atc.nasr.airac :refer [airac-data]]
    [clojure.java.io :as io]
@@ -33,5 +34,7 @@
 (defn -main []
   (let [destination-dir (io/file ".")
         airac (airac-data)
-        zip-file (nasr/locate-zip airac destination-dir)]
-    (pprint (build-airport zip-file "KJFK"))))
+        zip-file (nasr/locate-zip airac destination-dir)
+
+        airport (build-airport zip-file "KJFK")]
+    (pprint (coord-distance (:position airport) (:position airport)))))

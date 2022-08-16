@@ -13,7 +13,7 @@
   (local-xy [this reference]
             "`reference` must also be a Coordinate of Angles"))
 
-(defn- latlng-degrees [^Coordinate coord]
+(defn- latlng-degrees [coord]
   (let [[lat lng] (latlng coord)]
     [(coord-degrees lat) (coord-degrees lng)]))
 
@@ -43,7 +43,7 @@
 
 (defn coord-distance
   "Returns the distance in meters from `from` to `to`, via the Haversine formula"
-  [^Coordinate from ^Coordinate to]
+  [from to]
   (let [[flat flng] (latlng-degrees from)
         [tlat tlng] (latlng-degrees to)
 
