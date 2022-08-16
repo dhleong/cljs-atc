@@ -6,7 +6,7 @@
    [clojure.string :as str]))
 
 (defn- justified-keyword [bytes-length]
-  (comp
+  (okay/compose
     keyword
     #(str/replace % #" " "-")
     str/lower-case
@@ -30,8 +30,12 @@
                                :cause e})))))))
     (justified-string 15)))
 
+(defn- compile-apt-file-record [& parts]
+  ((okay/with-bytes-count 1530)
+   (apply compile-record parts)))
+
 (def apt-record
-  (compile-record
+  (compile-apt-file-record
     [:site-number (justified-string 11)]
     [:facility-type (justified-keyword 13)]
     [:id (justified-keyword 4)]
@@ -56,7 +60,7 @@
     [:icao (justified-string 7)]))
 
 (def rwy-record
-  (compile-record
+  (compile-apt-file-record
     [:site-number (justified-string 11)]
     [:state-code (justified-string 2)]
     [:id (justified-string 7)]
@@ -100,16 +104,25 @@
    :rwy rwy-record})
 
 (def apt-file-record
-  [(compile-record-part [:type (justified-keyword 3)])
-   (fn [output frame]
-     (if-let [record (get record-type->record (:type output))]
-       (read-record record frame output)
+  ((okay/with-bytes-count 1533)
+   (compile-record
+     (compile-record-part [:type (justified-keyword 3)])
+     (fn [output frame]
+       (if-let [record (get record-type->record (:type output))]
+         (read-record record frame output)
 
-       ; otherwise, ignore
-       (assoc output ::ignored? true)))])
+         ; otherwise, ignore
+         (assoc output ::ignored? true))))))
+
+(def apt-icao-record
+  ((okay/with-bytes-count 1533)
+   (apply compile-record
+     (cons
+       [:type (justified-keyword 3)]
+       apt-record))))
 
 (defn find-airport-data [in expected-icao]
-  (loop [all-records (fixed-record-sequence apt-file-record 1533 in)
+  (loop [all-records (fixed-record-sequence apt-file-record in)
          found? false
          result {}]
     (let [current (first all-records)
@@ -133,21 +146,21 @@
           true
           (update result (:type current) conj current))))))
 
-#_(defn scan-for [in expected-icao]
-  (let [source (-> (Okio/source in) (Okio/buffer))
-        frame (Buffer.)
-        frame-length 1533
-        charset (Charset/forName "ascii")]
-    (loop []
-      (.clear frame)
-      (.readFully source frame frame-length)
+(defn find-airport-data-faster [in expected-icao]
+  (when-let [subsequent-frames (time
+                                 (okay/search-for-fixed-record
+                                   in apt-icao-record
+                                   :icao (partial = expected-icao)))]
+    (loop [all-records (map (partial okay/read-record apt-file-record) subsequent-frames)
+           result {}]
+      (let [current (first all-records)]
+        (if (and (= :apt (:type current))
+                 (not= expected-icao (:icao current)))
+          result
 
-      (let [icao-buffer (doto (.copy frame)
-                            (.skip 1210))
-              icao (str/trim (.readString icao-buffer 7 charset))]
-          (if (= icao expected-icao)
-            (read-record apt-record frame)
-            (recur))))))
+          (recur
+            (next all-records)
+            (update result (:type current) conj current)))))))
 
 (comment
   #_:clj-kondo/ignore
