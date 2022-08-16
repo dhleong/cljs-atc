@@ -1,7 +1,7 @@
 (ns atc.nasr
   (:require
    [atc.okay :as okay :refer [compile-record compile-record-part
-                              fixed-record-sequence ignore-bytes justified-float
+                              ignore-bytes justified-float
                               justified-int justified-string optional-string read-record]]
    [clojure.string :as str]))
 
@@ -122,31 +122,6 @@
        apt-record))))
 
 (defn find-airport-data [in expected-icao]
-  (loop [all-records (fixed-record-sequence apt-file-record in)
-         found? false
-         result {}]
-    (let [current (first all-records)
-          did-find? (and (= :apt (:type current))
-                         (= expected-icao (:icao current)))]
-      (cond
-        (not found?)
-        (recur (next all-records)
-               (or found? did-find?)
-               (if did-find?
-                 (assoc result :apt current)
-                 result))
-
-        ; new apt record
-        (and found? (= :apt (:type current)))
-        result
-
-        :else
-        (recur
-          (next all-records)
-          true
-          (update result (:type current) conj current))))))
-
-(defn find-airport-data-faster [in expected-icao]
   (when-let [subsequent-frames (time
                                  (okay/search-for-fixed-record
                                    in apt-icao-record
