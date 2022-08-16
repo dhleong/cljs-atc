@@ -16,12 +16,19 @@
 
 (defn build-airport [zip-file icao]
   (let [{:keys [apt] :as data} (time (nasr/find-airport-data zip-file icao))
+        apt (first apt)
         runways (compose-runways data)]
 
     {:id (:icao apt)
      :name (:name apt)
-     :magnetic-north "TODO"
-     :position "TODO"
+     :magnetic-north (let [raw-variation (:magnetic-variation apt)
+                           declination (case (last raw-variation)
+                                         \W -1
+                                         \E 1)]
+                      (* declination
+                         (Double/parseDouble
+                           (subs raw-variation 0 (dec (count raw-variation))))))
+     :position [(:latitude apt) (:longitude apt) (:elevation apt)]
      :runways runways}))
 
 (defn -main []
