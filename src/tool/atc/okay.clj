@@ -8,6 +8,8 @@
    (okio
      Buffer
      BufferedSource
+     FileSystem
+     Path
      Okio
      Source)))
 
@@ -40,6 +42,17 @@
     :else
     (throw (ex-info "Unable to convert input to a buffered source"
                     {:input x}))))
+
+(defn zip-filesystem
+  ([path] (zip-filesystem FileSystem/SYSTEM path))
+  ([^FileSystem file-system path]
+   (Okio/openZip file-system (Path/get path))))
+
+(defn open-zip-file
+  ([zip-path file-path] (open-zip-file FileSystem/SYSTEM zip-path file-path))
+  ([^FileSystem file-system zip-path file-path]
+   (let [zip-fs (zip-filesystem file-system zip-path)]
+     (.source zip-fs (Path/get file-path)))))
 
 
 ; ======= Record value parsers ============================

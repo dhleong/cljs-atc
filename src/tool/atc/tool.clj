@@ -1,6 +1,7 @@
 (ns atc.tool
   (:require
    [atc.nasr :as nasr]
+   [atc.nasr.airac :refer [airac-data]]
    [clojure.java.io :as io]
    [clojure.pprint :refer [pprint]]))
 
@@ -13,8 +14,8 @@
        :end-threshold [(:reciprocal-end-latitude rwy) (:reciprocal-end-longitude rwy)]})
     (:rwy data)))
 
-(defn build-airport [in icao]
-  (let [{:keys [apt] :as data} (time (nasr/find-airport-data in icao))
+(defn build-airport [zip-file icao]
+  (let [{:keys [apt] :as data} (time (nasr/find-airport-data zip-file icao))
         runways (compose-runways data)]
 
     {:id (:icao apt)
@@ -24,7 +25,7 @@
      :runways runways}))
 
 (defn -main []
-  (let [path "/Users/daniel/Downloads/28DaySubscription_Effective_2022-07-14/APT.txt"]
-    (with-open [reader (io/input-stream path)]
-      (pprint (build-airport reader "KJFK"))
-      #_(println (build-airport reader "PFAK")))))
+  (let [destination-dir (io/file ".")
+        airac (airac-data)
+        zip-file (nasr/locate-zip airac destination-dir)]
+    (pprint (build-airport zip-file "KJFK"))))
