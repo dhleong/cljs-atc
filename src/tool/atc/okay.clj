@@ -147,6 +147,7 @@
     (throw (ex-info "Provided record does not have a fixed length"
                     {:record record}))))
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn fixed-record-sequence
   "Returns a lazy sequence that reads records with a fixed length in bytes
   from `in`, which should be (or be convertable to) a buffered-source."
