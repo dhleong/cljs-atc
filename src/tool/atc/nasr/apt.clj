@@ -1,34 +1,11 @@
 (ns atc.nasr.apt
   (:require
-   [atc.okay :as okay :refer [compile-record compile-record-part
-                              ignore-bytes justified-float
-                              justified-int justified-string optional-string read-record]]
-   [clojure.string :as str]))
+   [atc.nasr.types :refer [create-formatted-coordinate justified-keyword]]
+   [atc.okay :as okay :refer [compile-record compile-record-part ignore-bytes
+                              justified-float justified-int justified-string
+                              read-record]]))
 
-(defn- justified-keyword [bytes-length]
-  (okay/compose
-    keyword
-    #(str/replace % #" " "-")
-    str/lower-case
-    (justified-string bytes-length)))
-
-(def ^:private formatted-coordinate
-  (okay/compose
-    (optional-string
-      (fn [formatted-s]
-        (let [[degrees minutes seconds-and-declination] (str/split formatted-s #"-")]
-          (try
-            (keyword
-              (str
-                (last seconds-and-declination)
-                degrees "*"
-                minutes "'"
-                (subs seconds-and-declination 0 (dec (count seconds-and-declination)))))
-            (catch Exception e
-              (throw (ex-info (str "Failed to parse coordinate: `" formatted-s "`: " e)
-                              {:input formatted-s
-                               :cause e})))))))
-    (justified-string 15)))
+(def ^:private formatted-coordinate (create-formatted-coordinate 15))
 
 (defn- compile-apt-file-record [& parts]
   ((okay/with-bytes-count 1530)

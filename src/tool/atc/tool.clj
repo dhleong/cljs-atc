@@ -15,8 +15,7 @@
     (:rwy data)))
 
 (defn build-airport [zip-file icao]
-  (let [{:keys [apt] :as data} (time (nasr/find-airport-data zip-file icao))
-        apt (first apt)
+  (let [{[apt] :apt :as data} (time (nasr/find-airport-data zip-file icao))
         runways (compose-runways data)]
 
     {:id (:icao apt)
