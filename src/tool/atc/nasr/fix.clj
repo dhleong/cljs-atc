@@ -66,11 +66,16 @@
            pred)
          conj [])))
 
-(defn find-fixes [in & {:keys [near in-range in-artcc on-charts]
+(defn find-fixes [in & {:keys [near in-range in-artcc on-charts ids]
                         :or {in-range (* 10 1000)}}]
   (let [predicates (keep
                      identity
-                     [(when near
+                     [(when ids
+                        (comp
+                          (filter (comp (into #{} ids) :id))
+                          (take (count ids))))
+
+                      (when near
                         (comp
                           (map #(let [fix-coord [(:latitude %) (:longitude %)]]
                                   (assoc % :distance-to-coord (coord-distance near fix-coord))))
@@ -83,29 +88,7 @@
                         (filter #(some (:chart-type %) on-charts)))])]
     (find-fixes-xf in (apply comp predicates))))
 
-(defn find-fixes-near [in coord range-m]
-  (find-fixes in {:near coord :in-range range-m}))
-
 (comment
-  #_:clj-kondo/ignore
-  (try
-    (with-open [in (clojure.java.io/input-stream
-                     (clojure.java.io/file
-                       (System/getenv "HOME")
-                       "Downloads/28DaySubscription_Effective_2022-07-14/FIX.txt"))]
-      (let [data (time (find-fixes-near in [:N40.63992778 :W73.77869167 13]
-                                        (* 10 1000)))
-            names #_(->> data (map :id) sort)
-            (->> data (group-by :artcc-high) keys)]
-        (println names)
-        (println "Found" (count data) "points")))
-    (catch Throwable e
-      (prn (type e)
-           (ex-message e)
-           (ex-data e))
-      (prn (ex-message (ex-cause e)))
-      (.printStackTrace e)))
-
   #_:clj-kondo/ignore
   (try
     (with-open [in (clojure.java.io/input-stream
@@ -114,20 +97,20 @@
                        "Downloads/28DaySubscription_Effective_2022-07-14/FIX.txt"))]
       (let [data (time (find-fixes
                          in
+                         :ids #{"MERIT"}
                          ; :in-artcc "ZNY"
-                         :near [:N40.63992778 :W73.77869167 13]
-                         :in-range (* 100 1000)
-                         :on-charts #{:sid :star}))]
-        (prn (->> (map :id data) sort))
-        ; (prn (->> data (filter #(= "MERIT" (:id %))) first))
-        (println "for query" (count data)))
-      #_(let [data (time (->> (okay/fixed-record-sequence fix-file-record in)
-                            (filter #(= "MERIT" (:id %)))
-                            first))]
-        (prn data)
-        (println (coord-distance
-                   [:N40.63992778 :W73.77869167 13]
-                   [(:latitude data) (:longitude data)]))))
+                         ; :near [:N40.63992778 :W73.77869167 13]
+                         ; :in-range (* 100 1000)
+                         ; :on-charts #{:sid :star}
+))
+            found-count (count data)]
+        (clojure.pprint/pprint
+          (cond
+            (= 1 found-count) (first data)
+            (< 4 found-count) data
+            :else (->> (map :id data) sort)))
+
+        (println "for query" found-count)))
     (catch Throwable e
       (prn (type e)
            (ex-message e)
