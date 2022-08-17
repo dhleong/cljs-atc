@@ -35,8 +35,8 @@
             sign (case (first (name this))
                    (\n \N \e \E) 1
                    (\s \S \w \W) -1)
-            m (when m (/ (->float m) 60))
-            s (when s (/ (->float s) 3600))]
+            m (if-not m 0 (/ (->float m) 60))
+            s (if-not s 0 (/ (->float s) 3600))]
         (* sign (+ (->float d) m s))))))
 
 (def ^:private earth-radius-m 6371000)

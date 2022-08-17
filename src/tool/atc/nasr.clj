@@ -1,6 +1,7 @@
 (ns atc.nasr
   (:require
    [atc.nasr.apt :as apt]
+   [atc.nasr.fix :as fix]
    [atc.okay :as okay]
    [clojure.java.io :as io]))
 
@@ -20,4 +21,8 @@
 (defn find-airport-data [zip-file expected-icao]
   (with-open [in (okay/open-zip-file zip-file "APT.txt")]
     (apt/find-airport-data in expected-icao)))
+
+(defn find-fixes [zip-file & query]
+  (with-open [in (okay/open-zip-file zip-file "FIX.txt")]
+    (apply fix/find-fixes in query)))
 
