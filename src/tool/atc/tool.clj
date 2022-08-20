@@ -85,7 +85,7 @@
                    (sort-by :id)
                    vec)}))
 
-(defn- build-airport-cli [{{:keys [icao nasr-path]} :opts}]
+(defn- build-airport-cli [{{:keys [icao nasr-path write]} :opts}]
   {:pre [icao nasr-path]}
   (let [icao (str/upper-case icao)
 
@@ -94,7 +94,17 @@
         zip-file (nasr/locate-zip airac destination-dir)
 
         airport (build-airport zip-file icao)]
-    (pprint airport)))
+    (pprint airport)
+
+    (when write
+      (let [icao-sym (str/lower-case icao)]
+        (spit
+          (io/file (str "src/main/atc/data/airports/" icao-sym ".cljc"))
+          (str
+            (format "(ns atc.data.airports.%s)\n\n" icao-sym)
+            (format "(def airport\n  %s)"
+                    (with-out-str
+                      (pprint airport)))))))))
 
 (def ^:private cli-table
   [{:cmds ["build-airport"] :fn build-airport-cli
@@ -105,4 +115,4 @@
   (cli/dispatch cli-table args))
 
 (comment
-  (-main "build-airport" "kjfk"))
+  (-main "build-airport" "kjfk" "--write"))
