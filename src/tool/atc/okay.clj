@@ -139,8 +139,8 @@
         [:type (justified-string 5)]
         (record-by-type
           :type
-          {" CHILI " chili-record
-           " PEEPS " peeps-record})))"
+          {\" CHILI \" chili-record
+           \" PEEPS \" peeps-record})))"
   ([type-key type->record-type]
    (let [output->record-type (fn [output]
                                (get type->record-type (get output type-key)))
