@@ -28,11 +28,24 @@
   (let [{[apt] :apt :as data} (time (nasr/find-airport-data zip-file icao))
         runways (compose-runways data)
         position [(:latitude apt) (:longitude apt) (:elevation apt)]
+
+        procedures (nasr/find-procedures zip-file (:id apt))
+
+        procedure-navaids (->> procedures
+                               (mapcat (juxt :paths
+                                             (comp #(mapcat :fixes %) :transitions)))
+                               flatten)
+        procedure-fix-ids (->> procedure-navaids
+                               (filter #(= :r (:type %)))
+                               (map :fix-id))
+
         fixes (time (nasr/find-fixes
                       zip-file
-                      :near position
-                      :in-range (* 100 1000)
-                      :on-charts #{:sid :star}))]
+                      :ids procedure-fix-ids
+                      ; :near position
+                      ; :in-range (* 100 1000)
+                      ; :on-charts #{:sid :star}
+))]
 
     {:id (:icao apt)
      :name (:name apt)

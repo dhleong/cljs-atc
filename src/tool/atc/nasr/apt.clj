@@ -15,7 +15,7 @@
   (compile-apt-file-record
     [:site-number (justified-string 11)]
     [:facility-type (justified-keyword 13)]
-    [:id (justified-keyword 4)]
+    [:id (justified-string 4)]
     [:effective-date (justified-string 10)]
 
     [:faa-region-code (justified-string 3)]

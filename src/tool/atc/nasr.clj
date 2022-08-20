@@ -2,6 +2,7 @@
   (:require
    [atc.nasr.apt :as apt]
    [atc.nasr.fix :as fix]
+   [atc.nasr.stardp :as stardp]
    [atc.okay :as okay]
    [clojure.java.io :as io]))
 
@@ -26,3 +27,6 @@
   (with-open [in (okay/open-zip-file zip-file "FIX.txt")]
     (apply fix/find-fixes in query)))
 
+(defn find-procedures [zip-file airport-id]
+  (with-open [in (okay/open-zip-file zip-file "STARDP.txt")]
+    (stardp/find-procedures in airport-id)))
