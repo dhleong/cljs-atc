@@ -1,6 +1,7 @@
 (ns atc.nasr
   (:require
    [atc.nasr.apt :as apt]
+   [atc.nasr.cdr :as cdr]
    [atc.nasr.fix :as fix]
    [atc.nasr.stardp :as stardp]
    [atc.okay :as okay]
@@ -26,6 +27,10 @@
 (defn find-fixes [zip-file & query]
   (with-open [in (okay/open-zip-file zip-file "FIX.txt")]
     (apply fix/find-fixes in query)))
+
+(defn find-departure-routes [zip-file icao]
+  (with-open [in (okay/open-zip-file zip-file "CDR.txt")]
+    (cdr/find-departure-routes in icao)))
 
 (defn find-procedures [zip-file airport-id]
   (with-open [in (okay/open-zip-file zip-file "STARDP.txt")]

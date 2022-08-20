@@ -14,6 +14,13 @@
      Source)))
 
 
+; ======= Util ============================================
+
+(defn- producer->sequence [producer-fn]
+  (->> (repeatedly producer-fn)
+       (take-while some?)))
+
+
 ; ======= Source coercion =================================
 
 (defprotocol IIntoBufferedSource
@@ -151,8 +158,8 @@
           nil)))))
 
 (defn fixed-frame-sequence [frame-length-bytes in]
-  (->> (repeatedly (fixed-frame-producer frame-length-bytes in))
-       (take-while some?)))
+  (producer->sequence
+    (fixed-frame-producer frame-length-bytes in)))
 
 (defn- require-fixed-record-length [record]
   (if-let [frame-length-bytes (fixed-record-length record)]
@@ -224,3 +231,15 @@
 
 (defn compile-record [& parts]
   (map compile-record-part parts))
+
+
+; ======= Other sequence generators =======================
+
+(defn newlines-producer [in]
+  (let [source (buffered-source in)]
+    (fn produce-frame ^String []
+      (.readUtf8Line source))))
+
+(defn newlines-sequence [in]
+  (producer->sequence
+    (newlines-producer in)))

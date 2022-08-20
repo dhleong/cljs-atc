@@ -29,7 +29,12 @@
         runways (compose-runways data)
         position [(:latitude apt) (:longitude apt) (:elevation apt)]
 
-        procedures (nasr/find-procedures zip-file (:id apt))
+        procedures (time (nasr/find-procedures zip-file (:id apt)))
+        departures (time (nasr/find-departure-routes zip-file icao))
+
+        ; TODO read vor/dmes from here
+        departure-exit-navaids (->> departures
+                                    (map :departure-fix))
 
         procedure-navaids (->> procedures
                                (mapcat (juxt :paths
@@ -41,7 +46,7 @@
 
         fixes (time (nasr/find-fixes
                       zip-file
-                      :ids procedure-fix-ids
+                      :ids (concat procedure-fix-ids departure-exit-navaids)
                       ; :near position
                       ; :in-range (* 100 1000)
                       ; :on-charts #{:sid :star}
