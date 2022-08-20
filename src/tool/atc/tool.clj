@@ -2,6 +2,7 @@
   (:require
    [atc.nasr :as nasr]
    [atc.nasr.airac :refer [airac-data]]
+   [atc.pronunciation :as pronunciation]
    [babashka.cli :as cli]
    [clojure.java.io :as io]
    [clojure.pprint :refer [pprint]]
@@ -27,7 +28,9 @@
                                (:name fix))]
          (if (and (some? pronunciation)
                   (not= pronunciation (:id fix)))
-           (assoc base :pronunciation (str/lower-case pronunciation))
+           (assoc base :pronunciation (-> pronunciation
+                                          (str/lower-case)
+                                          (str/replace #"[-]+" " ")))
            base)))
      items))
   ([type items]
@@ -96,6 +99,15 @@
         airport (build-airport zip-file icao)]
     (pprint airport)
 
+    (when-let [unpronounceable (time
+                                 (doall
+                                   (pronunciation/unpronounceable
+                                     (map #(or (:pronunciation %)
+                                               (:id %))
+                                          (:navaids airport)))))]
+      (println "WARNING: Detected" (count unpronounceable) "unpronounceable navaids:")
+      (println "\t" unpronounceable))
+
     (when write
       (let [icao-sym (str/lower-case icao)]
         (spit
@@ -109,10 +121,11 @@
 (def ^:private cli-table
   [{:cmds ["build-airport"] :fn build-airport-cli
     :exec-args {:nasr-path "."}
-    :args->opts [:icao]}])
+    :args->opts [:icao]}
+   {:cmds ["pronuncable"] :fn pronunciation/missing-words}])
 
 (defn -main [& args]
   (cli/dispatch cli-table args))
 
 (comment
-  (-main "build-airport" "kjfk" "--write"))
+  (-main "build-airport" "kjfk"))
