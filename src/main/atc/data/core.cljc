@@ -62,7 +62,6 @@
     (* angular-radians 2 earth-radius-m)))
 
 (defn- adjust-by-magnetic-north [x y magnetic-north]
-  ; FIXME openscope adds magnetic north; why is this flipped?
   (let [th (- (atan2 y x) magnetic-north)
         r (sqrt (+ (* x x) (* y y)))]
     {:x (* r (cos th))
@@ -78,7 +77,6 @@
           abs-x (coord-distance ref-position [ref-lat lng])
           abs-y (coord-distance ref-position [lat ref-lng])]
       (adjust-by-magnetic-north
-        ; FIXME openscope checks lat for y and lng for x; why is this flipped?
-        (if (> ref-lat lat) (- abs-x) abs-x)
-        (if (> ref-lng lng) (- abs-y) abs-y)
-        (:magnetic-north reference)))))
+        (if (< ref-lng lng) (- abs-x) abs-x)
+        (if (< ref-lat lat) (- abs-y) abs-y)
+        (:magnetic-north reference 0)))))
