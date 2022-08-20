@@ -13,6 +13,7 @@
      Okio
      Source)))
 
+(declare read-record fixed-record-length)
 
 ; ======= Util ============================================
 
@@ -120,6 +121,50 @@
       ([output ^Buffer frame]
        (ignore-bytes frame)
        output))))
+
+(defn record-by-type
+  "A record part based on a mapping from a type key to the actual record,
+  if your records are variadic on type. Usage:
+
+    (def chili-record
+      (compile-record
+        [:temp (justified-float 4)]))
+
+    (def peeps-record
+      (compile-record
+        [:count (justified-int 6)]))
+
+    (def peeps-in-chili-pot
+      (compile-record
+        [:type (justified-string 5)]
+        (record-by-type
+          :type
+          {" CHILI " chili-record
+           " PEEPS " peeps-record})))"
+  ([type-key type->record-type]
+   (let [output->record-type (fn [output]
+                               (get type->record-type (get output type-key)))
+         all-fixed-record-lengths (->> type->record-type
+                                       vals
+                                       (map fixed-record-length)
+                                       (into #{}))
+         all-types-are-fixed? (and (= 1 (count all-fixed-record-lengths))
+                                   (not (contains? all-fixed-record-lengths nil)))]
+     (record-by-type
+       (if all-types-are-fixed?
+         ((with-bytes-count (first all-fixed-record-lengths))
+          output->record-type)
+         output->record-type))))
+
+  ([output->record-type]
+   ((with-bytes-count-from output->record-type)
+    (fn record-by-type [output frame]
+      (if-let [record (output->record-type output)]
+        (read-record record frame output)
+
+        ; otherwise, ignore
+        (assoc output ::ignored? true))))))
+
 
 ; ======= Record reading ==================================
 

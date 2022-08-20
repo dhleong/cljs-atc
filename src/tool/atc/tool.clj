@@ -16,13 +16,23 @@
        :end-threshold [(:reciprocal-end-latitude rwy) (:reciprocal-end-longitude rwy)]})
     (:rwy data)))
 
-(defn- format-fixes [fixes]
-  (map
-    (fn [fix]
-      {:id (:id fix)
-       :position [(:latitude fix) (:longitude fix)]
-       :type :fix})
-    fixes))
+(defn- format-navaids
+  ([items]
+   (map
+     (fn [fix]
+       (let [base {:id (:id fix)
+                   :position [(:latitude fix) (:longitude fix)]
+                   :type (:type fix)}
+             pronunciation (or (:radio-voice-name fix)
+                               (:name fix))]
+         (if (and (some? pronunciation)
+                  (not= pronunciation (:id fix)))
+           (assoc base :pronunciation (str/lower-case pronunciation))
+           base)))
+     items))
+  ([type items]
+   (format-navaids
+     (map #(assoc % :type type) items))))
 
 (defn build-airport [zip-file icao]
   (let [{[apt] :apt :as data} (time (nasr/find-airport-data zip-file icao))
@@ -33,7 +43,7 @@
         departures (time (nasr/find-departure-routes zip-file icao))
 
         ; TODO read vor/dmes from here
-        departure-exit-navaids (->> departures
+        departure-exit-fix-names (->> departures
                                     (map :departure-fix))
 
         procedure-navaids (->> procedures
@@ -43,14 +53,18 @@
         procedure-fix-ids (->> procedure-navaids
                                (filter #(= :r (:type %)))
                                (map :fix-id))
+        procedure-navaid-ids (->> procedure-navaids
+                                  (filter #(not= :r (:type %)))
+                                  (map :fix-id))
 
-        fixes (time (nasr/find-fixes
-                      zip-file
-                      :ids (concat procedure-fix-ids departure-exit-navaids)
-                      ; :near position
-                      ; :in-range (* 100 1000)
-                      ; :on-charts #{:sid :star}
-))]
+        fixes (future
+                (time (nasr/find-fixes
+                        zip-file
+                        :ids (concat procedure-fix-ids departure-exit-fix-names))))
+        navaids (future
+                  (time (nasr/find-navaids
+                          zip-file
+                          :ids (concat procedure-navaid-ids departure-exit-fix-names))))]
 
     {:id (:icao apt)
      :name (:name apt)
@@ -63,7 +77,9 @@
                             (subs raw-variation 0 (dec (count raw-variation))))))
      :position position
      :runways runways
-     :navaids (->> (format-fixes fixes)
+     :navaids (->> (format-navaids :fix @fixes)
+                   (concat (format-navaids @navaids))
+
                    ; TODO Also, include VORs, etc.
                    ; TODO Also also, include fixes on airways, stars/sids, etc.
                    (sort-by :id)
