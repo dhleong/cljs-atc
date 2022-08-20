@@ -4,10 +4,15 @@
                                          (spade.core/defglobal [at-media])
                                          (spade.core/defkeyframes [at-media])
 ]}
+
+           :unresolved-var {:exclude [gloss.core/ordered-map
+                                      gloss.core/compile-frame]}
+
            :unused-private-var {:exclude [cljs-atc.views.error-boundary/clear-errors]}}
  :lint-as {applied-science.js-interop/defn clojure.core/defn
            applied-science.js-interop/let clojure.core/let
            applied-science.js-interop/fn clojure.core/fn
+           gloss.core/defcodec clojure.core/def
            instaparse.core/defparser clojure.core/def
            promesa.core/let clojure.core/let
            promesa.core/loop clojure.core/loop

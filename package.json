@@ -31,7 +31,9 @@
         "dev": "shadow-cljs start && shadow-cljs watch :app",
         "start": "shadow-cljs start",
         "stop": "shadow-cljs stop",
-        "test": "shadow-cljs compile ci && karma start --single-run"
+        "test": "shadow-cljs compile ci && karma start --single-run",
+        "tool:repl": "clojure -Mtool/repl",
+        "tool": "clojure -Mtool"
     },
     "author": "",
     "license": "ISC"

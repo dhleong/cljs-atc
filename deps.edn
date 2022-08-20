@@ -1,0 +1,12 @@
+{:paths ["src/tool" "src/main"]
+
+ :deps {org.babashka/cli {:mvn/version "0.3.35"}
+        com.squareup.okio/okio {:mvn/version "3.2.0"}}
+
+ :aliases {:tool/repl {:extra-deps {cider/cider-nrepl {:mvn/version "0.28.5"}
+                                    refactor-nrepl/refactor-nrepl {:mvn/version "3.5.4"}}
+                       :main-opts ["-m" "nrepl.cmdline" "-i"
+                                   "--middleware"
+                                   "[cider.nrepl/cider-middleware,refactor-nrepl.middleware/wrap-refactor]"]}
+
+           :tool {:main-opts ["-m" "atc.tool"]}}}
