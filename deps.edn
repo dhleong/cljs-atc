@@ -1,7 +1,6 @@
 {:paths ["src/tool" "src/main"]
 
- :deps {org.clojure/data.xml {:mvn/version "0.2.0-alpha7"}
-        org.clojure/data.zip {:mvn/version "1.0.0"}
+ :deps {org.babashka/cli {:mvn/version "0.3.35"}
         com.squareup.okio/okio {:mvn/version "3.2.0"}}
 
  :aliases {:tool/repl {:extra-deps {cider/cider-nrepl {:mvn/version "0.28.5"}

@@ -2,8 +2,10 @@
   (:require
    [atc.nasr :as nasr]
    [atc.nasr.airac :refer [airac-data]]
+   [babashka.cli :as cli]
    [clojure.java.io :as io]
-   [clojure.pprint :refer [pprint]]))
+   [clojure.pprint :refer [pprint]]
+   [clojure.string :as str]))
 
 (defn- compose-runways [data]
   (mapv
@@ -49,10 +51,24 @@
                    (sort-by :id)
                    vec)}))
 
-(defn -main []
-  (let [destination-dir (io/file ".")
+(defn- build-airport-cli [{{:keys [icao nasr-path]} :opts}]
+  {:pre [icao nasr-path]}
+  (let [icao (str/upper-case icao)
+
+        destination-dir (io/file nasr-path)
         airac (airac-data)
         zip-file (nasr/locate-zip airac destination-dir)
 
-        airport (build-airport zip-file "KJFK")]
+        airport (build-airport zip-file icao)]
     (pprint airport)))
+
+(def ^:private cli-table
+  [{:cmds ["build-airport"] :fn build-airport-cli
+    :exec-args {:nasr-path "."}
+    :args->opts [:icao]}])
+
+(defn -main [& args]
+  (cli/dispatch cli-table args))
+
+(comment
+  (-main "build-airport" "kjfk"))
