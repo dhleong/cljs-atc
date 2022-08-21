@@ -109,14 +109,17 @@
       (println "\t" unpronounceable))
 
     (when write
-      (let [icao-sym (str/lower-case icao)]
+      (let [icao-sym (str/lower-case icao)
+            file-path (str "src/main/atc/data/airports/" icao-sym ".cljc")]
+        (println "Writing to: " file-path)
         (spit
-          (io/file (str "src/main/atc/data/airports/" icao-sym ".cljc"))
+          (io/file file-path)
           (str
             (format "(ns atc.data.airports.%s)\n\n" icao-sym)
-            (format "(def airport\n  %s)"
-                    (with-out-str
-                      (pprint airport)))))))))
+            (with-out-str
+              (pprint (cons (symbol "def airport")
+                            (list airport))))))
+        (println "... done!")))))
 
 (defn- pronounceable-cli [{{:keys [word]} :opts}]
   (if-let [missing (pronunciation/missing-words word)]
