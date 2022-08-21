@@ -60,8 +60,16 @@
 
 (defn generate [command-model]
   (->> (concat
-         (from-command-model {:amount 200
+         (from-command-model {:amount 150
                               :model command-model})
+
+         ; Ensure we always include every navaid
+         (->> command-model
+              :navaid
+              :parsers
+              (keep :parsers)
+              (keep (comp :string second)))
+
          ["[unk]"])
        to-array
        (js/JSON.stringify)))

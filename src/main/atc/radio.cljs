@@ -7,6 +7,7 @@
              (when (string? item) item)
              (:pronunciation item)
              (:radio-name item)
+             (:id item)
 
              (when-not (nil? item)
                (println "WARNING: " item "cannot be spoken")))))
