@@ -43,11 +43,12 @@
            (find-command "piper two climb maintain one one thousand contact tower"))))
 
    (testing "Handle unparseable input gracefully"
-     (let [instructions (find-instructions
-                          "piper one fly heading two three four have fun")]
-       (is (= [[:steer 234]]
-              (pop instructions)))
-       (is (= :error (-> instructions last first))))))
+     (with-out-str ; NOTE: The (expected) failing parse below normally prints
+       (let [instructions (find-instructions
+                            "piper one fly heading two three four have fun")]
+         (is (= [[:steer 234]]
+                (pop instructions)))
+         (is (= :error (-> instructions last first)))))))
 
 (deftest steer-test
   (testing "Process steer direction"
