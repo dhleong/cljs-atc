@@ -1,6 +1,7 @@
 (ns atc.voice.parsing.instructions
   (:require
-   [atc.voice.parsing.core :refer [declare-alternates]]))
+   [atc.voice.parsing.core :refer [declare-alternates]]
+   [clojure.string :as str]))
 
 (def handoffs
   ["center"
@@ -10,26 +11,31 @@
 (def pleasantries
   ["good day"])
 
-(def rules
-  ["command = callsign instruction+"
-   "<instruction> = standby
-   | adjust-altitude
-   | contact-other
-   | direct
-   | steer"
-
-   "standby = <'standby'>"
+(def ^:private instructions-rules
+  ["standby = <'standby'>"
 
    "adjust-altitude = (<'climb'> | <'descend'>)? <'and'>? <'maintain'> altitude"
+
+   "cleared-approach = <'cleared approach'> <'runway'>? runway"
 
    "contact-other = <'contact'> other-position <frequency>? pleasantry?"
 
    "direct = <'proceed direct'> navaid"
 
-   "steer = (<'fly'> | 'turn right' | 'turn left') <'heading'> heading"
+   "steer = (<'fly'> | 'turn right' | 'turn left') <'heading'> heading"])
 
-   (declare-alternates "other-position" handoffs)
-   (declare-alternates "pleasantry" pleasantries)])
+(def rules
+  (concat 
+    ["command = callsign instruction+"
+     (str "<instruction> = " (->> instructions-rules
+                                  (map #(let [parts (str/split % #" = ")]
+                                          (first parts)))
+                                  (str/join " | ")))
+
+     "runway = number+ (letter | 'left' | 'right' | 'north' | 'south')?"
+     (declare-alternates "other-position" handoffs)
+     (declare-alternates "pleasantry" pleasantries)]
+    instructions-rules))
 
 (def transformers
   {:command (fn [callsign & instructions]
@@ -43,4 +49,10 @@
                                  "turn left" :left)]
               [:steer ?direction]))
 
-   :other-position keyword})
+   :other-position keyword
+
+   :runway (fn [& parts]
+             (let [numbers (butlast parts)
+                   position (last parts)]
+               (str (str/join numbers)
+                    (str/upper-case (first position)))))})

@@ -54,3 +54,9 @@
     (is (= [[:steer 985 :right]]
            (find-instructions
              "piper one turn right heading niner eight fife")))))
+
+(deftest cleared-approach-test
+  (testing "Clear approach to runway"
+    (is (= [[:cleared-approach "30L"]]
+           (find-instructions
+             "piper one cleared approach runway tree zero left")))))
