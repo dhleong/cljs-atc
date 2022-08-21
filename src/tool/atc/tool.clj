@@ -118,11 +118,17 @@
                     (with-out-str
                       (pprint airport)))))))))
 
+(defn- pronounceable-cli [{{:keys [word]} :opts}]
+  (if-let [missing (pronunciation/missing-words word)]
+    (println "Unable to pronunce `" word "`; missing: " missing)
+    (println "`" word "` is pronounceable!")))
+
 (def ^:private cli-table
   [{:cmds ["build-airport"] :fn build-airport-cli
     :exec-args {:nasr-path "."}
     :args->opts [:icao]}
-   {:cmds ["pronuncable"] :fn pronunciation/missing-words}])
+   {:cmds ["pronounceable"] :fn pronounceable-cli
+    :args->opts [:word]}])
 
 (defn -main [& args]
   (cli/dispatch cli-table args))
