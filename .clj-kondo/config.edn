@@ -3,10 +3,16 @@
                                          (spade.core/defclass [at-media])
                                          (spade.core/defglobal [at-media])
                                          (spade.core/defkeyframes [at-media])
-]}
+
+                                         ; Not sure why kondo can't find this right now:
+                                         abs]}
 
            :unresolved-var {:exclude [gloss.core/ordered-map
-                                      gloss.core/compile-frame]}
+                                      gloss.core/compile-frame
+
+                                      ; Not sure why kondo can't find this right now:
+                                      re-frame.interceptor/update-effect
+                                      ]}
 
            :unused-private-var {:exclude [cljs-atc.views.error-boundary/clear-errors]}}
  :lint-as {applied-science.js-interop/defn clojure.core/defn
