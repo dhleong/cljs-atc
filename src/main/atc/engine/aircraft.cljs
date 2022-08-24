@@ -1,112 +1,24 @@
 (ns atc.engine.aircraft
   (:require
+   [atc.engine.aircraft.commands :refer [apply-commanded-inputs]]
+   [atc.engine.aircraft.instructions :refer [dispatch-instruction]]
    [atc.engine.config :refer [AircraftConfig]]
-   [atc.engine.model :refer [bearing-to ICommunicator Simulated v+ Vec3 vec3]]
+   [atc.engine.model :refer [ICommunicator Simulated v+ Vec3 vec3]]
    [atc.engine.pilot :as pilot]
-   [clojure.math :refer [cos sin to-radians]]
-   [clojure.string :as str]))
-
-; ======= Instruction dispatch ============================
-
-(defmulti dispatch-instruction (fn [_craft _context [instruction]] instruction))
-
-(defmethod dispatch-instruction
-  :steer
-  [craft _ [_ heading steer-direction]]
-  (let [heading-str (-> heading
-                        (str)
-                        (str/split #"")
-                        (next)
-                        (as-> numbers
-                          ; TODO 9 -> niner, etc.
-                          (str/join " " numbers)))]
-    (-> craft
-        (update ::utterance-parts conj [(when steer-direction (name steer-direction))
-                                        {:pronunciation heading-str
-                                         :text heading}])
-
-        (update :commands dissoc :direct)
-        (update :commands assoc :heading heading :steer-direction steer-direction))))
-
-(defmethod dispatch-instruction
-  :direct
-  [craft context [_ fix-id]]
-  (if-let [fix (get-in context [:game/navaids-by-id fix-id])]
-    (-> craft
-        (update ::utterance-parts conj ["direct " fix])
-        (update :commands assoc :heading)
-        (update :commands assoc :direct fix))
-
-    ; TODO: Handle GA aircraft without the fix
-    (-> craft
-        (update ::utterance-parts conj "unable direct"))))
-
-(defmethod dispatch-instruction
-  :default
-  [craft _context [instruction]]
-  (println "TODO: Unhandled craft instruction: " instruction)
-  craft)
+   [clojure.math :refer [cos sin to-radians]]))
 
 ; ======= Physics =========================================
 
 (defn- speed->mps [speed]
   (* 0.514444 speed))
 
-(defn- normalize-heading [h]
-  (if (< h 0)
-    (+ h 360)
-    (mod h 360)))
-
 (defn- heading->radians [heading]
   ; NOTE: We normalize the angle here such that 0 is "north" on the screen
   (to-radians (- heading 90)))
 
-(defn shorter-steer-direction [from to]
-  ; With thanks to: https://math.stackexchange.com/a/2898118
-  (let [delta (- (mod (- to from -540)
-                      360)
-                 180)]
-    (if (>= delta 0)
-      :right
-      :left)))
-
-(defn- apply-steering [^Aircraft {from :heading commands :commands :as aircraft}
-                       commanded-to dt]
-  (if (= from commanded-to)
-    aircraft
-
-    ; TODO at slower speeds, small craft might use a turn 2 rate (IE: 2x turn rate)
-    ; TODO similarly, at higher speeds, large craft might use a half turn rate
-    (let [turn-sign (case (or (:steer-direction commands)
-                              (shorter-steer-direction from commanded-to))
-                      :right  1
-                      :left  -1)
-          degrees-per-second (get-in aircraft [:config :turn-rate])
-          turn-amount (* degrees-per-second dt)
-          new-heading (normalize-heading (+ from (* turn-sign turn-amount)))]
-      (if (<= (abs (- commanded-to new-heading))
-              (* turn-amount 0.5))
-        (-> aircraft
-            (assoc :heading commanded-to)  ; close enough; snap to
-            (dissoc :steer-direction))
-        (assoc aircraft :heading new-heading)))))
-
-(defn- apply-direct [^Aircraft a
-                     commanded-to dt]
-  ; NOTE: This is temporary; the real logic should account for resuming course,
-  ; intercept heading, crossing altitude, etc.
-  (let [bearing-to-destination (bearing-to (:position a) commanded-to)]
-    (apply-steering a bearing-to-destination dt)))
-
-(defn- apply-commanded-inputs [^Aircraft aircraft, commands dt]
-  (cond-> aircraft
-    (:heading commands) (apply-steering (:heading commands) dt)
-    (:direct commands) (apply-direct (:direct commands) dt)))
-
-
 ; ======= Radiology =======================================
 
-(defn build-utterance [craft parts]
+(defn- build-utterance [craft parts]
   (when (seq parts)
     {:message (conj parts ["," craft])
      :from (assoc (:pilot craft)
