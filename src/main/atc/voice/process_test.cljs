@@ -57,7 +57,11 @@
              "piper one turn right heading niner eight fife")))))
 
 (deftest cleared-approach-test
-  (testing "Clear approach to runway"
-    (is (= [[:cleared-approach "30L"]]
+  (testing "Clear ILS approach to runway"
+    (is (= [[:cleared-approach :ils "30L"]]
            (find-instructions
-             "piper one cleared approach runway tree zero left")))))
+             "piper one cleared i l s runway tree zero left approach"))))
+   (testing "Clear visual approach to runway"
+    (is (= [[:cleared-approach :visual "30L"]]
+           (find-instructions
+             "piper one cleared visual approach runway tree zero left")))))

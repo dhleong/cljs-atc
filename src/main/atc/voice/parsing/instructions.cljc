@@ -16,7 +16,7 @@
 
    "adjust-altitude = (<'climb'> | <'descend'>)? <'and'>? <'maintain'> altitude"
 
-   "cleared-approach = <'cleared approach'> <'runway'>? runway"
+   "cleared-approach = <'cleared'> approach-type <'approach'>? <'runway'>? runway <'approach'>?"
 
    "contact-other = <'contact'> other-position <frequency>? pleasantry?"
 
@@ -32,6 +32,7 @@
                                           (first parts)))
                                   (str/join " | ")))
 
+     "approach-type = 'i l s' | 'r nav' | 'visual'"
      "runway = number+ (letter | 'left' | 'right' | 'north' | 'south')?"
      (declare-alternates "other-position" handoffs)
      (declare-alternates "pleasantry" pleasantries)]
@@ -48,6 +49,9 @@
                                  "turn right" :right
                                  "turn left" :left)]
               [:steer ?direction]))
+
+   :approach-type (fn [raw]
+                    (keyword (str/replace raw #" " "")))
 
    :other-position keyword
 
