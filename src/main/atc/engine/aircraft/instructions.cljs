@@ -17,11 +17,16 @@
 
     :else (-> craft
             (assoc :state :cleared-approach)
+            (update :commands dissoc :direct)
+            (update :commands assoc :cleared-approach {:approach-type approach-type
+                                                       :airport (:airport context)
+                                                       :runway runway})
             (utter "cleared approach runway" [:runway runway]))))
 
 (defmethod dispatch-instruction
   :steer
   [craft _ [_ heading steer-direction]]
+  ; TODO Check state; if in approach, we should reject
   (-> craft
       (utter (when steer-direction (name steer-direction))
              [:heading heading])
@@ -32,6 +37,7 @@
 (defmethod dispatch-instruction
   :direct
   [craft context [_ fix-id]]
+  ; TODO Check state; if in approach, we should reject
   (if-let [fix (get-in context [:game/navaids-by-id fix-id])]
     (-> craft
         (utter "direct " fix)
