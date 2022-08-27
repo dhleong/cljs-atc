@@ -95,3 +95,13 @@
   (fn [navaids]
     (when navaids
       (vals navaids))))
+
+(reg-sub
+  :game/airport-runway-ids
+  :<- [:game/airport]
+  (fn [airport]
+    (when airport
+      (->> airport
+           :runways
+           (mapcat (juxt :start-id :end-id))
+           (into #{})))))

@@ -2,6 +2,7 @@
   (:require
    ["@inlet/react-pixi" :as px]
    [archetype.util :refer [<sub]]
+   [atc.events :as events]
    [atc.views.game.controls :refer [game-controls]]
    [atc.views.game.graphics.aircraft :as aircraft]
    [atc.views.game.graphics.navaid :as navaid]
@@ -52,6 +53,11 @@
 (defn- game []
   (r/with-let [scale-atom (r/atom 1)
                set-scale! #(reset! scale-atom (/ 1 %))]
+
+    ; Ensure we keep engine-injected subscriptions active
+    (doseq [sub events/injected-subscriptions]
+      (<sub sub))
+
     (let [entity-scale @scale-atom]
       [stage
        ; NOTE: The max world size should *maybe* be based on the airport?

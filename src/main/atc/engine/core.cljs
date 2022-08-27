@@ -60,7 +60,9 @@
         (update-in this [:aircraft callsign] dispatch-instructions this instructions)
 
         ; There is no ~~spoon~~such aircraft:
-        this))))
+        (do
+          (println "WARNING: No such aircraft: " callsign)
+          this)))))
 
 (defn engine-grammar [^Engine engine]
   (get-in engine [:parsing-machine :fsm :grammar]))

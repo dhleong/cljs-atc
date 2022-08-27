@@ -1,7 +1,7 @@
 (ns atc.engine.aircraft
   (:require
    [atc.engine.aircraft.commands :refer [apply-commanded-inputs]]
-   [atc.engine.aircraft.instructions :refer [dispatch-instruction]]
+   [atc.engine.aircraft.instructions :as instructions :refer [dispatch-instruction]]
    [atc.engine.config :refer [AircraftConfig]]
    [atc.engine.model :refer [ICommunicator Simulated v+ Vec3 vec3]]
    [atc.engine.pilot :as pilot]
@@ -50,13 +50,13 @@
 
   ICommunicator
   (pending-communication [this]
-    (build-utterance this (::utterance-parts this)))
+    (build-utterance this (::instructions/utterance-parts this)))
 
   (prepare-pending-communication [this]
-    (assoc this ::utterance-parts []))
+    (assoc this ::instructions/utterance-parts []))
 
   (consume-pending-communication [this]
-    (dissoc this ::utterance-parts)))
+    (dissoc this ::instructions/utterance-parts)))
 
 (defn create [^AircraftConfig config, {:keys [callsign radio-name]}]
   (map->Aircraft {:config config

@@ -19,7 +19,8 @@
 ; ======= Engine data injection ===========================
 
 (def injected-subscriptions
-  [[:game/navaids-by-id]])
+  [[:game/airport-runway-ids]
+   [:game/navaids-by-id]])
 
 (def engine-injections
   (->> injected-subscriptions
@@ -146,10 +147,11 @@
   [trim-v (path :speech)]
   (fn [{speech :db} [{:keys [from message] :as obj}]]
     ; TODO: Save all "readable" radio comms for (optional) rendering
-    (println "enqueue: " obj)
-    {:db (update speech :queue conj {:message (->speakable message)
-                                     :voice (:voice from)})
-     :dispatch [::speech-check-queue]}))
+    (let [speakable (->speakable message)]
+      (println "enqueue: " obj " -> " speakable)
+      {:db (update speech :queue conj {:message speakable
+                                       :voice (:voice from)})
+       :dispatch [::speech-check-queue]})))
 
 (reg-event-fx
   ::speech-check-queue
