@@ -3,7 +3,7 @@
   (:require
    [atc.data.airports :as airports]
    [atc.data.units :refer [nm->m]]
-   [atc.engine.model :refer [bearing-to distance-to-squared]]
+   [atc.engine.model :refer [angle-down-to bearing-to distance-to-squared]]
    [clojure.math :refer [pow]]))
 
 (defn- normalize-heading [h]
@@ -62,37 +62,49 @@
 (def ^:private localizer-wide-distance-m2 (pow (nm->m 10) 2.))
 (def ^:private localizer-wide-angle-degrees 35)
 
-(defn- within-localizer? [aircraft airport runway]
+(def ^:private glide-slope-angle-degrees 3)
+(def ^:private glide-slope-width-degrees 1.4)
+
+(defn- within-localizer?
+  "Returns the runway threshold if within its localizer, else nil"
+  [aircraft airport runway]
   (when-let [[start end] (airports/runway-coords airport runway)]
     (let [runway-heading (normalize-heading (bearing-to start end))
           angle-to-threshold (normalize-heading (bearing-to (:position aircraft) start))
           delta (abs (- runway-heading angle-to-threshold))
-          distance-to-runway2 (distance-to-squared (:position aircraft) start)
+          distance-to-runway2 (distance-to-squared (:position aircraft) start)]
+      (when (cond
+              (<= distance-to-runway2 localizer-wide-distance-m2)
+              (<= delta localizer-wide-angle-degrees)
 
-          within-localizer-lateral? (cond
-                                      (<= distance-to-runway2 localizer-wide-distance-m2)
-                                      (<= delta localizer-wide-angle-degrees)
-
-                                      (<= distance-to-runway2 localizer-narrow-distance-m2)
-                                      (<= delta localizer-narrow-angle-degrees))]
-
-      ; TODO: Within Glideslope broadcast cone? (IE: within-localizer-vertical)
-      within-localizer-lateral?)))
+              (<= distance-to-runway2 localizer-narrow-distance-m2)
+              (<= delta localizer-narrow-angle-degrees))
+        start))))
 
 (defn- apply-ils-approach [aircraft {:keys [airport runway]} dt]
-  (if (within-localizer? aircraft airport runway)
-    (-> aircraft
-
-        ; We no longer need to maintain any specific heading
-        (update :commands dissoc :heading :steer-direction)
-
-        ; Steer toward the airport
-        ; TODO: Perhaps, steer toward runway threshold? Or, maintain its heading? There's
-        ; definitely a more realistic approach than either of these, but this may be
-        ; sufficient for now...
+  (if-some [runway-start (within-localizer? aircraft airport runway)]
+    ; TODO: If we just become established on the localizer and are above the glide slope,
+    ;  that's no good. 
+    (let [angle-to-runway (angle-down-to (:position aircraft) runway-start)]
+      (when (>= (- glide-slope-angle-degrees
+                   glide-slope-width-degrees)
+                angle-to-runway
+                (+ glide-slope-angle-degrees
+                   glide-slope-width-degrees))
         ; TODO: Follow glide slope
-        ; TODO: Detect "landing"
-        (apply-direct airport dt))
+        (println "On Glide slope!"))
+
+      (-> aircraft
+
+          ; We no longer need to maintain any specific heading
+          (update :commands dissoc :heading :steer-direction)
+
+          ; Steer toward the airport
+          ; TODO: Perhaps, steer toward runway threshold? Or, maintain its heading? There's
+          ; definitely a more realistic approach than either of these, but this may be
+          ; sufficient for now...
+          ; TODO: Detect "landing"
+          (apply-direct airport dt)))
 
       ; Just proceed on course
       aircraft))

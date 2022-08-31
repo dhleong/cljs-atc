@@ -76,3 +76,16 @@
     ; here....
     (+ (to-degrees (atan2 dy dx)) 90)))
 
+(defn angle-down-to
+  "Assuming `from` is an elevated position and `to` is a position on the ground,
+  return the angle between the ground and a line segment between `from` and `to`"
+  [from to]
+  (let [from (vec3 from)
+        to (vec3 to)
+        elevation (- (:z from) (:z to))]
+    (to-degrees
+      ; NOTE: Rather than involve any sqrts we just square elevation
+      (atan2 (* elevation elevation)
+             (vmag2
+               (v- (vec3 from 0)
+                   (vec3 to 0)))))))
