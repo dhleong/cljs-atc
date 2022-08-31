@@ -1,6 +1,6 @@
 (ns atc.engine.model
   (:require
-   [clojure.math :refer [atan2 to-degrees]]))
+   [clojure.math :refer [atan2 sqrt to-degrees]]))
 
 (defprotocol Simulated
   "Anything that is managed by the simulation"
@@ -21,7 +21,8 @@
 (defprotocol Vector
   (v+ [this ^Vector other])
   (v- [this ^Vector other])
-  (v* [this other]))
+  (v* [this other])
+  (vmag2 [this] "Compute the square of the magnitude of this vector"))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defrecord Vec3 [x y z]
@@ -48,13 +49,22 @@
       (assoc this
              :x (* x (:x other))
              :y (* y (:y other))
-             :z (* z (:z other 1))))))
+             :z (* z (:z other 1)))))
+
+  (vmag2 [this]
+    (let [{dx :x dy :y dz :z} this]
+      (+ (* dx dx)
+         (* dy dy)
+         (* dz dz)))))
 
 (defn vec3
   ([v] (if (instance? Vec3 v) v
          (->Vec3 (:x v) (:y v) (:z v))))
   ([x y z]
    (->Vec3 x y z)))
+
+(defn distance-to-squared [from to]
+  (vmag2 (v- (vec3 to) from)))
 
 (defn bearing-to [from to]
   (let [{dx :x dy :y} (v- (vec3 to) from)]

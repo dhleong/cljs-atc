@@ -1,7 +1,10 @@
 (ns atc.engine.aircraft.commands
   "Responding to commands"
   (:require
-   [atc.engine.model :refer [bearing-to]]))
+   [atc.data.airports :as airports]
+   [atc.data.units :refer [nm->m]]
+   [atc.engine.model :refer [bearing-to distance-to-squared]]
+   [clojure.math :refer [pow]]))
 
 (defn- normalize-heading [h]
   (if (< h 0)
@@ -53,9 +56,28 @@
 
 ; ======= Approach course following =======================
 
-(defn- within-localizer? [_aircraft _airport _runway]
-  ; TODO Let's math.
-  true)
+; NOTE: We use squared distances to avoid having to compute sqrt
+(def ^:private localizer-narrow-distance-m2 (pow (nm->m 18) 2.))
+(def ^:private localizer-narrow-angle-degrees 10)
+(def ^:private localizer-wide-distance-m2 (pow (nm->m 10) 2.))
+(def ^:private localizer-wide-angle-degrees 35)
+
+(defn- within-localizer? [aircraft airport runway]
+  (when-let [[start end] (airports/runway-coords airport runway)]
+    (let [runway-heading (normalize-heading (bearing-to start end))
+          angle-to-threshold (normalize-heading (bearing-to (:position aircraft) start))
+          delta (abs (- runway-heading angle-to-threshold))
+          distance-to-runway2 (distance-to-squared (:position aircraft) start)
+
+          within-localizer-lateral? (cond
+                                      (<= distance-to-runway2 localizer-wide-distance-m2)
+                                      (<= delta localizer-wide-angle-degrees)
+
+                                      (<= distance-to-runway2 localizer-narrow-distance-m2)
+                                      (<= delta localizer-narrow-angle-degrees))]
+
+      ; TODO: Within Glideslope broadcast cone? (IE: within-localizer-vertical)
+      within-localizer-lateral?)))
 
 (defn- apply-ils-approach [aircraft {:keys [airport runway]} dt]
   (if (within-localizer? aircraft airport runway)
