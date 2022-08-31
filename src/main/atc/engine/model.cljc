@@ -1,6 +1,6 @@
 (ns atc.engine.model
   (:require
-   [clojure.math :refer [atan2 sqrt to-degrees]]))
+   [clojure.math :refer [atan2 to-degrees]]))
 
 (defprotocol Simulated
   "Anything that is managed by the simulation"
@@ -60,6 +60,8 @@
 (defn vec3
   ([v] (if (instance? Vec3 v) v
          (->Vec3 (:x v) (:y v) (:z v))))
+  ([v z] (let [{:keys [x y]} (vec3 v)]
+           (->Vec3 x y z)))
   ([x y z]
    (->Vec3 x y z)))
 

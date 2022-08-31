@@ -1,5 +1,6 @@
 (ns atc.engine.aircraft
   (:require
+   [atc.data.units :refer [ft->m]]
    [atc.engine.aircraft.commands :refer [apply-commanded-inputs]]
    [atc.engine.aircraft.instructions :as instructions :refer [dispatch-instruction]]
    [atc.engine.config :refer [AircraftConfig]]
@@ -64,7 +65,7 @@
                   :radio-name radio-name
                   :state :flight
                   :pilot (pilot/generate nil) ; TODO Pass in a preferred voice?
-                  :position (vec3 250 250 20000)
+                  :position (vec3 250 250 (ft->m 20000))
                   :heading 350
                   :speed 200
                   :commands {:heading 90}}))
