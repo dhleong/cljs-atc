@@ -54,6 +54,27 @@
     (apply-steering aircraft bearing-to-destination dt)))
 
 
+; ======= Altitude ========================================
+
+(defn- apply-altitude [{from :altitude :as aircraft} commanded-altitude dt]
+  (if (= from commanded-altitude)
+    aircraft
+
+    (let [sign (if (> commanded-altitude from) 1 -1)
+          rate-key ({-1 :descent-rate
+                     1 :climb-rate} sign)
+          rate (get-in aircraft [:config rate-key])
+          new-altitude (+ from (* sign rate dt))]
+      (if (<= (abs (- commanded-altitude new-altitude))
+              (* rate 0.5))
+        (-> aircraft
+            (assoc :altitude commanded-altitude)  ; close enough; snap to
+            (update :commands dissoc :target-altitude))
+
+        (-> aircraft
+            (assoc :altitude new-altitude))))))
+
+
 ; ======= Approach course following =======================
 
 ; NOTE: We use squared distances to avoid having to compute sqrt
@@ -86,15 +107,26 @@
     ; TODO: If we just become established on the localizer and are above the glide slope,
     ;  that's no good. 
     (let [angle-to-runway (angle-down-to (:position aircraft) runway-start)]
-      (when (>= (- glide-slope-angle-degrees
-                   glide-slope-width-degrees)
-                angle-to-runway
-                (+ glide-slope-angle-degrees
-                   glide-slope-width-degrees))
-        ; TODO: Follow glide slope
-        (println "On Glide slope!"))
+      (cond-> aircraft
+        ; TODO: Detect "landing"
 
-      (-> aircraft
+        ; TODO: Follow glide slope
+        (>= (- glide-slope-angle-degrees
+               glide-slope-width-degrees)
+            angle-to-runway
+            (+ glide-slope-angle-degrees
+               glide-slope-width-degrees))
+        (->
+          ; Ensure there's no competing altitude
+          (update :commands dissoc :target-altitude)
+
+          ; TODO Slow down
+
+          ; Descend toward runway
+          (apply-altitude (:z runway-start) dt))
+
+        :else
+        (->
 
           ; We no longer need to maintain any specific heading
           (update :commands dissoc :heading :steer-direction)
@@ -103,10 +135,9 @@
           ; TODO: Perhaps, steer toward runway threshold? Or, maintain its heading? There's
           ; definitely a more realistic approach than either of these, but this may be
           ; sufficient for now...
-          ; TODO: Detect "landing"
-          (apply-direct airport dt)))
+          (apply-direct airport dt))))
 
-      ; Just proceed on course
+      ; Just proceed on course, awaiting the intercept
       aircraft))
 
 ; I suppose this could be a defmulti...

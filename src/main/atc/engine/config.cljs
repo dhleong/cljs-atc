@@ -1,8 +1,12 @@
-(ns atc.engine.config)
+(ns atc.engine.config
+  (:require
+   [atc.data.units :as units]))
 
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
-(defrecord AircraftConfig [turn-rate])
+(defrecord AircraftConfig [turn-rate climb-rate descent-rate])
 
 (defn create [kvs]
-  (map->AircraftConfig kvs))
+  (-> kvs
+      (update :climb-rate units/ft->m)
+      (update :descent-rate units/ft->m)
+      (map->AircraftConfig)))
 
