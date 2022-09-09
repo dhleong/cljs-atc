@@ -17,6 +17,7 @@
    "adjust-altitude = (<'climb'> | <'descend'>)? <'and'>? <'maintain'> altitude"
 
    "cleared-approach = <'cleared'> approach-type <'approach'>? <'runway'>? runway <'approach'>?"
+   "cancel-approach = <'cancel approach clearance'>"
 
    "contact-other = <'contact'> other-position <frequency>? pleasantry?"
 

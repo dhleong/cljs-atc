@@ -24,6 +24,19 @@
             (utter "cleared approach runway" [:runway runway]))))
 
 (defmethod dispatch-instruction
+  :cancel-approach
+  [craft _ _]
+  (cond
+    ; If not currently cleared, this is a nop:
+    (not (get-in craft [:commands :cleared-approach]))
+    craft
+
+    :else (-> craft
+            (assoc :state :flight)
+            (update :commands dissoc :cleared-approach)
+            (utter "cancel approach"))))
+
+(defmethod dispatch-instruction
   :steer
   [craft _ [_ heading steer-direction]]
   ; TODO Check state; if in approach, we should reject
