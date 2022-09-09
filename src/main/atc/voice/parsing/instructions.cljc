@@ -17,6 +17,7 @@
    "adjust-altitude = (<'climb'> | <'descend'>)? <'and'>? <'maintain'> altitude"
 
    "cleared-approach = <'cleared'> approach-type <'approach'>? <'runway'>? runway <'approach'>?"
+   "cancel-approach = <'cancel'> <'approach clearance'>"
 
    "contact-other = <'contact'> other-position <frequency>? pleasantry?"
 
@@ -33,7 +34,7 @@
                                   (str/join " | ")))
 
      "approach-type = 'i l s' | 'r nav' | 'visual'"
-     "runway = number+ (letter | 'left' | 'right' | 'north' | 'south')?"
+     "runway = number-sequence (letter | 'left' | 'right' | 'north' | 'south')?"
      (declare-alternates "other-position" handoffs)
      (declare-alternates "pleasantry" pleasantries)]
     instructions-rules))
@@ -55,8 +56,7 @@
 
    :other-position keyword
 
-   :runway (fn [& parts]
-             (let [numbers (butlast parts)
-                   position (last parts)]
-               (str (str/join numbers)
+   :runway (fn [numbers position]
+             (str (str/join numbers)
+                  (when position
                     (str/upper-case (first position)))))})

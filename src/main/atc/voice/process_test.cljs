@@ -60,7 +60,10 @@
   (testing "Clear ILS approach to runway"
     (is (= [[:cleared-approach :ils "30L"]]
            (find-instructions
-             "piper one cleared i l s runway tree zero left approach"))))
+             "piper one cleared i l s runway tree zero left approach")))
+    (is (= [[:cleared-approach :ils "22"]]
+           (find-instructions
+             "piper one cleared i l s runway two two approach"))))
    (testing "Clear visual approach to runway"
     (is (= [[:cleared-approach :visual "30L"]]
            (find-instructions

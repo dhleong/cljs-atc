@@ -26,7 +26,7 @@
           (consume-pending-communication simulated))))))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
-(defrecord Engine [airport aircraft parsing-machine time-scale elapsed-s last-tick]
+(defrecord Engine [airport aircraft parsing-machine time-scale elapsed-s last-tick events]
   ; NOTE: It is sort of laziness that we're implementing Simulated here,
   ; since we aren't, properly. Technically we should have a separate Simulator
   ; protocol and implement that to be more correct...
@@ -40,15 +40,21 @@
                   0)
                 0.001)
 
+          ; Tick all aircraft, and detect events like landing, etc.
           updated-aircraft (reduce-kv
                              (fn [m callsign aircraft]
-                               (assoc m callsign (tick aircraft dt)))
+                               (let [updated (tick aircraft dt)]
+                                 (if (= :landed (:state updated))
+                                   (update m ::events conj {:type :aircraft-landed
+                                                            :aircraft updated})
+                                   (assoc m callsign updated))))
                              {}
                              aircraft)]
 
       (assoc this
-             :aircraft updated-aircraft
+             :aircraft (dissoc updated-aircraft ::events)
              :elapsed-s (+ (:elapsed-s this) dt)
+             :events (::events updated-aircraft)
              :last-tick (when-not (= 0 time-scale)
                           now))))
 
@@ -84,5 +90,6 @@
          :airport airport
          :parsing-machine (build-machine (airport-parsing/generate-parsing-context airport))
          :elapsed-s 0
+         :events nil
          :time-scale 1}
         (map->Engine))))
