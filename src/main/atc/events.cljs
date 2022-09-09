@@ -108,6 +108,9 @@
   (fn [{:keys [db]} _]
     (when-let [engine (:engine db)]
       (let [engine' (engine-model/tick engine nil)
+            new-events (:events engine)
+            engine' (assoc engine' :events nil)
+
             db' (assoc db :engine engine')
 
             seconds-since-last-snapshot (- (:elapsed-s engine')
@@ -118,7 +121,10 @@
          :fx [(when-let [delay-ms (engine/next-tick-delay engine')]
                 [:dispatch-later
                  {:ms delay-ms
-                  :dispatch [:game/tick]}])]}))))
+                  :dispatch [:game/tick]}])
+
+              (when (seq new-events)
+                (println "TODO: Handle engine events:" new-events))]}))))
 
 (reg-event-fx
   :game/reset

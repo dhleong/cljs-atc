@@ -86,8 +86,10 @@
 (def ^:private glide-slope-angle-degrees 3)
 (def ^:private glide-slope-width-degrees 1.4)
 
+(def ^:private landed-distance-m 5)
+
 (defn- within-localizer?
-  "Returns the runway threshold if within its localizer, else nil"
+  "Returns the [runway-threshold distance2] if within the runway's localizer, else nil"
   [aircraft airport runway]
   (when-let [[start end] (airports/runway-coords airport runway)]
     (let [runway-heading (normalize-heading (bearing-to start end))
@@ -100,42 +102,45 @@
 
               (<= distance-to-runway2 localizer-narrow-distance-m2)
               (<= delta localizer-narrow-angle-degrees))
-        start))))
+        [start distance-to-runway2]))))
 
 (defn- apply-ils-approach [aircraft {:keys [airport runway]} dt]
-  (if-some [runway-start (within-localizer? aircraft airport runway)]
+  (if-some [[runway-start distance-to-runway2] (within-localizer? aircraft airport runway)]
     ; TODO: If we just become established on the localizer and are above the glide slope,
     ;  that's no good. 
-    (let [angle-to-runway (angle-down-to (:position aircraft) runway-start)]
-      (cond-> aircraft
-        ; TODO: Detect "landing"
+    (cond-> aircraft
+      ; Detect "landing"
+      (<= distance-to-runway2
+          landed-distance-m)
+      (assoc :state :landed
+             :commands {})
 
-        ; TODO: Follow glide slope
-        (>= (- glide-slope-angle-degrees
-               glide-slope-width-degrees)
-            angle-to-runway
-            (+ glide-slope-angle-degrees
-               glide-slope-width-degrees))
-        (->
-          ; Ensure there's no competing altitude
-          (update :commands dissoc :target-altitude)
+      ; Follow glide slope
+      (>= (- glide-slope-angle-degrees
+             glide-slope-width-degrees)
+          (angle-down-to (:position aircraft) runway-start)
+          (+ glide-slope-angle-degrees
+             glide-slope-width-degrees))
+      (->
+        ; Ensure there's no competing altitude
+        (update :commands dissoc :target-altitude)
 
-          ; TODO Slow down
+        ; TODO Slow down
 
-          ; Descend toward runway
-          (apply-altitude (:z runway-start) dt))
+        ; Descend toward runway
+        (apply-altitude (:z runway-start) dt))
 
-        :else
-        (->
+      ; Always ensure we turn onto course while within the localizer
+      :always
+      (->
+        ; We no longer need to maintain any specific heading
+        (update :commands dissoc :heading :steer-direction)
 
-          ; We no longer need to maintain any specific heading
-          (update :commands dissoc :heading :steer-direction)
-
-          ; Steer toward the airport
-          ; TODO: Perhaps, steer toward runway threshold? Or, maintain its heading? There's
-          ; definitely a more realistic approach than either of these, but this may be
-          ; sufficient for now...
-          (apply-direct airport dt))))
+        ; Steer toward the airport
+        ; TODO: Perhaps, steer toward runway threshold? Or, maintain its heading? There's
+        ; definitely a more realistic approach than either of these, but this may be
+        ; sufficient for now...
+        (apply-direct airport dt)))
 
       ; Just proceed on course, awaiting the intercept
       aircraft))
