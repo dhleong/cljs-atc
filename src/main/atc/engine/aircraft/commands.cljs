@@ -157,4 +157,5 @@
   (cond-> aircraft
     (:heading commands) (apply-steering (:heading commands) dt)
     (:direct commands) (apply-direct (:direct commands) dt)
-    (:cleared-approach commands) (apply-approach (:cleared-approach commands) dt)))
+    (:cleared-approach commands) (apply-approach (:cleared-approach commands) dt)
+    (:target-altitude commands) (apply-altitude (:target-altitude commands) dt)))

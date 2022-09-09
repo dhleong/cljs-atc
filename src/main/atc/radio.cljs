@@ -8,6 +8,24 @@
 
 (defmulti ^:private process-speakable (fn [[kind _]] kind))
 
+(defmethod process-speakable :altitude
+  [[_ v]]
+  ; 20000 -> 2 0 thousand
+  (cond
+    (>= v 10000)
+    (let [s (str v)]
+      [(first s)
+       (second s)
+       "thousand"])
+
+    :else
+    (-> v str)))
+
+(defmethod process-speakable :heading
+  [[_ v]]
+  ; TODO 040 might come in as the int 40
+  (-> v str seq))
+
 (defmethod process-speakable :runway
   [[_ string]]
   (->> string
@@ -19,11 +37,6 @@
                 \N "north"
                 \S "south"
                 v)))))
-
-(defmethod process-speakable :heading
-  [[_ v]]
-  ; TODO 040 might come in as the int 40
-  (-> v str seq))
 
 (defmethod process-speakable :default [v]
   (println "WARNING: Unknown speakable kind format:" v))

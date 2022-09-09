@@ -1,9 +1,19 @@
-(ns atc.engine.aircraft.instructions)
+(ns atc.engine.aircraft.instructions
+  (:require
+   [atc.data.units :as units]))
 
 (defn- utter [craft & utterance]
   (update craft ::utterance-parts conj utterance))
 
 (defmulti dispatch-instruction (fn [_craft _context [instruction]] instruction))
+
+(defmethod dispatch-instruction
+  :adjust-altitude
+  [craft _ [_ altitude]]
+  ; TODO Check state; if in approach, we should reject
+  (-> craft
+      (update :commands assoc :target-altitude (units/ft->m altitude))
+      (utter "maintain" [:altitude altitude])))
 
 (defmethod dispatch-instruction
   :cleared-approach
