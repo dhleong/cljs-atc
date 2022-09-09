@@ -20,8 +20,8 @@
 ; ======= Data formatting =================================
 
 (defn- format-data-block-line [line]
-  ; FIXME
-  (str/join "  " line))
+  ; TODO Should we to some length...?
+  (str/join " " line))
 
 (defn format-altitude [altitude-meters]
   (loop [s (str (-> altitude-meters
