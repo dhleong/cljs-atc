@@ -56,7 +56,8 @@
 
 (def ^:private walk-speakables
   ; Might be nice to properly lint this macro:
-  #_{:clj-kondo/ignore [:unresolved-symbol]}
+  ; Specter is really hard for kondo to lint...
+  #_{:clj-kondo/ignore [:unresolved-symbol :unresolved-var]}
   (s/recursive-path []
     p
     (s/cond-path
