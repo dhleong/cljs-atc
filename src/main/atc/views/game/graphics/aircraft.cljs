@@ -24,10 +24,15 @@
   (str/join "  " line))
 
 (defn format-altitude [altitude-meters]
-  (-> altitude-meters
-      units/m->ft
-      (/ 100)
-      (floor)))
+  (loop [s (str (-> altitude-meters
+                    units/m->ft
+                    (/ 100)
+                    (floor)))]
+
+    ; Pad-left with 0
+    (if (>= 3 (count s))
+      s
+      (recur (str "0" s)))))
 
 
 ; ======= Rendering =======================================
@@ -52,10 +57,8 @@
 (defn- full-data-block [{:keys [callsign position speed]}]
   (let [alt-hundreds-ft (format-altitude (:z position))
 
-        speed-kts speed ; TODO
-
         line1 [callsign]
-        line2 [alt-hundreds-ft speed-kts]]
+        line2 [alt-hundreds-ft speed]]
     [:> px/Text {:text (str (format-data-block-line line1)
                             "\n"
                             (format-data-block-line line2))
