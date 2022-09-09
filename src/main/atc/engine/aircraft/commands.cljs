@@ -56,7 +56,7 @@
 
 ; ======= Altitude ========================================
 
-(defn- apply-altitude [{from :altitude :as aircraft} commanded-altitude dt]
+(defn- apply-altitude [{{from :z} :position :as aircraft} commanded-altitude dt]
   (if (= from commanded-altitude)
     aircraft
 
@@ -68,11 +68,11 @@
       (if (<= (abs (- commanded-altitude new-altitude))
               (* rate 0.5))
         (-> aircraft
-            (assoc :altitude commanded-altitude)  ; close enough; snap to
+            (assoc-in [:position :z] commanded-altitude)  ; close enough; snap to
             (update :commands dissoc :target-altitude))
 
         (-> aircraft
-            (assoc :altitude new-altitude))))))
+            (assoc-in [:position :z] new-altitude))))))
 
 
 ; ======= Approach course following =======================
@@ -157,4 +157,5 @@
   (cond-> aircraft
     (:heading commands) (apply-steering (:heading commands) dt)
     (:direct commands) (apply-direct (:direct commands) dt)
-    (:cleared-approach commands) (apply-approach (:cleared-approach commands) dt)))
+    (:cleared-approach commands) (apply-approach (:cleared-approach commands) dt)
+    (:target-altitude commands) (apply-altitude (:target-altitude commands) dt)))
