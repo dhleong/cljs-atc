@@ -34,7 +34,7 @@
                  (keep
                    (fn [word]
                      ; NOTE: This is terribly hacky... but it works
-                     (when-not (re-find (re-pattern (str "\\b" word "(\\b|[0-9])")) data)
+                     (when-not (re-find (re-pattern (str "\\b" word "[^a-z]")) data)
                        word)))
                  seq)))))))
 
