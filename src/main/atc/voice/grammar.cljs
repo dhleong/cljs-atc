@@ -65,7 +65,7 @@
 
          ; Ensure we always include every navaid
          (->> command-model
-              :navaid
+              :navaid-pronounced
               :parsers
               (keep :parsers)
               (keep (comp :string second)))
