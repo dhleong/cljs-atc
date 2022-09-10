@@ -50,6 +50,24 @@
                 (pop instructions)))
          (is (= :error (-> instructions last first)))))))
 
+(deftest navaid-test
+  (testing "Pronounceable navaids"
+    (is (= [[:direct "MERIT"]]
+           (find-instructions
+             "piper one proceed direct merit"))))
+
+  (testing "Spelled navaids"
+    (is (= [[:direct "BDR"]]
+           (find-instructions
+             "piper one proceed direct bravo delta romeo v o r")
+           (find-instructions
+             "piper one proceed direct bravo delta romeo")))
+     (is (= [[:direct "TOWIN"]]
+           (find-instructions
+             "piper one proceed direct tango oscar whiskey india november")
+           (find-instructions
+             "piper one proceed direct tango oscar whiskey india november intersection")))))
+
 (deftest steer-test
   (testing "Process steer direction"
     (is (= [[:steer 985 :right]]
