@@ -9,13 +9,30 @@
     (is (nil? (missing-words "rober")))))
 
 (deftest make-pronounceable-test
-  (testing "split words"
+  (testing "Split words"
     (is (= "robbins fill"
            (make-pronounceable
              "robbinsville"))))
 
-  (testing "don't split words too aggressively"
-    ; TODO
-    #_(is (= "parch"
+  (testing "Don't split words *too* aggressively"
+    (is (= "parch"
            (make-pronounceable
-             "parch")))))
+             "parch"))))
+
+  (testing "Add trailing `e`"
+    (is (= "deedee"
+           (make-pronounceable
+             "deede"))))
+
+  (testing "Strip trailing `e`"
+    (is (= "coat"
+           (make-pronounceable
+             "coate")))
+    (is (= "door"
+           (make-pronounceable
+             "doore"))))
+
+  (testing "Dedup consonants"
+    (is (= "kars"
+           (make-pronounceable
+             "karrs")))))

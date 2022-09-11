@@ -25,7 +25,8 @@
                    :position [(:latitude fix) (:longitude fix)]
                    :type (:type fix)}
              raw-pronunciation (or (:radio-voice-name fix)
-                                   (:name fix))
+                                   (:name fix)
+                                   (:id fix))
 
              cleaned-pronunciation (when raw-pronunciation
                                      (-> raw-pronunciation
@@ -42,7 +43,6 @@
            (assoc :name cleaned-pronunciation)
 
            (and (some? pronunciation)
-                (not= raw-pronunciation (:id fix))
                 (not= pronunciation cleaned-pronunciation))
            (assoc :pronunciation pronunciation))))
      items))

@@ -60,14 +60,41 @@
   (->> (split-words word)
        (pmap (fn [pair]
                (let [new-word (str/join " " pair)]
-                 (when-not (missing-words new-word)
+                 (when (pronounceable? new-word)
                    new-word))))
        (keep identity)
        first))
 
+(defn- check-double-trailing-vowel [word]
+  (let [doubled (str word (last word))]
+    (when (pronounceable? doubled)
+      doubled)))
+
+(defn- check-strip-trailing-vowel [word]
+  (let [without (subs word 0 (dec (count word)))]
+    (when (pronounceable? without)
+      without)))
+
+(defn- dedup-consonants [word]
+  (let [dedup'd (str/replace word #"([b-df-hj-np-tv-z])\1" "$1")]
+    (when (pronounceable? dedup'd)
+      dedup'd)))
+
 (defn make-pronounceable [word]
-  (or (check-split-words word)
-      word))
+  (println "MAKE PRONOUNCEABLE" word)
+  (if (pronounceable? word)
+    word
+
+    (or (when (> (count word) 5)
+          (check-split-words word))
+
+        (when (str/ends-with? word "e")
+          (check-double-trailing-vowel word))
+
+        (when (str/ends-with? word "e")
+          (check-strip-trailing-vowel word))
+
+        (dedup-consonants word))))
 
 (comment
   (time (missing-words "deer park"))
