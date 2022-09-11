@@ -116,6 +116,7 @@
                                  (doall
                                    (pronunciation/unpronounceable
                                      (map #(or (:pronunciation %)
+                                               (:name %)
                                                (:id %))
                                           (:navaids airport)))))]
       (println "WARNING: Detected" (count unpronounceable) "unpronounceable navaids:")
