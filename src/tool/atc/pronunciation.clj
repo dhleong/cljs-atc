@@ -35,6 +35,9 @@
   (when word
     (@dictionary-checker word)))
 
+(defn pronounceable? [word]
+  (nil? (missing-words word)))
+
 (defn unpronounceable [candidates]
   (->> candidates
        (pmap #(when-some [missing (missing-words %)]
@@ -65,7 +68,6 @@
 (defn make-pronounceable [word]
   (or (check-split-words word)
       word))
-
 
 (comment
   (time (missing-words "deer park"))

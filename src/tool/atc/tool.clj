@@ -24,14 +24,27 @@
        (let [base {:id (:id fix)
                    :position [(:latitude fix) (:longitude fix)]
                    :type (:type fix)}
-             pronunciation (or (:radio-voice-name fix)
-                               (:name fix))]
-         (if (and (some? pronunciation)
-                  (not= pronunciation (:id fix)))
-           (assoc base :pronunciation (-> pronunciation
-                                          (str/lower-case)
-                                          (str/replace #"[-]+" " ")))
-           base)))
+             raw-pronunciation (or (:radio-voice-name fix)
+                                   (:name fix))
+
+             cleaned-pronunciation (when raw-pronunciation
+                                     (-> raw-pronunciation
+                                         (str/lower-case)
+                                         (str/replace #"[-]+" " ")))
+             pronunciation (when cleaned-pronunciation
+                             (if (pronunciation/pronounceable? cleaned-pronunciation)
+                               cleaned-pronunciation
+                               (pronunciation/make-pronounceable
+                                 cleaned-pronunciation)))]
+         (cond-> base
+           (and (some? cleaned-pronunciation)
+                (not= raw-pronunciation (:id fix)))
+           (assoc :name cleaned-pronunciation)
+
+           (and (some? pronunciation)
+                (not= raw-pronunciation (:id fix))
+                (not= pronunciation cleaned-pronunciation))
+           (assoc :pronunciation pronunciation))))
      items))
   ([type items]
    (format-navaids
