@@ -55,6 +55,9 @@
                grammar-content (when grammar
                                  (println "Generating grammar..." grammar)
                                  (time (grammar/generate grammar)))
+
+               _ (println "Prepared grammar: " grammar-content)
+
                recognizer (if (some? grammar-content)
                             (new KaldiRecognizer sample-rate grammar-content)
                             (new KaldiRecognizer sample-rate))]
