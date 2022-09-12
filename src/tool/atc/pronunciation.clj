@@ -86,12 +86,20 @@
 (def ^:private letter-swaps
   [[#"z" "s"]
    [#"el" "le"]
+
+   ; EG: candr -> candor
    [#"([b-df-hj-np-tv-z])r" ["$1er"
                              "$1or"]]
+
+   ; EG: lendy -> len dee or lend ee
    [#"([b-df-hj-np-tv-z])y" [" $1ee"
                              "$1 ee"]]
-   [#"^a" "a "]
-   [#"ey$" "e ee"]])
+
+   ; EG: wavey -> wave ee
+   [#"ey$" "e ee"]
+
+   ; EG: acove -> "a cove"
+   [#"^a" "a "]])
 
 (defn- check-swap-latters [word]
   (loop [swaps letter-swaps]
