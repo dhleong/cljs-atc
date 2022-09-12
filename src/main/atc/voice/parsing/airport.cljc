@@ -5,9 +5,11 @@
 
 (defn generate-parsing-context [airport]
   (let [navaids-by-pronunciation (reduce
-                                   (fn [m {:keys [pronunciation id]}]
+                                   (fn [m {:keys [pronunciation name id]}]
                                      (assoc m
                                             (or pronunciation
+                                                (when name
+                                                  (str/lower-case name))
                                                 (str/lower-case id))
                                             id))
                                    {}
