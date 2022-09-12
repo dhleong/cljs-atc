@@ -84,9 +84,12 @@
       dedup'd)))
 
 (def ^:private letter-swaps
-  [[#"el" "le"]
+  [[#"z" "s"]
+   [#"el" "le"]
    [#"([b-df-hj-np-tv-z])r" ["$1er"
-                             "$1or"]]])
+                             "$1or"]]
+   [#"([b-df-hj-np-tv-z])y" [" $1ee"
+                             "$1 ee"]]])
 
 (defn- check-swap-latters [word]
   (loop [swaps letter-swaps]

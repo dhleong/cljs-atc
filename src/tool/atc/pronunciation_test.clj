@@ -46,4 +46,10 @@
              "gayel")))
     (is (= "candor"
            (make-pronounceable
-             "candr")))))
+             "candr")))
+    (is (= "gam bee"
+           (make-pronounceable
+             "gamby")))
+    (is (= "len dee"
+           (make-pronounceable
+             "lendy")))))
