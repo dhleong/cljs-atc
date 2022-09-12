@@ -128,7 +128,10 @@
 
       (check-dedup-letter-pairs word)
 
-      (check-swap-latters word))))
+      (check-swap-latters word)
+
+      ; As a last-ditch, try splitting small words, too
+      (check-split-words word))))
 
 (comment
   (time (missing-words "deer park"))
