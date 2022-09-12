@@ -32,7 +32,18 @@
            (make-pronounceable
              "doore"))))
 
-  (testing "Dedup consonants"
+  (testing "Dedup letters"
     (is (= "kars"
            (make-pronounceable
-             "karrs")))))
+             "karrs")))
+    (is (= "hays"
+           (make-pronounceable
+             "haays"))))
+
+  (testing "Swap letters"
+    (is (= "gayle"
+           (make-pronounceable
+             "gayel")))
+    (is (= "candor"
+           (make-pronounceable
+             "candr")))))

@@ -1,5 +1,6 @@
 (ns atc.pronunciation
   (:require
+   [atc.pronunciation.manual :refer [manually-defined-pronunciations]]
    [atc.vosk.fst :as fst :refer [skip-to-fst-file]]
    [clojure.java.io :as io]
    [clojure.string :as str])
@@ -75,26 +76,55 @@
     (when (pronounceable? without)
       without)))
 
-(defn- dedup-consonants [word]
-  (let [dedup'd (str/replace word #"([b-df-hj-np-tv-z])\1" "$1")]
+(defn- check-dedup-letter-pairs [word]
+  ; NOTE: We *probably* don't want to dedup E since that may change
+  ; the expected pronunciation
+  (let [dedup'd (str/replace word #"([a-df-hj-np-tv-z])\1" "$1")]
     (when (pronounceable? dedup'd)
       dedup'd)))
 
+(def ^:private letter-swaps
+  [[#"el" "le"]
+   [#"([b-df-hj-np-tv-z])r" ["$1er"
+                             "$1or"]]])
+
+(defn- check-swap-latters [word]
+  (loop [swaps letter-swaps]
+    (when-let [[from to] (first swaps)]
+      (let [replacements (if (sequential? to)
+                           to
+                           [to])]
+        (if-some [swapped (->> replacements
+                               (map (partial str/replace word from))
+                               (filter pronounceable?)
+                               first)]
+          swapped
+          (recur (next swaps)))))))
+
 (defn make-pronounceable [word]
-  (println "MAKE PRONOUNCEABLE" word)
   (if (pronounceable? word)
     word
 
-    (or (when (> (count word) 5)
-          (check-split-words word))
+    (or
+      (let [manual (get manually-defined-pronunciations word)]
+        ; Sanity check:
+        (if (pronounceable? manual)
+          manual
+          (println "WARNING: manually-defined-pronunciation for" word
+                   "(" manual ") is NOT pronounceable")))
 
-        (when (str/ends-with? word "e")
-          (check-double-trailing-vowel word))
+      (when (> (count word) 5)
+        (check-split-words word))
 
-        (when (str/ends-with? word "e")
-          (check-strip-trailing-vowel word))
+      (when (str/ends-with? word "e")
+        (check-double-trailing-vowel word))
 
-        (dedup-consonants word))))
+      (when (str/ends-with? word "e")
+        (check-strip-trailing-vowel word))
+
+      (check-dedup-letter-pairs word)
+
+      (check-swap-latters word))))
 
 (comment
   (time (missing-words "deer park"))
