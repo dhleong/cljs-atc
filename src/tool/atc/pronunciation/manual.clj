@@ -4,5 +4,6 @@
 
 (def manually-defined-pronunciations
   {"kennebunk" "kenney bunk"
+   ; NOTE: Sometimes just "fah zoo" works better with TTS... Perhaps we can support alternates at some point...
    "fzool" "fah zoo el"
    "rngrr" "ranger"})
