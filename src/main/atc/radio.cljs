@@ -56,7 +56,6 @@
 
           (map? item)
           (or
-            (:pronunciation item)
             (:radio-name item)
             (:name item)
             (:id item)
