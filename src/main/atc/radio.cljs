@@ -58,6 +58,7 @@
           (or
             (:radio-name item)
             (:name item)
+            (:pronunciation item)
             (:id item)
 
             (println "WARNING: " item "cannot be spoken"))
