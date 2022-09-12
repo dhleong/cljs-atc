@@ -90,6 +90,7 @@
                              "$1or"]]
    [#"([b-df-hj-np-tv-z])y" [" $1ee"
                              "$1 ee"]]
+   [#"^a" "a "]
    [#"ey$" "e ee"]])
 
 (defn- check-swap-latters [word]

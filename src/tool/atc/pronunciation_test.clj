@@ -54,6 +54,10 @@
            (make-pronounceable
              "lendy")))
 
+    (is (= "a cove"
+           (make-pronounceable
+             "acove")))
+
     (is (= "wave ee"
            (make-pronounceable
              "wavey")))))
