@@ -52,4 +52,8 @@
              "gamby")))
     (is (= "len dee"
            (make-pronounceable
-             "lendy")))))
+             "lendy")))
+
+    (is (= "wave ee"
+           (make-pronounceable
+             "wavey")))))

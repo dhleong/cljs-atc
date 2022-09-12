@@ -89,7 +89,8 @@
    [#"([b-df-hj-np-tv-z])r" ["$1er"
                              "$1or"]]
    [#"([b-df-hj-np-tv-z])y" [" $1ee"
-                             "$1 ee"]]])
+                             "$1 ee"]]
+   [#"ey$" "e ee"]])
 
 (defn- check-swap-latters [word]
   (loop [swaps letter-swaps]
