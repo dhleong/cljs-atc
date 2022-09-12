@@ -26,7 +26,7 @@
   [{:id "ACOVE",
     :position [:N42*14'05.220 :W074*01'54.590],
     :type :fix,
-    :pronunciation "ac ove"}
+    :pronunciation "a cove"}
    {:id "AGNEZ",
     :position [:N42*13'32.710 :W074*11'18.750],
     :type :fix,
@@ -67,7 +67,7 @@
    {:id "CAMRN",
     :position [:N40*01'02.290 :W073*51'39.810],
     :type :fix,
-    :pronunciation "cameron"}
+    :pronunciation "cam rn"}
    {:id "CANDR",
     :position [:N40*58'15.550 :W074*57'35.380],
     :type :fix,
@@ -118,10 +118,12 @@
    {:id "ENE",
     :position [:N43*25'32.420 :W070*36'48.692],
     :type :vor/dme,
-    :name "kennebunk"}
+    :name "kennebunk",
+    :pronunciation "kenney bunk"}
    {:id "FZOOL",
     :position [:N41*19'35.110 :W073*16'59.580],
-    :type :fix}
+    :type :fix,
+    :pronunciation "fah zoo el"}
    {:id "GAMBY",
     :position [:N40*00'22.220 :W073*52'08.270],
     :type :fix,
@@ -222,7 +224,8 @@
     :name "rockdale"}
    {:id "RNGRR",
     :position [:N40*13'48.590 :W074*12'20.690],
-    :type :fix}
+    :type :fix,
+    :pronunciation "ranger"}
    {:id "ROBER",
     :position [:N40*41'07.670 :W073*01'57.400],
     :type :fix}
@@ -251,7 +254,7 @@
    {:id "WAVEY",
     :position [:N40*14'04.500 :W073*23'39.760],
     :type :fix,
-    :pronunciation "wa vey"}
+    :pronunciation "wave ee"}
    {:id "WHITE",
     :position [:N40*00'24.320 :W074*15'04.610],
     :type :fix}]})

@@ -3,4 +3,6 @@
   cannot be easily derived from the input")
 
 (def manually-defined-pronunciations
-  {"camrn" "cameron"})
+  {"kennebunk" "kenney bunk"
+   "fzool" "fah zoo el"
+   "rngrr" "ranger"})

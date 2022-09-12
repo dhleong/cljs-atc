@@ -113,12 +113,12 @@
     (pprint airport)
 
     (when-let [unpronounceable (time
-                                 (doall
-                                   (pronunciation/unpronounceable
-                                     (map #(or (:pronunciation %)
-                                               (:name %)
-                                               (:id %))
-                                          (:navaids airport)))))]
+                                 (->> (:navaids airport)
+                                      (map #(or (:pronunciation %)
+                                                (:name %)
+                                                (:id %)))
+                                      (pronunciation/unpronounceable)
+                                      seq))]
       (println "WARNING: Detected" (count unpronounceable) "unpronounceable navaids:")
       (println "\t" unpronounceable))
 
