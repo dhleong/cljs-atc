@@ -80,6 +80,15 @@
   ([f g h] ((with-bytes-count-from h) (comp f g h)))
   ([f g h & fs] ((with-bytes-count-from (last fs)) (apply comp f g h fs))))
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
+(def integer ((with-bytes-count 4) (fn [^BufferedSource buffer] (.readInt buffer))))
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
+(def integer-le ((with-bytes-count 4) (fn [^BufferedSource buffer] (.readIntLe buffer))))
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
+(def long-integer ((with-bytes-count 8) (fn [^BufferedSource buffer] (.readLong buffer))))
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
+(def long-integer-le ((with-bytes-count 8) (fn [^BufferedSource buffer] (.readLongLe buffer))))
+
 (defn justified-string
   ([bytes-length] (justified-string bytes-length nil))
   ([bytes-length charset]
@@ -87,7 +96,7 @@
                        (Charset/forName charset)
                        (Charset/defaultCharset))]
      ((with-bytes-count bytes-length)
-      (fn [^Buffer buffer]
+      (fn [^BufferedSource buffer]
         (str/trim (.readString buffer bytes-length charset-obj)))))))
 
 (defn optional-string [parser]
@@ -95,6 +104,12 @@
     (fn optional [v]
      (when-not (str/blank? v)
        (parser v)))))
+
+(defn prefixed-string
+  [prefix-reader]
+  (fn [^BufferedSource buffer]
+    (let [length (prefix-reader buffer)]
+      (.readUtf8 buffer length))))
 
 (defn justified-string-number [str->number bytes-length & {:keys [optional?]}]
   (let [f #(try (str->number %)
@@ -115,10 +130,10 @@
 (defn ignore-bytes [bytes-count]
   ((with-bytes-count bytes-count)
     (fn ignore-bytes
-      ([^Buffer frame]
+      ([^BufferedSource frame]
        (.skip frame bytes-count)
        ::ignored-value)
-      ([output ^Buffer frame]
+      ([output ^BufferedSource frame]
        (ignore-bytes frame)
        output))))
 
@@ -183,8 +198,8 @@
             (apply + sizes))))))
 
 (defn read-record
-  ([record ^Buffer frame] (read-record record frame {}))
-  ([record ^Buffer frame initial-output]
+  ([record ^BufferedSource frame] (read-record record frame {}))
+  ([record ^BufferedSource frame initial-output]
    (reduce
      (fn [output record-part]
        (record-part output frame))
@@ -234,7 +249,7 @@
                                   record)
         frame-length-bytes (require-fixed-record-length record)]
     (loop [frames (fixed-frame-sequence frame-length-bytes in)]
-      (when-let [^Buffer current (first frames)]
+      (when-let [^BufferedSource current (first frames)]
         (let [for-key (doto (.copy current)
                         (.skip key-offset))
               read-value (key-reader {} for-key)
@@ -256,7 +271,7 @@
     (vector? part) (let [[k reader] part]
                      (vary-meta
                        ((with-bytes-count-from reader)
-                        (fn read-part [output ^Buffer frame]
+                        (fn read-part [output ^BufferedSource frame]
                           (try
                             (let [read-value (reader frame)]
                               (if-not (= ::ignored-value read-value)
