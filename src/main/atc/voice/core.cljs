@@ -64,10 +64,11 @@
       (doto recognizer-inst
         (recognizer/on-partial-result! #(let [last-partial (::last-partial @client)
                                               next-partial (j/get-in % [:result :partial])]
-                                          (when-not (= last-partial next-partial)
-                                            (swap! client assoc ::last-partial next-partial)
-                                            (when on-partial-result
-                                              (on-partial-result next-partial)))))
+                                          (when-not (empty? next-partial)
+                                            (when-not (= last-partial next-partial)
+                                              (swap! client assoc ::last-partial next-partial)
+                                              (when on-partial-result
+                                                (on-partial-result next-partial))))))
         (recognizer/on-result! (fn [result]
                                  (swap! client dissoc ::last-partial)
                                  (when on-partial-result

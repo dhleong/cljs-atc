@@ -16,7 +16,7 @@
 (defn pause! [client]
   (swap! client (fn [state]
                   (if (:recording? state)
-                    (do (.pauseRecording ^js (::stream state))
+                    (do (.pauseRecording ^MicrophoneStream (::stream state))
                         (println "Paused recording")
                         (assoc state :recording? false))
                     state))))
@@ -24,7 +24,7 @@
 (defn resume! [client]
   (swap! client (fn [state]
                   (if-not (:recording? state)
-                    (do (.playRecording ^js (::stream state))
+                    (do (.playRecording ^MicrophoneStream (::stream state))
                         (println "Resumed recording")
                         (assoc state :recording? true))
                     state))))
