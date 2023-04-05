@@ -1,6 +1,6 @@
 # cljs-atc
 
-A [re-frame](https://github.com/Day8/re-frame) application designed to simulate Air Traffic Control, with robust voice input support.
+A [re-frame](https://github.com/Day8/re-frame)-powered game designed to simulate an Air Traffic Control station, with robust voice input support.
 
 ## Architecture
 
