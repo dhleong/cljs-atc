@@ -64,7 +64,7 @@
   (if-let [fix (get-in context [:game/navaids-by-id fix-id])]
     (-> craft
         (utter "direct " fix)
-        (update :commands assoc :heading)
+        (update :commands dissoc :heading)
         (update :commands assoc :direct fix))
 
     ; TODO: Handle GA aircraft without the fix
