@@ -1,6 +1,6 @@
 (ns atc.views.game.stage
   (:require
-   ["@inlet/react-pixi" :as px]))
+   ["@pixi/react" :as px]))
 
 (defn stage [& children]
   (into [:> px/Stage {:width js/window.innerWidth

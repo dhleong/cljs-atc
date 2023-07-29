@@ -1,6 +1,6 @@
 (ns atc.views.game.graphics.aircraft
   (:require
-   ["@inlet/react-pixi" :as px]
+   ["@pixi/react" :as px]
    ["pixi.js" :refer [TextStyle]]
    [archetype.util :refer [<sub]]
    [atc.data.units :as units]

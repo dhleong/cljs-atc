@@ -1,6 +1,6 @@
 (ns atc.views.game
   (:require
-   ["@inlet/react-pixi" :as px]
+   ["@pixi/react" :as px]
    [archetype.util :refer [<sub]]
    [atc.events :as events]
    [atc.styles :refer [full-screen]] ; [atc.theme :as theme]

@@ -1,7 +1,7 @@
 (ns atc.views.game.viewport
   (:require
    ["pixi-viewport" :refer [Viewport]]
-   ["@inlet/react-pixi" :as px]
+   ["@pixi/react" :as px]
    [applied-science.js-interop :as j]))
 
 (j/defn ^:private center-equals? [oldv newv]

@@ -1,6 +1,6 @@
 (ns atc.views.game.graphics.line
   (:require
-   ["@inlet/react-pixi" :as px]))
+   ["@pixi/react" :as px]))
 
 (defn line [{:keys [from to width color alpha]
              :or {width 1

@@ -1,8 +1,8 @@
 (ns atc.views.game.graphics.navaid
   (:require
-   ["@inlet/react-pixi" :as px]
-   ["pixi.js" :refer [TextStyle]]
-   [atc.theme :as theme]))
+    ["@pixi/react" :as px]
+    ["pixi.js" :refer [TextStyle]]
+    [atc.theme :as theme]))
 
 (def label-style (TextStyle. #js {:fill theme/text
                                   :fontSize 11}))
