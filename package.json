@@ -7,10 +7,10 @@
     "dependencies": {
         "@inlet/react-pixi": "^6.8.0",
         "microphone-stream": "^6.0.1",
-        "pixi-viewport": "^4.34.4",
-        "pixi.js": "^6.5.1",
-        "react": "^17",
-        "react-dom": "^17",
+        "pixi-viewport": "^5.0.1",
+        "pixi.js": "^7.2.4",
+        "react": "^18",
+        "react-dom": "^18",
         "readable-stream": "^4.1.0",
         "vosk-browser": "^0.0.8"
     },

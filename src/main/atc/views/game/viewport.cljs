@@ -35,7 +35,7 @@
                    (let [options (-> (js/Object.assign
                                        #js {:ticker (j/get app :ticker)
                                             :passiveWheel false
-                                            :interaction (j/get-in app [:renderer :plugins :interaction])}
+                                            :events (j/get-in app [:renderer :events])}
                                        js-props)
 
                                      ; NBD but we don't have a better way to remove these

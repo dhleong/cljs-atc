@@ -1,9 +1,6 @@
 (ns atc.core
   (:require
-    [goog.dom :as gdom]
-    [reagent.dom :as rdom]
-    [re-frame.core :as re-frame]
-    [re-pressed.core :as rp]
+    [reagent.dom.client :as rdom]
     [atc.events :as events]
     [atc.routes :as routes]
     [atc.views :as views]
@@ -11,6 +8,9 @@
     [atc.styles]
     [atc.subs]
     [atc.speech :as speech]
+    [goog.dom :as gdom]
+    [re-frame.core :as re-frame]
+    [re-pressed.core :as rp]
     [spade.runtime :refer [*css-compile-flags*]]))
 
 (set!
@@ -21,18 +21,13 @@
     :auto-prefix #{:line-clamp
                    :user-select}))
 
-; (defonce ^:private root (create-react-root
-;                           (gdom/getElement "app")))
-
-; (defn ^:dev/after-load mount-root []
-;   (re-frame/clear-subscription-cache!)
-;   (.render root (r/as-element [views/main])))
+(defonce ^:private root (rdom/create-root
+                          (gdom/getElement "app")))
 
 (defn ^:dev/after-load mount-root []
   (re-frame/clear-subscription-cache!)
   (speech/init)
-  (rdom/render [views/main]
-               (gdom/getElement "app")))
+  (rdom/render root [views/main]))
 
 (defn ^:export init []
   (re-frame/dispatch-sync [::events/initialize-db])
