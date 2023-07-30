@@ -16,14 +16,11 @@
   (if-some [loadable (get airport-loadables airport-id)]
     (if (lazy/ready? loadable)
       @loadable
-      (-> (p/do
-            ; NOTE: lazy/load *should* return a promise, but it
-            ; does not seem to play well with promesa, so...
-            (p/create
-              (fn [p-resolve p-reject]
-                (lazy/load loadable p-resolve p-reject)))
-            ; @loadable
-)
+      (-> ; NOTE: lazy/load *should* return a promise, but it
+          ; does not seem to play well with promesa, so...
+          (p/create
+            (fn [p-resolve p-reject]
+              (lazy/load loadable p-resolve p-reject)))
           (p/catch #?(:clj (partial println "[ERROR]")
                       :cljs js/console.error))))
     (throw (ex-info "No such airport: " {:id airport-id}))))
