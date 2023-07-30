@@ -3,6 +3,7 @@
    [atc.data.core :refer [local-xy]]
    [atc.data.units :refer [ft->m]]
    [atc.engine.model :refer [vec3]]
+   [promesa.core :as p]
    [shadow.lazy :as lazy]))
 
 ; NOTE: We explicitly do NOT want to require these namespaces,
@@ -15,7 +16,16 @@
   (if-some [loadable (get airport-loadables airport-id)]
     (if (lazy/ready? loadable)
       @loadable
-      (lazy/load loadable))
+      (-> (p/do
+            ; NOTE: lazy/load *should* return a promise, but it
+            ; does not seem to play well with promesa, so...
+            (p/create
+              (fn [p-resolve p-reject]
+                (lazy/load loadable p-resolve p-reject)))
+            ; @loadable
+)
+          (p/catch #?(:clj (partial println "[ERROR]")
+                      :cljs js/console.error))))
     (throw (ex-info "No such airport: " {:id airport-id}))))
 
 (defn runway-coords [airport runway]
