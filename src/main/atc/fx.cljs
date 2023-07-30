@@ -2,6 +2,7 @@
   (:require
    [archetype.nav :as nav]
    [archetype.util :refer [>evt]]
+   [atc.game :as game]
    [atc.speech :as speech]
    [atc.voice.core :as voice]
    [atc.voice.process :refer [find-command]]
@@ -14,6 +15,12 @@
   :nav/replace!
   nav/replace!)
 
+
+; ======= Game setup ======================================
+
+(reg-fx
+  :game/init-async
+  game/init-async)
 
 ; ======= Voice input =====================================
 

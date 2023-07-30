@@ -1,7 +1,5 @@
 (ns atc.events
   (:require
-   [atc.data.airports.kjfk :as kjfk]
-   [atc.data.core :refer [local-xy]]
    [atc.db :as db]
    [atc.engine.core :as engine]
    [atc.engine.model :as engine-model]
@@ -9,7 +7,7 @@
    [clojure.string :as str]
    [goog.events.KeyCodes :as KeyCodes]
    [re-frame.core :refer [->interceptor dispatch get-coeffect get-effect
-                          inject-cofx path reg-event-db reg-event-fx trim-v]]
+                          inject-cofx path reg-event-db reg-event-fx trim-v unwrap]]
    [re-frame.interceptor :refer [update-coeffect update-effect]]
    [re-pressed.core :as rp]
    [vimsical.re-frame.cofx.inject :as inject]))
@@ -87,17 +85,16 @@
 
 (reg-event-fx
   :game/init
+  [unwrap]
+  (fn [_ game-options]
+    {:game/init-async game-options}))
+
+(reg-event-fx
+  :game/init-loaded-engine
   [trim-v]
-  (fn [{:keys [db]} [airport]]
-    (let [airport (or airport kjfk/airport)]
-      (println "(re) Initialize game engine")
-      (let [new-engine (engine/generate airport)]
-        (println "AC" (-> new-engine :aircraft vals first :position))
-        (let [lga (-> new-engine :airport :navaids (nth 2))]
-          (println (:id lga) (local-xy (-> lga :position)
-                                       (-> new-engine :airport))))
-        {:db (assoc db :engine new-engine)
-         :dispatch [:game/tick]}))))
+  (fn [{:keys [db]} [new-engine]]
+    {:db (assoc db :engine new-engine)
+     :dispatch [:game/tick]}))
 
 (reg-event-fx
   :game/tick

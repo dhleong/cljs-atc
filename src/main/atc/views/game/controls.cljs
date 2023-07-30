@@ -38,8 +38,8 @@
      (if game-running?
        [:button {:on-click #(>evt [:game/reset])}
         "End Game"]
-       [:button {:on-click #(>evt [:game/init])}
-        "Init Game"])
+       [:button {:on-click #(>evt [:game/init {:airport-id :kjfk}])}
+        "Init Game @ KJFK"])
 
      (when game-running?
        [:<>

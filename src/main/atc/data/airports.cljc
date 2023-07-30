@@ -1,8 +1,22 @@
-(ns atc.data.airports 
+(ns atc.data.airports
   (:require
    [atc.data.core :refer [local-xy]]
    [atc.data.units :refer [ft->m]]
-   [atc.engine.model :refer [vec3]]))
+   [atc.engine.model :refer [vec3]]
+   [shadow.lazy :as lazy]))
+
+; NOTE: We explicitly do NOT want to require these namespaces,
+; since they should be code-split
+#_{:clj-kondo/ignore [:unresolved-namespace]}
+(def ^:private airport-loadables
+  {:kjfk (lazy/loadable atc.data.airports.kjfk/airport)})
+
+(defn load-airport [airport-id]
+  (if-some [loadable (get airport-loadables airport-id)]
+    (if (lazy/ready? loadable)
+      @loadable
+      (lazy/load loadable))
+    (throw (ex-info "No such airport: " {:id airport-id}))))
 
 (defn runway-coords [airport runway]
   (when-let [runway-object (->> airport
