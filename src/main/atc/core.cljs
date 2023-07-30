@@ -1,6 +1,5 @@
 (ns atc.core
   (:require
-    [reagent.dom.client :as rdom]
     [atc.events :as events]
     [atc.routes :as routes]
     [atc.views :as views]
@@ -9,6 +8,8 @@
     [atc.subs]
     [atc.speech :as speech]
     [goog.dom :as gdom]
+    [reagent.core :as r]
+    [reagent.dom.client :as rdom]
     [re-frame.core :as re-frame]
     [re-pressed.core :as rp]
     [spade.runtime :refer [*css-compile-flags*]]))
@@ -27,7 +28,7 @@
 (defn ^:dev/after-load mount-root []
   (re-frame/clear-subscription-cache!)
   (speech/init)
-  (rdom/render root [views/main]))
+  (.render root (r/as-element [(fn [] views/main)])))
 
 (defn ^:export init []
   (re-frame/dispatch-sync [::events/initialize-db])
