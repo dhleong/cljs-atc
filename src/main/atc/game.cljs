@@ -17,4 +17,4 @@
     (let [lga (-> new-engine :airport :navaids (nth 2))]
       (println (:id lga) (local-xy (-> lga :position)
                                    (-> new-engine :airport))))
-    (>evt [:game/init-loaded-engine new-engine])))
+    (>evt [:game/init-loaded-engine (assoc opts :engine new-engine)])))

@@ -10,7 +10,16 @@
     [atc.fx]
     [atc.styles]
     [atc.subs]
-    [atc.speech :as speech]))
+    [atc.speech :as speech]
+    [spade.runtime :refer [*css-compile-flags*]]))
+
+(set!
+  *css-compile-flags*
+  (assoc
+    *css-compile-flags*
+    :vendors [:webkit]
+    :auto-prefix #{:line-clamp
+                   :user-select}))
 
 ; (defonce ^:private root (create-react-root
 ;                           (gdom/getElement "app")))

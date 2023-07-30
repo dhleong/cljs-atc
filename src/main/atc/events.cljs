@@ -91,10 +91,12 @@
 
 (reg-event-fx
   :game/init-loaded-engine
-  [trim-v]
-  (fn [{:keys [db]} [new-engine]]
-    {:db (assoc db :engine new-engine)
-     :dispatch [:game/tick]}))
+  [unwrap]
+  (fn [{:keys [db]} {:keys [engine voice-input?]}]
+    {:db (assoc db :engine engine)
+     :dispatch-n [[:game/tick]
+                  (when voice-input?
+                    [:voice/start!])]}))
 
 (reg-event-fx
   :game/tick
