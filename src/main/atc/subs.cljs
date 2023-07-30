@@ -5,11 +5,15 @@
    [clojure.string :as str]
    [re-frame.core :refer [reg-sub]]))
 
-(reg-sub :page :page)
+(reg-sub
+  :page
+  :-> :page)
 
 ; ======= Voice ===========================================
 
-(reg-sub ::voice :voice)
+(reg-sub
+  ::voice
+  :-> :voice)
 
 (reg-sub
   :voice/partial
@@ -30,8 +34,17 @@
 
 ; ======= Game state ======================================
 
-(reg-sub ::engine :engine)
-(reg-sub ::game-history :game-history)
+(reg-sub
+  ::engine
+  :-> :engine)
+(reg-sub
+  ::game-history
+  :-> :game-history)
+
+(reg-sub
+  :game/started?
+  :<- [::engine]
+  :-> some?)
 
 (reg-sub
   :game/recent-history
@@ -42,20 +55,22 @@
 (reg-sub
   :game/time-scale
   :<- [::engine]
-  (fn [engine]
-    (:time-scale engine)))
+  :-> :time-scale)
+
+(reg-sub
+  :game/paused?
+  :<- [:game/time-scale]
+  :-> (partial = 0))
 
 (reg-sub
   :game/aircraft-map
   :<- [::engine]
-  (fn [engine]
-    (:aircraft engine)))
+  :-> :aircraft)
 
 (reg-sub
   :game/aircraft
   :<- [:game/aircraft-map]
-  (fn [aircraft]
-    (vals aircraft)))
+  :-> vals)
 
 (reg-sub
   :game/aircraft-historical
@@ -74,8 +89,7 @@
 (reg-sub
   :game/airport
   :<- [::engine]
-  (fn [engine]
-    (:airport engine)))
+  :-> :airport)
 
 (reg-sub
   :game/navaids-by-id

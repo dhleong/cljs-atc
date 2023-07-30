@@ -3,11 +3,13 @@
    ["@inlet/react-pixi" :as px]
    [archetype.util :refer [<sub]]
    [atc.events :as events]
+   [atc.views.game-setup :as game-setup]
    [atc.views.game.controls :refer [game-controls]]
    [atc.views.game.graphics.aircraft :as aircraft]
    [atc.views.game.graphics.navaid :as navaid]
    [atc.views.game.stage :refer [stage]]
    [atc.views.game.viewport :refer [viewport]]
+   [atc.views.pause-screen :as pause-screen]
    [reagent.core :as r]
    [spade.core :refer [defattrs]]))
 
@@ -72,7 +74,14 @@
           [all-navaids entity-scale]]]))))
 
 (defn view []
-  [:<>
-   [game]
-   [:div (game-controls-container-attrs)
-    [game-controls]]])
+  (if-not (<sub [:game/started?])
+    [game-setup/view]
+
+    [:<>
+     [game]
+
+     (when (<sub [:game/paused?])
+       [pause-screen/view])
+
+     [:div (game-controls-container-attrs)
+      [game-controls]]]))
