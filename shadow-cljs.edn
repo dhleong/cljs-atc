@@ -9,7 +9,7 @@
                 [net.dhleong/archetype "0.1.0-SNAPSHOT"]
 
                 ; style:
-                [net.dhleong/spade "1.1.0"]
+                [net.dhleong/spade "2.0.0-SNAPSHOT"]
 
                 ; input processing
                 [instaparse "1.4.12"]
@@ -18,7 +18,7 @@
                 ; util:
                 [applied-science/js-interop "0.2.7"]
                 [com.cemerick/url "0.1.1"]
-                [funcool/promesa "8.0.450"]
+                [funcool/promesa "11.0.671"]
                 [re-frame-utils "0.1.0"]
                 [com.rpl/specter "1.1.4"]
 

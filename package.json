@@ -25,7 +25,7 @@
     },
     "scripts": {
         "lint": "clojure -Sdeps '{:deps {clj-kondo/clj-kondo {:mvn/version \"RELEASE\"}}}' -M -m clj-kondo.main --lint src --config .clj-kondo/config.edn",
-        "lint:init": "clojure -Sdeps '{:deps {clj-kondo/clj-kondo {:mvn/version \"RELEASE\"}}}' -M -m clj-kondo.main --lint \"$(shadow-cljs classpath)\" --config .clj-kondo/config.edn",
+        "lint:init": "clojure -Sdeps '{:deps {clj-kondo/clj-kondo {:mvn/version \"RELEASE\"}}}' -M -m clj-kondo.main --lint \"$(shadow-cljs classpath)\" --config .clj-kondo/config.edn --copy-configs",
         "build": "shadow-cljs release :app",
         "build:gh-pages": "yarn build --config-merge '{:closure-defines {atc.config/server-root \"/cljs-atc/\"}}'",
         "dev": "shadow-cljs start && shadow-cljs watch :app",
