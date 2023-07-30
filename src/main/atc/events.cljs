@@ -34,6 +34,15 @@
 (defn remove-injections [engine]
   (apply dissoc engine injected-subscription-keys))
 
+(defn- compose-cofx [context cofx-key cofx]
+  (reduce
+    (fn [ctx cofx-item]
+      (if-some [handler (get cofx-item cofx-key)]
+        (handler ctx)
+        ctx))
+    context
+    cofx))
+
 ; This interceptor composes the subscription cofx listed above, assoc's them into the
 ; :engine in the DB for dispatching in updates, etc. then cleans them up after. It should
 ; be provided *before* any (path) interceptors
@@ -41,26 +50,14 @@
   (->interceptor
     {:id :injected-engine
      :before (fn [context]
-               (let [context' (reduce
-                                (fn [ctx {:keys [before]}]
-                                  (if before
-                                    (before ctx)
-                                    ctx))
-                                context
-                                engine-injections)]
+               (let [context' (compose-cofx context :before engine-injections)]
                  (if (not= ::not-found (get (get-coeffect context' :db) :engine ::not-found))
                    (update-coeffect context' :db
                                     update :engine
                                     merge-injections (get-coeffect context'))
                    context')))
      :after (fn [context]
-              (let [context' (reduce
-                               (fn [ctx {:keys [after]}]
-                                 (if after
-                                   (after ctx)
-                                   ctx))
-                               context
-                               engine-injections)]
+              (let [context' (compose-cofx context :after engine-injections)]
                 (if (not= ::not-found (get-effect context' :db ::not-found))
                   (update-effect context' :db update :engine remove-injections)
                   context')))}))
