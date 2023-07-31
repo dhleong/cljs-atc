@@ -38,6 +38,7 @@
   (re-frame/dispatch-sync [::events/initialize-db])
   (re-frame/dispatch-sync [::rp/add-keyboard-event-listener "keydown"])
   (re-frame/dispatch-sync [::rp/add-keyboard-event-listener "keyup"])
+  (re-frame/dispatch-sync [::rp/add-keyboard-event-listener "keypress"])
   (routes/app-routes)
   (mount-root))
 

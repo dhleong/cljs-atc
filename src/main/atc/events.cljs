@@ -3,9 +3,9 @@
    [atc.db :as db]
    [atc.engine.core :as engine]
    [atc.engine.model :as engine-model]
+   [atc.game.keymap :as keymap]
    [atc.radio :refer [->speakable]]
    [clojure.string :as str]
-   [goog.events.KeyCodes :as KeyCodes]
    [re-frame.core :refer [->interceptor dispatch get-coeffect get-effect
                           inject-cofx path reg-event-db reg-event-fx trim-v unwrap]]
    [re-frame.interceptor :refer [update-coeffect update-effect]]
@@ -141,6 +141,15 @@
      :fx [(when-not (= 0 scale)
             [:dispatch [:game/tick]])]}))
 
+(reg-event-fx
+  :game/toggle-paused
+  [(path :engine)]
+  (fn [{engine :db}]
+    {:dispatch [:game/set-time-scale
+                (if (= 0 (:time-scale engine))
+                  1
+                  0)]}))
+
 
 ; ======= Speech synthesis ================================
 
@@ -218,16 +227,18 @@
   :voice/enable-keypresses
   (fn []
     {:dispatch-n [[::rp/set-keydown-rules
-                   {:event-keys [[[:voice/set-paused false]
-                                  [{:keyCode KeyCodes/SPACE}]]]}]
+                   keymap/keydown-rules]
+                  [::rp/set-keypress-rules
+                   keymap/keypress-rules]
                   [::rp/set-keyup-rules
-                   {:event-keys [[[:voice/set-paused true]
-                                  [{:keyCode KeyCodes/SPACE}]]]}]]}))
+                   keymap/keyup-rules]]}))
 
 (reg-event-fx
   :voice/disable-keypresses
   (fn []
     {:dispatch-n [[::rp/set-keydown-rules
+                   {:event-keys []}]
+                  [::rp/set-keypress-rules
                    {:event-keys []}]
                   [::rp/set-keyup-rules
                    {:event-keys []}]]}))
