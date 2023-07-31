@@ -31,6 +31,10 @@
       :busy
       (:state voice))))
 
+(reg-sub
+  :voice/recording?
+  :<- [::voice]
+  :-> (complement :paused?))
 
 ; ======= Game state ======================================
 

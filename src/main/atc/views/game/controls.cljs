@@ -4,17 +4,20 @@
    ["react" :as React]
    [spade.core :refer [defattrs]]))
 
+(defattrs voice-controls-active-attrs [recording?]
+  [:.mic {:opacity (if recording? 0.8 1.0)}])
+
 (defn- voice-controls-active []
   (React/useEffect
     (fn []
       (>evt [:voice/enable-keypresses])
       #(>evt [:voice/disable-keypresses])))
 
-  [:<>
+  [:div (voice-controls-active-attrs (<sub [:voice/recording?]))
    [:button {:on-click #(>evt [:voice/stop!])}
     "Disable Mic"]
-   [:button {:on-mouse-down #(>evt [:voice/set-paused false])
-             :on-mouse-up #(>evt [:voice/set-paused true])}
+   [:button.mic {:on-mouse-down #(>evt [:voice/set-paused false])
+                 :on-mouse-up #(>evt [:voice/set-paused true])}
     "MIC (hold this or space)"]
    (<sub [:voice/partial])])
 

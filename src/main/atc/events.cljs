@@ -295,7 +295,7 @@
                   :paused? will-be-paused?)
        :fx [(when (and (= :ready new-state)
                        will-be-paused?)
-              [:voice/set-paused true])]})))
+              [:dispatch [:voice/set-paused true]])]})))
 
 (comment
   (dispatch [:game/reset]))
