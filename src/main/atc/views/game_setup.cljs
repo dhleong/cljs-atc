@@ -1,11 +1,13 @@
 (ns atc.views.game-setup
   (:require
    [archetype.util :refer [>evt]]
+   [atc.data.airports :refer [list-airports]]
    [garden.units :refer [px]]
    [promesa.core :as p]
    [reagent.core :as r]
    [santiago.form :refer [form]]
    [santiago.input :refer [input]]
+   [santiago.select :refer [select]]
    [spade.core :refer [defattrs]]))
 
 (defattrs setup-container-attrs []
@@ -35,24 +37,27 @@
   [:.form {:display :flex
            :align-items :center
            :flex-direction :column
-           :gap (px 8)}]
-  [:.checkbox {:display :flex
-               :font-size :105%
-               :user-select :none
-               :align-items :center}]
+           :gap (px 8)}
+   [:&.loading {:opacity 0.5}]]
+  [:.labeled {:display :flex
+              :font-size :105%
+              :gap (px 4)
+              :user-select :none
+              :align-items :center}]
   [:.explanation {:text-align :center}]
   [:.spacer {:height (px 8)}])
 
-(defn- start-game! [loading?-ref ^js e {:keys [use-voice-input]}]
+(defn- start-game! [loading?-ref ^js e {:keys [airport-id use-voice-input]}]
   (.preventDefault e)
   (p/do
     (reset! loading?-ref true)
     (p/delay 10) ; Leave time to show loading state
-    (>evt [:game/init {:airport-id :kjfk
+    (>evt [:game/init {:airport-id airport-id
                        :voice-input? use-voice-input}])))
 
 (defn view []
-  (r/with-let [form-value (r/atom {:use-voice-input true})
+  (r/with-let [form-value (r/atom {:airport-id :kjfk
+                                   :use-voice-input true})
                loading? (r/atom false)
                on-start-game (partial start-game! loading?)]
     [:div (setup-container-attrs)
@@ -62,19 +67,29 @@
       [:div.status {:class (when @loading? :loading)}
        "Reticulating splines..."]
 
-      [form {:class :form
+      [form {:class [:form (when @loading? :loading)]
              :model form-value
              :on-submit on-start-game}
 
-       [:div.checkbox
+       [:div.labeled
+        [:label {:for ::airport-id}
+         "Airport"]
+        [select {:id ::airport-id
+                 :disabled @loading?
+                 :key :airport-id}
+         (for [{:keys [key label]} (list-airports)]
+           ^{:key key}
+           [:option {:key key} label])]]
+
+       [:div.labeled
+        [:label {:for ::use-voice-input}
+         "Use voice input"]
         [input {:type :checkbox
                 :aria-describedby ::voice-explanation
                 :disabled @loading?
                 :key :use-voice-input
-                :id ::use-voice-input}]
-        [:label {:for ::use-voice-input}
-         "Use voice input"]]
-       [:div.explanation {:id (str ::voice-explanation)}
+                :id ::use-voice-input}]]
+       [:div.explanation {:id ::voice-explanation}
         "If enabled, you will be prompted to allow microphone input once the game is loaded. You can then hold the spacebar to activate the mic and talk to pilots on your frequency!"]
 
        [:div.spacer]

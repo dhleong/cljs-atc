@@ -3,6 +3,7 @@
    [atc.data.core :refer [local-xy]]
    [atc.data.units :refer [ft->m]]
    [atc.engine.model :refer [vec3]]
+   [clojure.string :as str]
    [promesa.core :as p]
    [shadow.lazy :as lazy]))
 
@@ -11,6 +12,13 @@
 #_{:clj-kondo/ignore [:unresolved-namespace]}
 (def ^:private airport-loadables
   {:kjfk (lazy/loadable atc.data.airports.kjfk/airport)})
+
+(defn list-airports []
+  (->> airport-loadables
+       keys
+       (map (fn [k]
+              {:key k
+               :label (str/upper-case (name k))}))))
 
 (defn load-airport [airport-id]
   (if-some [loadable (get airport-loadables airport-id)]
