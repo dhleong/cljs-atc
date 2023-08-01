@@ -53,27 +53,25 @@
                       :render navaid/entity}])
 
 (defn- game []
-  (let [scale-atom (r/atom 1)
+  (r/with-let [scale-atom (r/atom 1)
                set-scale! #(reset! scale-atom (/ 1 %))]
-    (fn []
+    ; Ensure we keep engine-injected subscriptions active
+    (doseq [sub events/injected-subscriptions]
+      (<sub sub))
 
-      ; Ensure we keep engine-injected subscriptions active
-      (doseq [sub events/injected-subscriptions]
-        (<sub sub))
+    (let [entity-scale @scale-atom]
+      [stage
+       ; NOTE: The max world size should *maybe* be based on the airport?
+       [viewport {:plugins ["drag" "pinch" "wheel"]
+                  :pinch {:center {:x 0 :y 0}}
+                  :wheel {:center {:x 0 :y 0}}
+                  :center {:x 0 :y 0}
+                  :on-scale set-scale!
+                  :world-width default-world-dimension
+                  :world-height default-world-dimension}
 
-      (let [entity-scale @scale-atom]
-        [stage
-         ; NOTE: The max world size should *maybe* be based on the airport?
-         [viewport {:plugins ["drag" "pinch" "wheel"]
-                    :pinch {:center {:x 0 :y 0}}
-                    :wheel {:center {:x 0 :y 0}}
-                    :center {:x 0 :y 0}
-                    :on-scale set-scale!
-                    :world-width default-world-dimension
-                    :world-height default-world-dimension}
-
-          [all-aircraft entity-scale]
-          [all-navaids entity-scale]]]))))
+        [all-aircraft entity-scale]
+        [all-navaids entity-scale]]])))
 
 (defn view []
   (if-not (<sub [:game/started?])
