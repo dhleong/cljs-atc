@@ -65,6 +65,8 @@
         [stage
          ; NOTE: The max world size should *maybe* be based on the airport?
          [viewport {:plugins ["drag" "pinch" "wheel"]
+                    :pinch {:center {:x 0 :y 0}}
+                    :wheel {:center {:x 0 :y 0}}
                     :center {:x 0 :y 0}
                     :on-scale set-scale!
                     :world-width default-world-dimension

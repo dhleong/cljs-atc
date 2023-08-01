@@ -38,7 +38,9 @@
 
                      ; Enable plugins
                      (doseq [plugin plugins]
-                       (j/call viewport plugin))
+                       (if-let [args (aget js-props plugin)]
+                         (j/call viewport plugin args)
+                         (j/call viewport plugin)))
 
                      ; Stash this for use in the above callback:
                      ; NOTE: reagent "helpfully" converts to camel case here:
