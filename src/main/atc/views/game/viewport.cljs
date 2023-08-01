@@ -20,6 +20,7 @@
     #js {:create (j/fn [^:js {:keys [app center plugins] :as js-props}]
                    (let [options (-> (js/Object.assign
                                        #js {:ticker (j/get app :ticker)
+                                            :passiveWheel false
                                             :interaction (j/get-in app [:renderer :plugins :interaction])}
                                        js-props)
 
