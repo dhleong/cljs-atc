@@ -36,11 +36,22 @@
   :<- [::voice]
   :-> (complement :paused?))
 
+(reg-sub
+  :voice/requested?
+  :<- [:engine-config]
+  :-> :voice-input?)
+
+
 ; ======= Game state ======================================
 
 (reg-sub
   ::engine
   :-> :engine)
+
+(reg-sub
+  :engine-config
+  :-> :engine-config)
+
 (reg-sub
   ::game-history
   :-> :game-history)

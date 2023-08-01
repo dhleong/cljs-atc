@@ -93,7 +93,9 @@
   :game/init-loaded-engine
   [unwrap]
   (fn [{:keys [db]} {:keys [engine voice-input?]}]
-    {:db (assoc db :engine engine)
+    {:db (assoc db
+                :engine engine
+                :engine-config {:voice-input? voice-input?})
      :dispatch-n [[:game/tick]
                   (when voice-input?
                     [:voice/start!])]}))
@@ -128,18 +130,30 @@
   (fn [{:keys [db]} _]
     (println "Clear game engine")
     {:db (-> db
-             (dissoc :engine)
+             (dissoc :engine :engine-config)
              (update :game-history empty))
      :dispatch [:voice/stop!]}))
 
 (reg-event-fx
   :game/set-time-scale
-  [trim-v (path :engine)]
-  (fn [{engine :db} [scale]]
-    {:db (cond-> (assoc engine :time-scale scale)
-           (= 0 scale) (assoc :last-tick nil))
-     :fx [(when-not (= 0 scale)
-            [:dispatch [:game/tick]])]}))
+  [trim-v]
+  (fn [{{:keys [engine engine-config] :as db} :db} [scale]]
+    (let [voice-enabled? (:voice-input? engine-config)]
+      {:db (assoc db :engine
+                  (cond-> (assoc engine :time-scale scale)
+                    (= 0 scale) (assoc :last-tick nil)))
+       :fx [(when-not (= 0 scale)
+              [:dispatch [:game/tick]])
+
+            (when (not= scale (:time-scale engine))
+              (cond
+                ; Pausing; disable voice
+                (= 0 scale)
+                [:dispatch [:voice/stop!]]
+
+                ; Resuming, and voice was requested
+                voice-enabled?
+                [:dispatch [:voice/start!]]))]})))
 
 (reg-event-fx
   :game/toggle-paused
