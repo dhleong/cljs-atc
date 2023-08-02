@@ -134,3 +134,17 @@
            :runways
            (mapcat (juxt :start-id :end-id))
            (into #{})))))
+
+(reg-sub
+  :ui/tick
+  :-> :ui/tick)
+
+(reg-sub
+  :datablock-mode/full
+  :<- [:ui/tick]
+  (fn [tick]
+    ; TODO More mode types
+    (case (mod tick 3)
+      0 :altitude-and-speed
+      1 :altitude-and-speed
+      2 :altitude-and-speed)))

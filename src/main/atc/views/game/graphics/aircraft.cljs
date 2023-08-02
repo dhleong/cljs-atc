@@ -2,6 +2,7 @@
   (:require
    ["@inlet/react-pixi" :as px]
    ["pixi.js" :refer [TextStyle]]
+   [archetype.util :refer [<sub]]
    [atc.data.units :as units]
    [atc.views.game.graphics.line :refer [line]]
    [clojure.math :refer [floor]]
@@ -44,7 +45,7 @@
           :to {:x 20 :y 0}
           :color 0xffffff}]
 
-   [:> px/Container {:x 55 :y 0}
+   [:> px/Container {:x 28 :y 0}
     block]])
 
 (defn- tracked-position-symbol []
@@ -54,16 +55,21 @@
                :y 0
                :style tracked-aircraft-style}])
 
-(defn- full-data-block [{:keys [callsign position speed]}]
-  (let [alt-hundreds-ft (format-altitude (:z position))
+(defn- build-datablock [mode {:keys [position speed]}]
+  (case mode
+    :altitude-and-speed (let [alt-hundreds-ft (format-altitude (:z position))
+                              speed-tens-kts (/ speed 10)]
+                          [alt-hundreds-ft speed-tens-kts])
+    ["TODO" (str mode)]))
 
+(defn- full-data-block [{:keys [callsign] :as aircraft}]
+  (let [mode (<sub [:datablock-mode/full])
         line1 [callsign]
-        line2 [alt-hundreds-ft speed]]
+        line2 (build-datablock mode aircraft)]
     [:> px/Text {:text (str (format-data-block-line line1)
                             "\n"
                             (format-data-block-line line2))
-                 :anchor 0.5
-                 :x 0
+                 :anchor {:x 0 :y 0.5}
                  :style tracked-label-style}]))
 
 (defn- tracked [craft]

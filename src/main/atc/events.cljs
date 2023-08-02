@@ -13,6 +13,7 @@
    [vimsical.re-frame.cofx.inject :as inject]))
 
 (def seconds-between-game-snapshots 4)
+(def ui-tick-delay-ms 2500)
 
 ; ======= Engine data injection ===========================
 
@@ -94,9 +95,11 @@
   [unwrap]
   (fn [{:keys [db]} {:keys [engine voice-input?]}]
     {:db (assoc db
+                :ui/tick 0
                 :engine engine
                 :engine-config {:voice-input? voice-input?})
      :dispatch-n [[:game/tick]
+                  [:ui/tick]
                   (when voice-input?
                     [:voice/start!])]}))
 
@@ -125,6 +128,16 @@
                 (println "TODO: Handle engine events:" new-events))]}))))
 
 (reg-event-fx
+  :ui/tick
+  (fn [{:keys [db]} _]
+    {:db (update db :ui/tick inc)
+     :fx [(when (some? (engine/next-tick-delay (:engine db)))
+            ; Only dispatch when not paused
+            [:dispatch-later
+             {:ms ui-tick-delay-ms
+              :dispatch [:ui/tick]}])]}))
+
+(reg-event-fx
   :game/reset
   [trim-v]
   (fn [{:keys [db]} _]
@@ -144,6 +157,9 @@
                     (= 0 scale) (assoc :last-tick nil)))
        :fx [(when-not (= 0 scale)
               [:dispatch [:game/tick]])
+
+            (when-not (= 0 scale)
+              [:dispatch [:ui/tick]])
 
             (when (not= scale (:time-scale engine))
               (cond
