@@ -13,7 +13,7 @@
    [vimsical.re-frame.cofx.inject :as inject]))
 
 (def seconds-between-game-snapshots 4)
-(def ui-tick-delay-ms 2500)
+(def ui-tick-delay-ms 2000)
 
 ; ======= Engine data injection ===========================
 

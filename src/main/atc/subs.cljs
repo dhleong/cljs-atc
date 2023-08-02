@@ -143,8 +143,10 @@
   :datablock-mode/full
   :<- [:ui/tick]
   (fn [tick]
-    ; TODO More mode types
+    ; NOTE: to simplify timing (showing altitude/speed longer than exit fix)
+    ; we include some duplicates here and keep a fixed tick duration.
+    ; Eventually there might be other datablock modes to rotate between?
     (case (mod tick 3)
-      0 :altitude-and-speed
-      1 :altitude-and-speed
-      2 :altitude-and-speed)))
+      0 :altitude/speed
+      1 :exit-fix/aircraft-type
+      2 :altitude/speed)))

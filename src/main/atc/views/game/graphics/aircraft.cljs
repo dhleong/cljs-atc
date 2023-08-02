@@ -55,11 +55,14 @@
                :y 0
                :style tracked-aircraft-style}])
 
-(defn- build-datablock [mode {:keys [position speed]}]
+(defn- build-datablock [mode {:keys [config position speed]}]
   (case mode
-    :altitude-and-speed (let [alt-hundreds-ft (format-altitude (:z position))
-                              speed-tens-kts (/ speed 10)]
-                          [alt-hundreds-ft speed-tens-kts])
+    :altitude/speed (let [alt-hundreds-ft (format-altitude (:z position))
+                          speed-tens-kts (/ speed 10)]
+                      [alt-hundreds-ft speed-tens-kts])
+    :exit-fix/aircraft-type (let [exit-fix-code "T" ; TODO Correct code
+                                  aircraft-type (get config :type)]
+                              [exit-fix-code aircraft-type])
     ["TODO" (str mode)]))
 
 (defn- full-data-block [{:keys [callsign] :as aircraft}]
