@@ -21,6 +21,8 @@
            com.rpl.specter/defnav clojure.core/defn
            com.rpl.specter/defrichnav clojure.core/defn
 
+           garden.def/defcssfn clojure.core/declare
+
            gloss.core/defcodec clojure.core/def
            instaparse.core/defparser clojure.core/def
            reagent.core/with-let clojure.core/let

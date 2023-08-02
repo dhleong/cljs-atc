@@ -2,6 +2,7 @@
   (:require
    [archetype.util :refer [>evt]]
    [atc.data.airports :refer [list-airports]]
+   [atc.styles :refer [full-screen]]
    [garden.units :refer [px]]
    [promesa.core :as p]
    [reagent.core :as r]
@@ -11,17 +12,10 @@
    [spade.core :refer [defattrs]]))
 
 (defattrs setup-container-attrs []
-  {:align-items :center
+  {:composes (full-screen)
    :background :*background*
    :color :*text*
-   :display :flex
-   :flex 1
-   :justify-content :center
-   :position :absolute
-   :left 0
-   :right 0
-   :top 0
-   :bottom 0}
+   :flex 1}
   [:.title {:margin 0}]
   [:.content {:align-items :center
               :background :*background-secondary*

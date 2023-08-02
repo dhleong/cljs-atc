@@ -47,23 +47,12 @@
    :flex-direction :row})
 
 (defn game-controls []
-  (let [time-scale (<sub [:game/time-scale])
-        game-running? (some? time-scale)]
+  (let [time-scale (<sub [:game/time-scale])]
     [:div (game-controls-attrs)
-     (if game-running?
-       [:button {:on-click #(>evt [:game/reset])}
-        "End Game"]
-       [:button {:on-click #(>evt [:game/init {:airport-id :kjfk}])}
-        "Init Game @ KJFK"])
+     (when (not= 0 time-scale)
+       [:button {:on-click #(>evt [:game/set-time-scale 0])}
+        "Pause"])
 
-     (when game-running?
-       [:<>
-       (if (= 0 time-scale)
-         [:button {:on-click #(>evt [:game/set-time-scale 1])}
-          "Resume"]
-         [:button {:on-click #(>evt [:game/set-time-scale 0])}
-          "Pause"])
-
-       ; NOTE: We require a running game to initialize voice, since the voice grammar
-       ; depends on the airport
-       [voice-controls]])]))
+     ; NOTE: We require a running game to initialize voice, since the voice grammar
+     ; depends on the airport
+     [voice-controls]]))
