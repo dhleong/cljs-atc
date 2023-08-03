@@ -3,6 +3,7 @@
    ["@inlet/react-pixi" :as px]
    [archetype.util :refer [<sub]]
    [atc.events :as events]
+   [atc.styles :refer [full-screen]]
    [atc.views.game-setup :as game-setup]
    [atc.views.game.controls :refer [game-controls]]
    [atc.views.game.graphics.aircraft :as aircraft]
@@ -74,12 +75,16 @@
         [all-aircraft entity-scale]
         [all-navaids entity-scale]]])))
 
+(defattrs game-container-attrs []
+  {:composes (full-screen {:position :fixed})
+   :height "100vh"})
+
 (defn view []
   (let [paused? (<sub [:game/paused?])]
     (if-not (<sub [:game/started?])
       [game-setup/view]
 
-      [:<>
+      [:div (game-container-attrs)
        [game]
 
        [:div (game-controls-container-attrs {:paused? paused?})
