@@ -13,7 +13,7 @@
    :display :flex
    :flex-direction :column
    :overflow-y :scroll
-   :overscroll-behavior :none
+   :overscroll-behavior :contain
    :padding (px 8)
    :height (px 120)
    :width (px 400)}

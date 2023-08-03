@@ -8,7 +8,6 @@
     (React/useEffect
       (fn []
         (when-let [bottom-el (j/get bottom-el-ref :current)]
-          (println "SCROLL")
           (.scrollIntoView bottom-el #js {:behavior "smooth"}))))
 
     (-> [:div opts]
