@@ -16,11 +16,12 @@
 ; Basically a 3x a ~100 km CTR controller's radius, I guess
 (def default-world-dimension (* 3 100 1000))
 
-(defattrs game-controls-container-attrs []
+(defattrs game-controls-container-attrs [{:keys [paused?]}]
   {:position :absolute
    :bottom 0
    :left 0
-   :right 0})
+   :right 0
+   :visibility (when paused? :hidden)})
 
 (defn- positioner [scale entity & children]
   (let [position (:position entity)
@@ -74,14 +75,15 @@
         [all-navaids entity-scale]]])))
 
 (defn view []
-  (if-not (<sub [:game/started?])
-    [game-setup/view]
+  (let [paused? (<sub [:game/paused?])]
+    (if-not (<sub [:game/started?])
+      [game-setup/view]
 
-    [:<>
-     [game]
+      [:<>
+       [game]
 
-     (when (<sub [:game/paused?])
-       [pause-screen/view])
+       [:div (game-controls-container-attrs {:paused? paused?})
+        [game-controls]]
 
-     [:div (game-controls-container-attrs)
-      [game-controls]]]))
+       (when paused?
+         [pause-screen/view])])))
