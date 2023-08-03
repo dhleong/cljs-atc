@@ -46,27 +46,44 @@
        (keyword? (first v))
        (= 2 (count v))))
 
-(def ^:private choose-speakable
-  (comp
-    (keep
-      (fn [item]
-        (cond
-          (string? item) item
-          (nil? item) nil
+(defn- speakable-map->str [item]
+  (or
+    (:radio-name item)
+    (:name item)
+    (:pronunciation item)
+    (:id item)
 
-          (map? item)
-          (or
-            (:radio-name item)
-            (:name item)
-            (:pronunciation item)
-            (:id item)
+    (println "WARNING: " item "cannot be spoken")))
 
-            (println "WARNING: " item "cannot be spoken"))
+(defn- readable-map->str [item]
+  (or
+    (:id item)
+    (:name item)
+    (:radio-name item)
+    (:pronunciation item)
 
-          :else
-          item)))
+    (println "WARNING: " item "cannot be read")))
 
-    (interpose " ")))
+(def ^:private create-speakable-chooser
+  (memoize
+    (fn [mode]
+      (let [map->str (case mode
+                       :speakable speakable-map->str
+                       :readable readable-map->str)]
+        (comp
+          (keep
+            (fn [item]
+              (cond
+                (string? item) item
+                (nil? item) nil
+
+                (map? item)
+                (map->str item)
+
+                :else
+                item)))
+
+          (interpose " "))))))
 
 (def ^:private walk-speakables
   ; Might be nice to properly lint this macro:
@@ -89,4 +106,15 @@
          (s/transform [walk-speakables] process-speakable)
 
          flatten
-         (transduce choose-speakable str ""))))
+         (transduce (create-speakable-chooser :speakable) str ""))))
+
+(defn ->readable [utterance]
+  (if (string? utterance)
+    utterance
+    (->> utterance
+
+         ; pre-process speakable values:
+         (s/transform [walk-speakables] (fn [[_kind v]] v))
+
+         flatten
+         (transduce (create-speakable-chooser :readable) str ""))))

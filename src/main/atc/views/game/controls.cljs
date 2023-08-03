@@ -1,8 +1,41 @@
 (ns atc.views.game.controls
   (:require
-   [archetype.util :refer [<sub >evt]]
    ["react" :as React]
+   [archetype.util :refer [<sub >evt]]
+   [atc.components.bottom-scroller :refer [bottom-scroller]]
+   [atc.styles.css :refer [with-opacity]]
+   [garden.units :refer [px]]
    [spade.core :refer [defattrs]]))
+
+(defattrs radio-history-attrs []
+  {:background (with-opacity :*background-secondary* 0.5)
+   :color :*text*
+   :display :flex
+   :flex-direction :column
+   :overflow-y :scroll
+   :overscroll-behavior :none
+   :padding (px 8)
+   :height (px 120)
+   :width (px 400)}
+  [:.list {:list-style :none
+           :margin 0
+           ; bottom-align items in the view:
+           :margin-top :auto
+           :padding 0}]
+  [:.history-entry
+   [:&.self {:font-style :italic
+             :opacity 0.8
+             :margin-top (px 2)}]])
+
+(defn- radio-history []
+  [bottom-scroller (radio-history-attrs)
+   [:ul.list {:aria-label "Radio History"}
+    (for [history (<sub [:radio-history])]
+      ^{:key (:timestamp history)}
+      [:li.history-entry {:class (when (:self? history)
+                                   :self)}
+       "[" (:speaker history) "] "
+       (:text history)])]])
 
 (defattrs voice-controls-active-attrs [recording?]
   [:.mic {:opacity (if recording? 0.8 1.0)}])
@@ -44,15 +77,18 @@
 
 (defattrs game-controls-attrs []
   {:display :flex
-   :flex-direction :row})
+   :flex-direction :column}
+  [:.buttons {:display :flex
+              :flex-direction :row}])
 
 (defn game-controls []
   (let [time-scale (<sub [:game/time-scale])]
     [:div (game-controls-attrs)
-     (when (not= 0 time-scale)
-       [:button {:on-click #(>evt [:game/set-time-scale 0])}
-        "Pause"])
+     [radio-history]
 
-     ; NOTE: We require a running game to initialize voice, since the voice grammar
-     ; depends on the airport
-     [voice-controls]]))
+     [:div.buttons
+      (when (not= 0 time-scale)
+        [:button {:on-click #(>evt [:game/set-time-scale 0])}
+         "Pause"])
+
+      [voice-controls]]]))

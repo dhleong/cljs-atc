@@ -150,3 +150,7 @@
       0 :altitude/speed
       1 :exit-fix/aircraft-type
       2 :altitude/speed)))
+
+(reg-sub
+  :radio-history
+  :-> :radio-history)

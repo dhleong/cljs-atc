@@ -10,6 +10,9 @@
 
    :game-history (rolling-history max-game-snapshots)
 
+   ; Vec of {:speaker str, :text str, :self? bool}
+   :radio-history []
+
    :speech {:available? nil
             :speaking? false
             :queue #queue []}})

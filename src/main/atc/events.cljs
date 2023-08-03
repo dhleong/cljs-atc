@@ -1,10 +1,11 @@
 (ns atc.events
   (:require
    [atc.db :as db]
+   [atc.cofx :as cofx]
    [atc.engine.core :as engine]
    [atc.engine.model :as engine-model]
    [atc.game.keymap :as keymap]
-   [atc.radio :refer [->speakable]]
+   [atc.radio :refer [->readable ->speakable]]
    [clojure.string :as str]
    [re-frame.core :refer [->interceptor dispatch get-coeffect get-effect
                           inject-cofx path reg-event-db reg-event-fx trim-v unwrap]]
@@ -101,6 +102,8 @@
      :dispatch-n [[:game/tick]
                   [:ui/tick]
                   (when voice-input?
+                    ; NOTE: We don't start voice until the engine is loaded,
+                    ; since the voice grammar depends on the airport
                     [:voice/start!])]}))
 
 (reg-event-fx
@@ -144,7 +147,8 @@
     (println "Clear game engine")
     {:db (-> db
              (dissoc :engine :engine-config)
-             (update :game-history empty))
+             (update :game-history empty)
+             (update :radio-history empty))
      :dispatch [:voice/stop!]}))
 
 (reg-event-fx
@@ -191,20 +195,27 @@
     (let [speakable (->speakable message)]
       (println "enqueue: " obj " -> " speakable)
       {:db (update speech :queue conj {:message speakable
+                                       ::raw obj
                                        :voice (:voice from)})
        :dispatch [::speech-check-queue]})))
 
 (reg-event-fx
   ::speech-check-queue
-  [trim-v]
-  (fn [{{:keys [speech] :as db} :db}]
+  [trim-v (inject-cofx ::cofx/now)]
+  (fn [{{:keys [speech] :as db} :db :keys [now]}]
     (when (and (not (:speaking? speech))
                (or (:paused? (:voice db))
                    (nil? (:voice db))))
       (when-let [enqueued (first (:queue speech))]
         {:db (-> db
                  (assoc-in [:speech :speaking?] true)
-                 (update-in [:speech :queue] pop))
+                 (update-in [:speech :queue] pop)
+                 (update :radio-history conj
+                         (let [obj (::raw enqueued)]
+                           {:speaker (:name (:from obj))
+                            :freq 127.1 ; TODO get this from :engine
+                            :timestamp now
+                            :text (->readable (:message obj))})))
          :speech/say (assoc enqueued :on-complete #(dispatch [::speech-utterance-complete]))}))))
 
 (def delay-between-enqueued-radio-ms 1250)
@@ -320,10 +331,22 @@
 
             (seq (get-in db [:voice :pending-results])))
       (let [full-input (str/join " " (get-in db [:voice :pending-results]))]
-        (println "voice/process:" full-input (:voice db))
-        {:db (update-in db [:voice :pending-results] empty)
-         :voice/process {:machine (:parsing-machine (:engine db))
-                         :input full-input}}))))
+        {:dispatch [::voice-handle-text full-input]}))))
+
+(reg-event-fx
+  ::voice-handle-text
+  [trim-v (inject-cofx ::cofx/now)]
+  (fn [{:keys [db now]} [full-input]]
+    (println "voice/process:" full-input (:voice db))
+    {:db (-> db
+             (update-in [:voice :pending-results] empty)
+             (update :radio-history conj {:speaker "CTR" ; TODO get this from :engine
+                                          :freq 127.1 ; TODO this, too
+                                          :timestamp now
+                                          :text full-input
+                                          :self? true}))
+     :voice/process {:machine (:parsing-machine (:engine db))
+                     :input full-input}}))
 
 (reg-event-fx
   :voice/set-state
@@ -339,4 +362,6 @@
               [:dispatch [:voice/set-paused true]])]})))
 
 (comment
-  (dispatch [:game/reset]))
+  (dispatch [:game/reset])
+
+  (dispatch [::voice-handle-text "delta twenty two turn right heading one eight zero"]))
