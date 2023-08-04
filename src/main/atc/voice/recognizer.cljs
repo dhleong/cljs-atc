@@ -53,20 +53,23 @@
        client
        assoc
        ::ready-promise
-       (p/let [start (js/Date.now)
-               model @shared-model
-               KaldiRecognizer (j/get model :KaldiRecognizer)
-               grammar-content (when grammar
-                                 (println "Generating grammar..." (count grammar))
-                                 (time (grammar/generate grammar)))
+       (-> (p/let [start (js/Date.now)
+                   model @shared-model
+                   KaldiRecognizer (j/get model :KaldiRecognizer)
+                   grammar-content (when grammar
+                                     (println "Generating grammar..." (count grammar))
+                                     (time (grammar/generate grammar)))
 
-               _ (println "Prepared grammar: " (count grammar-content))
+                   _ (println "Prepared grammar: " (count grammar-content))
 
-               recognizer (if (some? grammar-content)
-                            (new KaldiRecognizer sample-rate grammar-content)
-                            (new KaldiRecognizer sample-rate))]
-         (println "Prepared recognizer in " (- (js/Date.now) start) "ms")
-         (swap! client assoc ::recognizer recognizer)))
+                   recognizer (if (some? grammar-content)
+                                (new KaldiRecognizer sample-rate grammar-content)
+                                (new KaldiRecognizer sample-rate))]
+             (println "Prepared recognizer in " (- (js/Date.now) start) "ms")
+             (swap! client assoc ::recognizer recognizer))
+           (p/catch (fn [e]
+                      (js/console.error "[recognizer]" e)
+                      (p/rejected e)))))
      client)))
 
 (comment

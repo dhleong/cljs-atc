@@ -11,7 +11,7 @@ so hopefully I don't totally forget if I don't work on this for a while.
    the voice commands we accept, which gets turned into a grammar parser via the
    `instaparse` library.
 2. When we initialize the voice system via `[:voice/start!]`, we use that parser
-   to generate a "grammar" that our speech recognizer (Kaldi) can understand—this is
+   to generate a "grammar" that our speech recognizer (Kaldi/Vosk) can understand—this is
    basically a bunch of example utterances used to tune the recognizer and restrict
    it from producing output that is not part of our expected grammar.
 3. While the transmit key (spacebar) is held, we stream audio into the speech recognizer;
