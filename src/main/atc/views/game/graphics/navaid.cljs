@@ -7,9 +7,14 @@
                                   :fontSize 11}))
 
 (defn entity [{:keys [id]}]
-  [:> px/Text {:anchor 0.5
-               :alpha 0.4
-               :x 0
-               :y 0
-               :style label-style
-               :text id}])
+  [:> px/Container {:alpha 0.4}
+   [:> px/Text {:anchor 0.5
+                :x 0
+                :y 0
+                :style label-style
+                :text "▲"}]
+   [:> px/Text {:anchor 0.5
+                :x 0
+                :y 10
+                :style label-style
+                :text id}]])
