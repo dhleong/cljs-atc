@@ -135,6 +135,25 @@
            (mapcat (juxt :start-id :end-id))
            (into #{})))))
 
+(defn- rwy-id->angle [airport id]
+  (-> (js/parseInt id 10)
+      (* 10)
+      (- (:magnetic-north airport))))
+
+(reg-sub
+  :game/runways
+  :<- [:game/airport]
+  (fn [airport]
+    (->> airport
+         :runways
+         (map (fn [rwy]
+                (-> rwy
+                    (assoc :position {:x 0 :y 0})
+                    (assoc :start-angle (rwy-id->angle airport (:start-id rwy)))
+                    (assoc :end-angle (rwy-id->angle airport (:end-id rwy)))
+                    (update :start-threshold local-xy airport)
+                    (update :end-threshold local-xy airport)))))))
+
 (reg-sub
   :ui/tick
   :-> :ui/tick)

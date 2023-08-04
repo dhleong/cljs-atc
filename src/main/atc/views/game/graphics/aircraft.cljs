@@ -4,18 +4,19 @@
    ["pixi.js" :refer [TextStyle]]
    [archetype.util :refer [<sub]]
    [atc.data.units :as units]
+   [atc.theme :as theme]
    [atc.views.game.graphics.line :refer [line]]
    [clojure.math :refer [floor]]
    [clojure.string :as str]))
 
-(def tracked-label-style (TextStyle. #js {:fill "#ffffff"
+(def tracked-label-style (TextStyle. #js {:fill theme/aircraft-tracked-label
                                           :fontFamily "monospace"
                                           :fontSize 12}))
 
-(def tracked-aircraft-style (TextStyle. #js {:fill "#1f478f"
+(def tracked-aircraft-style (TextStyle. #js {:fill theme/aircraft-tracked-obj
                                              :fontSize 8}))
 
-(def untracked-aircraft-style (TextStyle. #js {:fill "#00ff00"
+(def untracked-aircraft-style (TextStyle. #js {:fill theme/aircraft-untracked-obj
                                                :fontSize 8}))
 
 ; ======= Data formatting =================================

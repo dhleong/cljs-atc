@@ -1,13 +1,14 @@
 (ns atc.views.game.graphics.navaid
   (:require
-    ["@inlet/react-pixi" :as px]
-    ["pixi.js" :refer [TextStyle]]))
+   ["@inlet/react-pixi" :as px]
+   ["pixi.js" :refer [TextStyle]]
+   [atc.theme :as theme]))
 
-(def label-style (TextStyle. #js {:fill "#f4f7ff"
+(def label-style (TextStyle. #js {:fill theme/text
                                   :fontSize 11}))
 
 (defn entity [{:keys [id]}]
-  [:> px/Container {:alpha 0.4}
+  [:> px/Container {:alpha theme/map-label-alpha}
    [:> px/Text {:anchor 0.5
                 :x 0
                 :y 0

@@ -1,12 +1,13 @@
 (ns atc.styles
   (:require
+   [atc.theme :as theme]
    [garden.units :refer [px]]
    [spade.core :refer [defclass defglobal]]))
 
 (defglobal window-styles
-  [":root" {:*background* "#000"
-            :*background-secondary* "#191d24"
-            :*text* "#f4f7ff"}]
+  [":root" {:*background* theme/background
+            :*background-secondary* theme/background-secondary
+            :*text* theme/text}]
 
   [:body {:margin 0
           :padding 0}]
@@ -14,7 +15,7 @@
   [:button {:border-radius (px 4)
             :font-size :100%
             :padding [[(px 4) (px 8)]]}
-   [:&.destructive {:background-color "#aa3333"}]])
+   [:&.destructive {:background-color theme/action-destructive}]])
 
 (defclass full-screen [& [{:keys [position center-content? justify-content]
                            :or {position :absolute

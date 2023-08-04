@@ -8,6 +8,7 @@
    [atc.views.game.controls :refer [game-controls]]
    [atc.views.game.graphics.aircraft :as aircraft]
    [atc.views.game.graphics.navaid :as navaid]
+   [atc.views.game.graphics.runway :as runway]
    [atc.views.game.stage :refer [stage]]
    [atc.views.game.viewport :refer [viewport]]
    [atc.views.pause-screen :as pause-screen]
@@ -26,8 +27,8 @@
 
 (defn- positioner [scale entity & children]
   (let [position (:position entity)
-        x (:x entity (:x position))
-        y (:y entity (:y position))]
+        x (:x entity (:x position 0))
+        y (:y entity (:y position 0))]
     (into [:> px/Container {:x x :y y :scale scale}] children)))
 
 (defn- entities-renderer [{:keys [scale key-fn render] subscription :<sub
@@ -37,6 +38,12 @@
      ^{:key (key-fn entity)}
      [positioner scale entity
       [render entity]])])
+
+(defn all-runways []
+  [entities-renderer {:scale 1
+                      :<sub [:game/runways]
+                      :key-fn :start-id
+                      :render runway/entity}])
 
 (defn- all-aircraft [scale]
   [:<>
@@ -72,6 +79,7 @@
                   :world-width default-world-dimension
                   :world-height default-world-dimension}
 
+        [all-runways]
         [all-aircraft entity-scale]
         [all-navaids entity-scale]]])))
 

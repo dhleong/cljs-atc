@@ -9,5 +9,5 @@
                            (doto g
                              (.clear)
                              (.lineStyle width color alpha)
-                             (.moveTo (:x from) (:y from))
+                             (.moveTo (:x from 0) (:y from 0))
                              (.lineTo (:x to) (:y to))))}])
