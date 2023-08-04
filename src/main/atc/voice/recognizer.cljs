@@ -11,7 +11,11 @@
 (defonce ^:private shared-model
   (delay
     (p/let [start (js/Date.now)
-            model (Vosk/createModel (str config/server-root "voice-model.tar.gz"))]
+            ; Disable non-warn/error logging:
+            log-level -1
+            model (Vosk/createModel
+                    (str config/server-root "voice-model.tar.gz")
+                    log-level)]
       (println "Loaded model in " (- (js/Date.now) start) "ms")
       model)))
 
@@ -53,10 +57,10 @@
                model @shared-model
                KaldiRecognizer (j/get model :KaldiRecognizer)
                grammar-content (when grammar
-                                 (println "Generating grammar..." grammar)
+                                 (println "Generating grammar..." (count grammar))
                                  (time (grammar/generate grammar)))
 
-               _ (println "Prepared grammar: " grammar-content)
+               _ (println "Prepared grammar: " (count grammar-content))
 
                recognizer (if (some? grammar-content)
                             (new KaldiRecognizer sample-rate grammar-content)
