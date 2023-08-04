@@ -38,7 +38,12 @@
        (:text history)])]])
 
 (defattrs voice-controls-active-attrs [recording?]
-  [:.mic {:opacity (if recording? 0.8 1.0)}])
+  {:display :flex
+   :align-items :center}
+  [:.mic {:opacity (if recording? 0.8 1.0)}]
+  [:.pending-output {:color :*text*
+                     :font-family :monospace
+                     :padding (px 8)}])
 
 (defn- voice-controls-active [{:keys [show-disable?]}]
   (React/useEffect
@@ -56,7 +61,8 @@
       [:button.mic {:on-mouse-down #(>evt [:voice/set-paused false])
                     :on-mouse-up #(>evt [:voice/set-paused true])}
        "MIC (hold this or space)"]
-      (<sub [:voice/partial])])])
+      [:div.pending-output {:aria-hidden true}
+       (<sub [:voice/partial])]])])
 
 (defn- voice-controls []
   (let [voice-requested? (<sub [:voice/requested?])
