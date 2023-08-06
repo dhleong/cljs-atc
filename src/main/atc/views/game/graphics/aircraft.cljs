@@ -61,7 +61,7 @@
   (case mode
     :altitude/speed
     (let [alt-hundreds-ft (format-altitude (:z position))
-          speed-tens-kts (/ speed 10)]
+          speed-tens-kts (js/Math.floor (/ speed 10))]
       [alt-hundreds-ft speed-tens-kts])
 
     :exit-fix/aircraft-type
