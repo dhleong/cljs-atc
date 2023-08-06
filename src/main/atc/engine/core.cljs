@@ -4,8 +4,9 @@
    [atc.data.aircraft-configs :as configs]
    [atc.engine.aircraft :as aircraft]
    [atc.engine.model :as engine-model :refer [consume-pending-communication
-                                              pending-communication
-                                              prepare-pending-communication Simulated tick]]
+                                              IGameEngine pending-communication
+                                              prepare-pending-communication Simulated spawn-aircraft tick]]
+   [atc.radio :as radio]
    [atc.voice.parsing.airport :as airport-parsing]
    [atc.voice.process :refer [build-machine]]))
 
@@ -68,7 +69,24 @@
         ; There is no ~~spoon~~such aircraft:
         (do
           (println "WARNING: No such aircraft: " callsign)
-          this)))))
+          this))))
+
+  IGameEngine
+  (spawn-aircraft [this {:keys [config] :as opts}]
+    (when (= :ga (:type opts))
+      (throw (ex-info "GA aircraft not yet supported" {:opts opts})))
+
+    ; TODO: Support arrivals
+    ; TODO: Set initial position/heading of departures from :runways
+    (let [{:keys [callsign] :as radio} (radio/format-airline-radio
+                                         (:airline opts)
+                                         (:flight-number opts))
+          data (merge
+                 radio
+                 (select-keys opts [:destination :config])
+                 (-> this :airport :departure-routes
+                     (get (:destination opts))))]
+      (update this :aircraft assoc callsign (aircraft/create config data)))))
 
 (defn engine-grammar [^Engine engine]
   (get-in engine [:parsing-machine :fsm :grammar]))
@@ -79,23 +97,19 @@
 
 (defn generate [airport]
   ; TODO: Probably, generate the parsing-machine elsewhere for better loading states
-  ; TODO: Arrivals
-  ; TODO: Set initial position/heading of departures from :runways
-  (let [aircraft [{:callsign "DAL22"
-                   :radio-name "delta twenty two"
+  (let [aircraft [{:type :airline
+                   :airline "DAL"
+                   :flight-number 22
                    :destination (-> airport :departure-routes ffirst)
-                   :route (-> airport :departure-routes first second :route)
-                   :departure-fix (-> airport :departure-routes first second :fix)
+                   :runway (-> airport :runways first :start-id)
                    :config configs/common-jet}]]
-    (-> {:aircraft (reduce
-                     (fn [m {:keys [callsign config] :as data}]
-                       (assoc m callsign
-                              (aircraft/create config data)))
-                     {}
-                     aircraft)
+    (reduce
+      spawn-aircraft
+      (map->Engine
+        {:aircraft {}
          :airport airport
          :parsing-machine (build-machine (airport-parsing/generate-parsing-context airport))
          :elapsed-s 0
          :events nil
-         :time-scale 1}
-        (map->Engine))))
+         :time-scale 1})
+      aircraft)))

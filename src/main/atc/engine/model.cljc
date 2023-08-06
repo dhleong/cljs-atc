@@ -16,6 +16,26 @@
   (prepare-pending-communication [this])
   (consume-pending-communication [this]))
 
+(defprotocol IGameEngine
+  (spawn-aircraft
+    [this opts]
+    ; TODO support GA craft
+    "opts is a map with:
+     :type :airline/:ga
+     :origin str        ; icao of origin airport
+     :destination str   ; icao of destination airport
+     :config map        ; see aircraft.configs
+     :runway str        ; an active runway ID
+
+     ; for airlines:
+     :airline airline-id
+     :flight-number int
+
+     ; for ga:
+     :plane-type str
+     :tail-number str
+     "))
+
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defprotocol Vector

@@ -2,6 +2,7 @@
   (:require
    [atc.data.core :refer [local-xy]]
    [atc.structures.rolling-history :refer [most-recent-n]]
+   [atc.util.numbers :refer [->int]]
    [clojure.string :as str]
    [re-frame.core :refer [reg-sub]]))
 
@@ -136,7 +137,7 @@
            (into #{})))))
 
 (defn- rwy-id->angle [airport id]
-  (-> (js/parseInt id 10)
+  (-> (->int id)
       (* 10)
       (- (:magnetic-north airport))))
 

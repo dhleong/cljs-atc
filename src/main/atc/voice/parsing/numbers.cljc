@@ -2,15 +2,17 @@
   (:require
    [atc.voice.parsing.core :refer [declare-alternates]]))
 
+; NOTE: The "correct" radio phonology should come later in the map
+; so it's used instead of the "plain" word when we do map-invert
 (def digit-values
   {"zero" 0
    "one" 1
    "two" 2
-   "tree" 3
    "three" 3
+   "tree" 3
    "four" 4
-   "fife" 5
    "five" 5
+   "fife" 5
    "six" 6
    "seven" 7
    "eight" 8
@@ -36,7 +38,7 @@
    "sixty" 60
    "seventy" 70
    "eighty" 80
-   "ninety" 90 })
+   "ninety" 90})
 
 (def rules
   ["frequency = number-sequence? decimal number-sequence"
@@ -53,8 +55,7 @@
    "double-digit = (tens-value digit) | teens-value"
    (declare-alternates "digit" (keys digit-values))
    (declare-alternates "tens-value" (keys tens-values))
-   (declare-alternates "teens-value" (keys teens-values))
-   ])
+   (declare-alternates "teens-value" (keys teens-values))])
 
 (defn digits->number [digits]
   (loop [numbers (reverse digits)
