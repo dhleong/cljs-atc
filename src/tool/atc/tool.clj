@@ -6,6 +6,7 @@
    [babashka.cli :as cli]
    [clojure.java.io :as io]
    [clojure.pprint :refer [pprint]]
+   [clojure.set :refer [map-invert]]
    [clojure.string :as str]))
 
 (defn- compose-runways [data]
@@ -50,6 +51,64 @@
    (format-navaids
      (map #(assoc % :type type) items))))
 
+(defn- format-departure [departure]
+  (let [id (:computer-code departure)
+        part-fn (if (:transitions departure)
+                  first
+                  last)
+        id (part-fn (str/split id #"\."))
+        path (->> departure
+                  :paths
+                  first
+                  (remove #(= :aa (:type %)))
+                  (mapv (comp #(hash-map :fix %) :fix-id)))]
+    [id {:path path}]))
+
+(defn- format-departure-route [route]
+  [(:destination route) {:fix (:departure-fix route)
+                         :route (:route-string route)}])
+
+(defn- resolve-departure-fix-collisions [collisions codings]
+  (loop [collisions collisions
+         codings codings]
+    (letfn [(choose-code [word]
+              (loop [letters (map str word)]
+                (if-let [ch (first letters)]
+                  (if (contains? codings ch)
+                    (recur (next letters))
+                    ch)
+
+                  ; No more options. Pick the first available
+                  (->> (range (int \Z) (int \A) -1)
+                       (map (comp str char))
+                       (remove (partial contains? codings))
+                       first))))]
+      (if-let [word (first collisions)]
+        (recur
+          (next collisions)
+          (assoc codings (choose-code word) word))
+        codings))))
+
+(defn- generate-departure-fix-codings [fix-names]
+  (loop [fix-names (->> (into #{} fix-names)
+                        (sort-by (juxt #(- 10 (count %))
+                                       identity)))
+         collisions []
+         codings {}]
+    (if-let [next-name (first fix-names)]
+      (let [code (str (first next-name))
+            clean? (not (contains? codings code))]
+        (if clean?
+          (recur (next fix-names)
+                 collisions
+                 (assoc codings code next-name))
+          (recur (next fix-names)
+                 (conj collisions next-name)
+                 codings)))
+
+      (-> (resolve-departure-fix-collisions collisions codings)
+          (map-invert)))))
+
 (defn build-airport [zip-file icao]
   (let [{[apt] :apt :as data} (time (nasr/find-airport-data zip-file icao))
         runways (compose-runways data)
@@ -60,7 +119,7 @@
 
         ; TODO read vor/dmes from here
         departure-exit-fix-names (->> departures
-                                    (map :departure-fix))
+                                      (map :departure-fix))
 
         procedure-navaids (->> procedures
                                (mapcat (juxt :paths
@@ -99,7 +158,23 @@
                    ; TODO Also, include VORs, etc.
                    ; TODO Also also, include fixes on airways, stars/sids, etc.
                    (sort-by :id)
-                   vec)}))
+                   vec)
+
+     :departures (->> procedures
+                      (into
+                        {}
+                        (comp
+                          (filter #(= :departure (:type %)))
+                          (map format-departure))))
+
+     :departure-routes (->> departures
+                            (into
+                              {}
+                              (map format-departure-route)))
+
+     :departure-fix-codes (->> departures
+                               (map :departure-fix)
+                               (generate-departure-fix-codings))}))
 
 (defn- build-airport-cli [{{:keys [icao nasr-path write]} :opts}]
   {:pre [icao nasr-path]}
@@ -150,5 +225,10 @@
 (defn -main [& args]
   (cli/dispatch cli-table args))
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (comment
-  (-main "build-airport" "kjfk"))
+  (def zip-file (let [destination-dir (io/file ".")
+                      airac (airac-data)]
+                  (nasr/locate-zip airac destination-dir)))
+
+  (-main "build-airport" "kjfk" #_"--write"))

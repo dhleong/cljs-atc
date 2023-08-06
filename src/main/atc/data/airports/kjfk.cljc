@@ -1,10 +1,304 @@
 (ns atc.data.airports.kjfk)
 
 (def airport
- {:id "KJFK",
+ {:magnetic-north -13.0,
+  :departures
+  {"DEEZZ5" {:path [{:fix "DEEZZ"} {:fix "HEERO"}]},
+   "JFK" {:path [{:fix "JFK"}]},
+   "SKORR5" {:path [{:fix "SKORR"}]}},
   :name "JOHN F KENNEDY INTL",
-  :magnetic-north -13.0,
-  :position [:N40*38'23.7400 :W073*46'43.2930 13.0],
+  :departure-fix-codes
+  {"ARD" "A",
+   "COATE" "O",
+   "MERIT" "M",
+   "WAVEY" "W",
+   "CANDR" "C",
+   "GREKI" "K",
+   "BETTE" "E",
+   "GAYEL" "G",
+   "HAAYS" "H",
+   "RBV" "R",
+   "WHITE" "I",
+   "DIXIE" "D",
+   "SHIPP" "S",
+   "BDR" "Z",
+   "BAYYS" "B",
+   "NEION" "N"},
+  :departure-routes
+  {"KDAY" {:fix "RBV", :route "KJFK RBV Q430 AIR APE DANEI3 KDAY"},
+   "KDEN"
+   {:fix "RBV",
+    :route "KJFK RBV Q430 AIR J110 STL HYS J24 OATHE CLASH4 KDEN"},
+   "KSLC"
+   {:fix "GREKI",
+    :route
+    "KJFK GREKI JUDDS CAM NOVON BURWA OVORA VBI HML OGSIQ SWTHN JAC NORDK6 KSLC"},
+   "KAUS"
+   {:fix "WAVEY",
+    :route
+    "KJFK WAVEY EMJAY Q167 ZJAAY Q97 SAWED GUILD Q409 MRPIT CEELY Q172 YUTEE IRQ NOKIE MGMRY LCH LUKKN WLEEE7 KAUS"},
+   "KBTV" {:fix "BDR", :route "KJFK BDR V487 BTV KBTV"},
+   "KTYS"
+   {:fix "RBV",
+    :route "KJFK RBV Q430 BYRDD J48 CSN FANPO Q40 ALEAN VXV KTYS"},
+   "KSAT"
+   {:fix "RBV",
+    :route
+    "KJFK RBV Q430 BYRDD J48 CSN FANPO Q40 AEX IAH BRAUN3 KSAT"},
+   "KATL"
+   {:fix "CANDR",
+    :route "KJFK DEEZZ5 CANDR J60 PSB HVQ HLRRY ONDRE1 KATL"},
+   "KTOL" {:fix "CANDR", :route "KJFK DEEZZ5 CANDR J60 DJB KTOL"},
+   "KSRQ"
+   {:fix "RBV",
+    :route
+    "KJFK RBV Q430 COPES Q75 SLOJO Q103 PUPYY KYYUU LUBBR3 KSRQ"},
+   "KSEA"
+   {:fix "GREKI",
+    :route
+    "KJFK GREKI JUDDS CAM NOVON BURWA OVARA VBI HML LWT MLP GLASR2 KSEA"},
+   "KMEM"
+   {:fix "RBV",
+    :route "KJFK RBV Q430 SAAME J6 HVQ Q68 RYANS BWG BLUZZ3 KMEM"},
+   "KELM" {:fix "GAYEL", :route "KJFK GAYEL V374 CFB V270 ULW KELM"},
+   "KMDW"
+   {:fix "CANDR",
+    :route "KJFK DEEZZ5 CANDR J60 DJB BAGEL PANGG4 KMDW"},
+   "KSTL"
+   {:fix "RBV", :route "KJFK RBV Q430 AIR J110 VHP AARCH2 KSTL"},
+   "KDAB"
+   {:fix "WAVEY",
+    :route
+    "KJFK WAVEY EMJAY Q167 ZJAAY Q97 SAWED MOXXY Q85 LPERD TTHOR3 KDAB"},
+   "KBWI"
+   {:fix "WAVEY", :route "KJFK WAVEY PLUME V308 LAFLN MIIDY2 KBWI"},
+   "KCHA"
+   {:fix "RBV",
+    :route "KJFK RBV Q430 BYRDD J48 CSN FANPO Q40 JAARE GQO KCHA"},
+   "KCHS"
+   {:fix "WHITE",
+    :route "KJFK WHITE Q409 CRPLR DFENC Q109 LAANA AMYLU AMYLU3 KCHS"},
+   "KMYR"
+   {:fix "WAVEY",
+    :route "KJFK WAVEY EMJAY Q167 ZJAAY Q97 PAACK WYLMS KMYR"},
+   "KCHO"
+   {:fix "WAVEY",
+    :route "KJFK WAVEY EMJAY Q167 ZJAAY ARICE JAMIE RIC KCHO"},
+   "KHOU"
+   {:fix "WAVEY",
+    :route
+    "KJFK WAVEY EMJAY Q167 ZJAAY Q97 SAWED GUILD Q409 MRPIT CEELY Q172 YUTEE IRQ THRSR SARKK AEX WAPPL6 KHOU"},
+   "KOAK"
+   {:fix "RBV",
+    :route
+    "KJFK RBV Q430 AIR J110 GCK J28 MLF ILC TATOO MONOH OAKES2 KOAK"},
+   "KBUF" {:fix "COATE", :route "KJFK COATE LAAYK ULW BENEE KBUF"},
+   "KONT"
+   {:fix "WAVEY",
+    :route
+    "KJFK WAVEY EMJAY Q167 ZJAAY Q97 SAWED GUILD Q409 MRPIT CEELY Q172 YUTEE IRQ THRSR VLKNN Q30 IZAAC SUTTN J52 TXK SPS J72 ABQ J6 DRK DAFNY SCBBY2 KONT"},
+   "KMHT"
+   {:fix "MERIT", :route "KJFK MERIT HFD T315 GDM T314 MANCH KMHT"},
+   "KLGB"
+   {:fix "RBV",
+    :route
+    "KJFK RBV Q430 AIR J110 STL BUM ICT LBL CIM J134 DRK HIMDU DSNEE5 KLGB"},
+   "CYMX"
+   {:fix "GREKI",
+    :route "KJFK GREKI JUDDS CAM PBERG LATTS EBDOT DUNUP CYMX"},
+   "KMSY"
+   {:fix "RBV",
+    :route
+    "KJFK RBV Q430 BYRDD J48 CSN FANPO Q40 NIOLA MEI RYTHM4 KMSY"},
+   "KBHM"
+   {:fix "RBV",
+    :route "KJFK RBV Q430 BYRDD J48 CSN FANPO Q40 NIOLA DIODE KBHM"},
+   "KFLL"
+   {:fix "WAVEY",
+    :route
+    "KJFK WAVEY EMJAY Q167 ZJAAY KALDA Q133 CHIEZ Y291 MAJIK CUUDA2 KFLL"},
+   "KPVD"
+   {:fix "BAYYS", :route "KJFK BAYYS SEALL V188 GON V374 MINNK KPVD"},
+   "KRSW"
+   {:fix "RBV",
+    :route "KJFK RBV Q430 COPES Q75 SLOJO Q103 CYNTA SHFTY5 KRSW"},
+   "KCAE" {:fix "RBV", :route "KJFK RBV Q430 COPES Q75 SLOJO KCAE"},
+   "KLAX"
+   {:fix "GREKI",
+    :route
+    "KJFK GREKI JUDDS CAM NOVON BURWA OVORA VBI HML OGSIQ SWTHN DNW FFU J9 MLF WINEN Q73 HAKMN ANJLL4 KLAX"},
+   "KGRR"
+   {:fix "COATE", :route "KJFK COATE Q436 RAAKK Q438 RUBYY KGRR"},
+   "CYOW"
+   {:fix "HAAYS",
+    :route "KJFK HAAYS V273 HNK LAMMS WAYGO ART DEANS1 CYOW"},
+   "KBGR" {:fix "BDR", :route "KJFK BDR V487 CAM CON AUG KBGR"},
+   "KEWB"
+   {:fix "BAYYS", :route "KJFK BAYYS SEALL V188 GON V374 MINNK KEWB"},
+   "KORD"
+   {:fix "GREKI",
+    :route
+    "KJFK GREKI JUDDS CAM NOVON SIKBO NOSIK ZOHAN GRB SHIKY FYTTE7 KORD"},
+   "KBCT"
+   {:fix "SHIPP",
+    :route "KJFK SHIPP Y488 STERN Y493 BAHAA DULEE CLMNT2 KBCT"},
+   "KHYA"
+   {:fix "BAYYS", :route "KJFK BAYYS SEALL V188 GON V374 MVY KHYA"},
+   "CYVR"
+   {:fix "GREKI",
+    :route "KJFK GREKI JUDDS CAM Q822 HOZIR SAW HML YDC CYVR"},
+   "KPHX"
+   {:fix "RBV",
+    :route
+    "KJFK RBV Q430 AIR J110 STL BUM ICT LBL FTI J244 ZUN EAGUL6 KPHX"},
+   "KPDX"
+   {:fix "GREKI",
+    :route
+    "KJFK GREKI JUDDS CAM NOVON BURWA OVORA VBI HML LWT PDT JKNOX HHOOD4 KPDX"},
+   "KSDF"
+   {:fix "RBV",
+    :route "KJFK RBV Q430 SAAME J6 HVQ Q68 UNCKL MAUDD6 KSDF"},
+   "KEGE"
+   {:fix "CANDR",
+    :route "KJFK DEEZZ5 CANDR J60 HCT AKO AVVVS HUGGS RLG KEGE"},
+   "KCVG"
+   {:fix "COATE", :route "KJFK COATE LAAYK PSB CTW TIGRR3 KCVG"},
+   "KDFW"
+   {:fix "CANDR",
+    :route
+    "KJFK DEEZZ5 CANDR J60 JOT MZV IRK MCI ICT IRW HOFFF JOVEM5 KDFW"},
+   "KPWK"
+   {:fix "COATE",
+    :route
+    "KJFK COATE Q436 YARRK TRESL WODDS FRSST PMM FIYER OBK KPWK"},
+   "KPIT" {:fix "RBV", :route "KJFK RBV V276 RAV PSB HAYNZ7 KPIT"},
+   "KRIC" {:fix "WHITE", :route "KJFK WHITE Q409 TRPOD JAMIE KRIC"},
+   "KBED" {:fix "MERIT", :route "KJFK MERIT HFD DREEM2 KBED"},
+   "KDET"
+   {:fix "GAYEL", :route "KJFK GAYEL Q818 WOZEE COLTS GIGGY2 KDET"},
+   "KPIA" {:fix "RBV", :route "KJFK RBV Q430 AIR J110 VHP KPIA"},
+   "KBGM" {:fix "HAAYS", :route "KJFK HAAYS HUO V252 CFB KBGM"},
+   "KPTK"
+   {:fix "GAYEL", :route "KJFK GAYEL Q818 WOZEE COLTS OKLND1 KPTK"},
+   "KCMH"
+   {:fix "COATE", :route "KJFK COATE LAAYK PSB AIR CLPRR2 KCMH"},
+   "KBNA"
+   {:fix "RBV",
+    :route "KJFK RBV Q430 SAAME J6 HVQ Q68 YOCKY GROAT PASLY4 KBNA"},
+   "KDCA"
+   {:fix "DIXIE", :route "KJFK DIXIE V1 LEEAH CHOPS BILIT CAPKO KDCA"},
+   "KOMA"
+   {:fix "RBV",
+    :route "KJFK RBV Q430 AIR J80 SPI IOW DSM LANTK2 KOMA"},
+   "KSFO"
+   {:fix "GREKI",
+    :route
+    "KJFK GREKI JUDDS CAM NOVON BURWA OVORA VBI HML GGW IDA BAM J32 LLC LEGGS BDEGA3 KSFO"},
+   "KYIP"
+   {:fix "GAYEL", :route "KJFK GAYEL Q818 WOZEE COLTS OKLND1 KYIP"},
+   "KSAV" {:fix "WHITE", :route "KJFK WHITE Q409 SESUE SOOOP KSAV"},
+   "KORF"
+   {:fix "WHITE", :route "KJFK WHITE Q409 TRPOD JAMIE CCV KORF"},
+   "KMIA"
+   {:fix "WAVEY",
+    :route
+    "KJFK WAVEY EMJAY Q167 ZJAAY KALDA Q101 SKARP Y313 HOAGG BNFSH2 KMIA"},
+   "KTPA"
+   {:fix "RBV",
+    :route "KJFK RBV Q430 COPES Q75 TEUFL BAAMF DADES1 KTPA"},
+   "KJAX"
+   {:fix "WHITE", :route "KJFK WHITE Q409 SESUE ESENT LUNNI1 KJAX"},
+   "KMCI"
+   {:fix "RBV", :route "KJFK RBV Q430 AIR J80 SPI EUING RUDDH2 KMCI"},
+   "KCAK"
+   {:fix "CANDR",
+    :route "KJFK DEEZZ5 CANDR J60 PSB SOORD ZZIPS1 KCAK"},
+   "KFXE"
+   {:fix "SHIPP",
+    :route "KJFK SHIPP Y488 STERN Y493 JENKS MAJIK WAMBI CPTAN2 KFXE"},
+   "KCLT"
+   {:fix "CANDR",
+    :route "KJFK DEEZZ5 CANDR J60 PSB HVQ LNDIZ PARQR3 KCLT"},
+   "KLAS"
+   {:fix "GREKI",
+    :route
+    "KJFK GREKI JUDDS CAM NOVON BURWA OVORA VBI HML OGSIQ SWTHN DNW FFU J9 MLF STEWW CHOWW2 KLAS"},
+   "KRDU"
+   {:fix "WHITE",
+    :route "KJFK WHITE Q409 VILLS NALES Q141 HOUKY TAQLE1 KRDU"},
+   "KLWB"
+   {:fix "RBV", :route "KJFK RBV Q430 BYRDD J48 MOL V140 COVEY KLWB"},
+   "KROA" {:fix "RBV", :route "KJFK RBV Q430 BYRDD J48 MOL KROA"},
+   "KPBI"
+   {:fix "WAVEY",
+    :route
+    "KJFK WAVEY EMJAY Q167 ZJAAY Q131 ZILLS Y289 DULEE CLMNT2 KPBI"},
+   "KFWA"
+   {:fix "CANDR",
+    :route "KJFK DEEZZ5 CANDR J60 DANNR RAV J64 FWA KFWA"},
+   "KGSO"
+   {:fix "WAVEY",
+    :route "KJFK WAVEY EMJAY Q167 ZJAAY CRPLR COUPN RDU KGSO"},
+   "KPWM" {:fix "BDR", :route "KJFK BDR V487 CAM CDOGG4 KPWM"},
+   "KDSM"
+   {:fix "CANDR", :route "KJFK DEEZZ5 CANDR J60 IOW J10 DSM KDSM"},
+   "KMCO"
+   {:fix "WHITE",
+    :route
+    "KJFK WHITE Q409 CRPLR EARZZ Q131 ZILLS Y289 BAHAA HIBAC ALYNA3 KMCO"},
+   "KBOS"
+   {:fix "SHIPP",
+    :route "KJFK SHIPP Y487 ISLES ACK FERNZ OOSHN5 KBOS"},
+   "KIND"
+   {:fix "COATE",
+    :route
+    "KJFK COATE LAAYK ULW JHW ERI JFN DJB KLYNE RINTE SNKPT2 KIND"},
+   "CYUL"
+   {:fix "GREKI",
+    :route "KJFK GREKI JUDDS CAM JASDU PBERG CARTR5 CYUL"},
+   "KITH" {:fix "GAYEL", :route "KJFK GAYEL V374 CFB KITH"},
+   "KALB" {:fix "HAAYS", :route "KJFK HAAYS V273 HNK KALB"},
+   "CYYZ"
+   {:fix "COATE", :route "KJFK COATE LAAYK ULW WOZEE LINNG3 CYYZ"},
+   "KIAD"
+   {:fix "DIXIE",
+    :route
+    "KJFK DIXIE V1 LEEAH GARED PXT V157 SVILL THHMP CAVLR4 KIAD"},
+   "KROC"
+   {:fix "COATE", :route "KJFK COATE LAAYK CFB V252 GIBBE KROC"},
+   "KAGC" {:fix "COATE", :route "KJFK COATE Q436 REBBL SLT REC KAGC"},
+   "KDTW"
+   {:fix "COATE", :route "KJFK COATE LAAYK ULW BUF DONEO TPGUN2 KDTW"},
+   "KMVY"
+   {:fix "BAYYS",
+    :route "KJFK BAYYS V229 SEALL V188 GON V374 MVY KMVY"},
+   "KSJC"
+   {:fix "COATE",
+    :route
+    "KJFK COATE Q436 RAAKK Q440 HUFFR DKOTA DDY OCS DTA KNGRY RAZRR5 KSJC"},
+   "KCLE"
+   {:fix "RBV", :route "KJFK RBV V276 RAV PSB UPPRR TRYBE4 KCLE"},
+   "KGSP"
+   {:fix "RBV",
+    :route "KJFK RBV Q430 COPES Q75 GVE FUBLL JUNNR3 KGSP"},
+   "KMSP"
+   {:fix "GAYEL",
+    :route "KJFK GAYEL Q818 WOZEE NOSIK Q812 ZOHAN CEWDA MUSCL3 KMSP"},
+   "KSAN"
+   {:fix "GREKI",
+    :route
+    "KJFK GREKI JUDDS CAM NOVON BURWA OVORA VBI HML OGSIQ SWTHN DNW FFU J9 MLF WINEN Q73 LVELL LUCKI1 KSAN"},
+   "KIAH"
+   {:fix "RBV",
+    :route
+    "KJFK RBV Q430 BYRDD J48 CSN FANPO Q40 NIOLA MEI SWB ZEEKK2 KIAH"},
+   "KMKE"
+   {:fix "CANDR",
+    :route
+    "KJFK DEEZZ5 CANDR J60 DJB CRL PEGEE GETCH LYSTR SUDDS KMKE"},
+   "KACK"
+   {:fix "BAYYS", :route "KJFK BAYYS SEALL V188 GON DEEPO1 KACK"},
+   "KSYR" {:fix "COATE", :route "KJFK COATE LAAYK CFB V29 SYR KSYR"}},
   :runways
   [{:start-id "13R",
     :start-threshold [:N40*38'54.1020 :W073*49'00.1730],
@@ -151,7 +445,7 @@
     :type :fix,
     :pronunciation "hogs"}
    {:id "IGN",
-    :position [:N41*39'55.619 :W073*49'20.008],
+    :position [:N41*39'55.626 :W073*49'20.061],
     :type :vor/dme,
     :name "kingston"}
    {:id "JENNO",
@@ -257,4 +551,6 @@
     :pronunciation "wave ee"}
    {:id "WHITE",
     :position [:N40*00'24.320 :W074*15'04.610],
-    :type :fix}]})
+    :type :fix}],
+  :id "KJFK",
+  :position [:N40*38'23.7400 :W073*46'43.2930 13.0]})
