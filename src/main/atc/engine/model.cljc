@@ -25,7 +25,7 @@
      :origin str        ; icao of origin airport
      :destination str   ; icao of destination airport
      :config map        ; see aircraft.configs
-     :runway str        ; an active runway ID
+     :runway str        ; an active runway ID, to start on ground
 
      ; for airlines:
      :airline airline-id

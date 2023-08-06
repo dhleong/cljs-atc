@@ -3,6 +3,7 @@
    [atc.data.core :refer [local-xy]]
    [atc.data.units :refer [ft->m]]
    [atc.engine.model :refer [vec3]]
+   [atc.util.numbers :refer [->int]]
    [clojure.string :as str]
    [promesa.core :as p]
    [shadow.lazy :as lazy]))
@@ -49,3 +50,8 @@
       (if (= (:start-id runway-object) runway)
         [start end]
         [end start]))))
+
+(defn runway->heading [airport runway]
+  (-> (->int runway)
+      (* 10)
+      (- (:magnetic-north airport))))

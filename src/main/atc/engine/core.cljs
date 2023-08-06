@@ -2,6 +2,8 @@
   (:require
    [archetype.util :refer [>evt]]
    [atc.data.aircraft-configs :as configs]
+   [atc.data.airports :refer [runway->heading runway-coords]]
+   [atc.data.units :refer [ft->m]]
    [atc.engine.aircraft :as aircraft]
    [atc.engine.model :as engine-model :refer [consume-pending-communication
                                               IGameEngine pending-communication
@@ -72,7 +74,7 @@
           this))))
 
   IGameEngine
-  (spawn-aircraft [this {:keys [config] :as opts}]
+  (spawn-aircraft [this {:keys [config runway] :as opts}]
     (when (= :ga (:type opts))
       (throw (ex-info "GA aircraft not yet supported" {:opts opts})))
 
@@ -85,7 +87,17 @@
                  radio
                  (select-keys opts [:destination :config])
                  (-> this :airport :departure-routes
-                     (get (:destination opts))))]
+                     (get (:destination opts)))
+                 (when runway
+                   ; FIXME: This heading doesn't seem to *look* quite correct
+                   (let [position (first (runway-coords (:airport this) runway))]
+                     {:heading (runway->heading (:airport this) runway)
+                      :position position
+                      ; TODO Command to raise to some max altitude, min speed
+                      ; TODO get target altitude from the airport/departure?
+                      :speed 100
+                      :commands {:target-altitude (+ (ft->m 5000)
+                                                     (:z position))}})))]
       (update this :aircraft assoc callsign (aircraft/create config data)))))
 
 (defn engine-grammar [^Engine engine]

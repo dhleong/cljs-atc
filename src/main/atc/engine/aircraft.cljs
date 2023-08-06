@@ -68,6 +68,5 @@
                     :pilot (pilot/generate nil) ; TODO Pass in a preferred voice?
                     :position (vec3 250 250 (ft->m 20000))
                     :heading 350
-                    :speed 200
-                    :commands {:heading 90}}
+                    :speed 200}
                    data)))
