@@ -11,6 +11,20 @@
     (+ h 360)
     (mod h 360)))
 
+(defn- apply-rate [aircraft command-key path rate-keys from commanded-value dt]
+  (let [sign (if (> commanded-value from) 1 -1)
+        rate-key (rate-keys sign)
+        rate (get-in aircraft [:config rate-key])
+        new-speed (+ from (* sign rate dt))]
+    (if (<= (abs (- commanded-value new-speed))
+            (* rate 0.5))
+      (-> aircraft
+          (assoc-in path commanded-value)  ; close enough; snap to
+          (update :commands dissoc command-key))
+
+      (-> aircraft
+          (assoc-in path new-speed)))))
+
 
 ; ======= Steering ========================================
 
@@ -75,19 +89,12 @@
           (< (:speed aircraft) (:min-speed (:config aircraft))))
     aircraft
 
-    (let [sign (if (> commanded-altitude from) 1 -1)
-          rate-key ({-1 :descent-rate
-                     1 :climb-rate} sign)
-          rate (get-in aircraft [:config rate-key])
-          new-altitude (+ from (* sign rate dt))]
-      (if (<= (abs (- commanded-altitude new-altitude))
-              (* rate 0.5))
-        (-> aircraft
-            (assoc-in [:position :z] commanded-altitude)  ; close enough; snap to
-            (update :commands dissoc :target-altitude))
-
-        (-> aircraft
-            (assoc-in [:position :z] new-altitude))))))
+    (apply-rate
+      aircraft
+      :target-altitude [:position :z]
+      {-1 :descent-rate
+       1 :climb-rate}
+      from commanded-altitude dt)))
 
 
 ; ======= Approach course following =======================
@@ -171,19 +178,13 @@
 (defn apply-target-speed [{from :speed :as aircraft} commanded-speed dt]
   (if (= from commanded-speed)
     aircraft
-    (let [sign (if (> commanded-speed from) 1 -1)
-          rate-key ({-1 :deceleration
-                     1 :acceleration} sign)
-          rate (get-in aircraft [:config rate-key])
-          new-speed (+ from (* sign rate dt))]
-      (if (<= (abs (- commanded-speed new-speed))
-              (* rate 0.5))
-        (-> aircraft
-            (assoc :speed commanded-speed)  ; close enough; snap to
-            (update :commands dissoc :target-speed))
 
-        (-> aircraft
-            (assoc :speed new-speed))))))
+    (apply-rate
+      aircraft
+      :target-speed [:speed]
+      {-1 :deceleration
+       1 :acceleration}
+      from commanded-speed dt)))
 
 
 ; ======= Public interface ================================
