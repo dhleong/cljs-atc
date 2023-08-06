@@ -79,12 +79,18 @@
 
 (defn generate [airport]
   ; TODO: Probably, generate the parsing-machine elsewhere for better loading states
-  (let [aircraft [["DAL22" "delta twenty two" configs/common-jet]]]
+  ; TODO: Arrivals
+  ; TODO: Set initial position/heading of departures from :runways
+  (let [aircraft [{:callsign "DAL22"
+                   :radio-name "delta twenty two"
+                   :destination (-> airport :departure-routes ffirst)
+                   :route (-> airport :departure-routes first second :route)
+                   :departure-fix (-> airport :departure-routes first second :fix)
+                   :config configs/common-jet}]]
     (-> {:aircraft (reduce
-                     (fn [m [callsign radio-name config]]
+                     (fn [m {:keys [callsign config] :as data}]
                        (assoc m callsign
-                              (aircraft/create config {:callsign callsign
-                                                       :radio-name radio-name})))
+                              (aircraft/create config data)))
                      {}
                      aircraft)
          :airport airport

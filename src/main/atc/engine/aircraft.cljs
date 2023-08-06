@@ -59,13 +59,15 @@
   (consume-pending-communication [this]
     (dissoc this ::instructions/utterance-parts)))
 
-(defn create [^AircraftConfig config, {:keys [callsign radio-name]}]
-  (map->Aircraft {:config config
-                  :callsign callsign
-                  :radio-name radio-name
-                  :state :flight
-                  :pilot (pilot/generate nil) ; TODO Pass in a preferred voice?
-                  :position (vec3 250 250 (ft->m 20000))
-                  :heading 350
-                  :speed 200
-                  :commands {:heading 90}}))
+(defn create [^AircraftConfig config, {:keys [callsign radio-name] :as data}]
+  (map->Aircraft (merge
+                   {:config config
+                    :callsign callsign
+                    :radio-name radio-name
+                    :state :flight
+                    :pilot (pilot/generate nil) ; TODO Pass in a preferred voice?
+                    :position (vec3 250 250 (ft->m 20000))
+                    :heading 350
+                    :speed 200
+                    :commands {:heading 90}}
+                   data)))
