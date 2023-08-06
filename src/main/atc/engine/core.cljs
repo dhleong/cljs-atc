@@ -9,6 +9,7 @@
                                               IGameEngine pending-communication
                                               prepare-pending-communication Simulated spawn-aircraft tick]]
    [atc.radio :as radio]
+   [atc.util.maps :refer [rename-key]]
    [atc.voice.parsing.airport :as airport-parsing]
    [atc.voice.process :refer [build-machine]]))
 
@@ -87,7 +88,8 @@
                  radio
                  (select-keys opts [:destination :config])
                  (-> this :airport :departure-routes
-                     (get (:destination opts)))
+                     (get (:destination opts))
+                     (rename-key :fix :departure-fix))
                  (when runway
                    ; FIXME: This heading doesn't seem to *look* quite correct
                    (let [position (first (runway-coords (:airport this) runway))]
