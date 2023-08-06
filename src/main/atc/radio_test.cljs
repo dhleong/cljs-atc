@@ -1,6 +1,6 @@
 (ns atc.radio-test
   (:require
-   [atc.radio :refer [->readable ->speakable]]
+   [atc.radio :refer [->readable ->speakable format-airline-radio]]
    [cljs.test :refer-macros [deftest is testing]]))
 
 (deftest speakable-test
@@ -20,3 +20,17 @@
            (->readable [[{:id "DAL22"}
                          "cleared approach runway"
                          [:runway "13L"]]])))))
+
+(deftest format-airline-radio-test
+  (testing "Support four-digit flight-numbers"
+    (is (= {:callsign "DAL4297"
+            :radio-name "delta 42 97"}
+           (format-airline-radio "DAL" 4297))))
+  (testing "Support three-digit flight-numbers"
+    (is (= {:callsign "DAL942"
+            :radio-name "delta niner 42"}
+           (format-airline-radio "DAL" 942))))
+  (testing "Support two-digit flight-numbers"
+    (is (= {:callsign "DAL22"
+            :radio-name "delta 22"}
+           (format-airline-radio "DAL" 22)))))

@@ -1,5 +1,9 @@
 (ns atc.radio
   (:require
+   [atc.data.airlines :refer [all-airlines]]
+   [atc.util.numbers :refer [->int]]
+   [atc.voice.parsing.numbers :as numbers]
+   [clojure.set :refer [map-invert]]
    [com.rpl.specter :as s]))
 
 ; TODO: Perhaps we could introduce a Speakable protocol that PersistentVector can implement...
@@ -14,8 +18,8 @@
   (cond
     (>= v 10000)
     (let [s (str v)]
-      [(first s)
-       (second s)
+      [(process-speakable [:number (->int (first s))])
+       (process-speakable [:number (->int (second s))])
        "thousand"])
 
     :else
@@ -37,6 +41,36 @@
                 \N "north"
                 \S "south"
                 v)))))
+
+(defmethod process-speakable :number
+  [[_ v]]
+  (cond
+    (<= 0 v 9)
+    (get (map-invert numbers/digit-values) v)
+
+    (<= 10 v 19)
+    (get (map-invert numbers/teens-values) v)
+
+    :else v))
+
+(defmethod process-speakable :group-form
+  [[_ v]]
+  ; NOTE: This is only really works for callsigns right now
+  (cond
+    ; 1/2 digits
+    (< v 100)
+    (process-speakable [:number v])
+
+    ; 3/4 digits
+    (< v 10000)
+    (let [hundred-digits (js/Math.floor (/ v 100))]
+      (str
+        (process-speakable [:number hundred-digits])
+        " "
+        (process-speakable [:number (- v (* hundred-digits 100))])))
+
+    ; TODO >4 digits
+    :else v))
 
 (defmethod process-speakable :default [v]
   (println "WARNING: Unknown speakable kind format:" v))
@@ -118,3 +152,11 @@
 
          flatten
          (transduce (create-speakable-chooser :readable) str ""))))
+
+(defn format-airline-radio [airline-id flight-number]
+  (let [radio-name (str
+                     (get-in all-airlines [airline-id :radio-name])
+                     " "
+                     (->speakable [[:group-form flight-number]]))]
+    {:callsign (str airline-id flight-number)
+     :radio-name radio-name}))

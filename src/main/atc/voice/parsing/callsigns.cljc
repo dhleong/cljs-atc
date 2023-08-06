@@ -1,10 +1,13 @@
-(ns atc.voice.parsing.callsigns 
+(ns atc.voice.parsing.callsigns
   (:require
+   [atc.data.airlines :refer [all-airlines]]
    [atc.voice.parsing.core :refer [declare-alternates]]))
 
 (def airlines
-  {"delta" "DAL"
-   "speed bird" "BAW"})
+  (->> all-airlines
+       (map (fn [[id {:keys [radio-name]}]]
+              [radio-name id]))
+       (into {})))
 
 (def plane-types
   ["piper"])
