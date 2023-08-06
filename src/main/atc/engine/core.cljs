@@ -1,6 +1,7 @@
 (ns atc.engine.core
   (:require
    [archetype.util :refer [>evt]]
+   [atc.config :as config]
    [atc.data.aircraft-configs :as configs]
    [atc.data.airports :refer [runway->heading runway-coords]]
    [atc.data.units :refer [ft->m]]
@@ -80,7 +81,6 @@
       (throw (ex-info "GA aircraft not yet supported" {:opts opts})))
 
     ; TODO: Support arrivals
-    ; TODO: Set initial position/heading of departures from :runways
     (let [{:keys [callsign] :as radio} (radio/format-airline-radio
                                          (:airline opts)
                                          (:flight-number opts))
@@ -92,14 +92,15 @@
                      (rename-key :fix :departure-fix))
                  (when runway
                    ; FIXME: This heading doesn't seem to *look* quite correct
+                   ; TODO get target altitude from the airport/departure?
                    (let [position (first (runway-coords (:airport this) runway))]
                      {:heading (runway->heading (:airport this) runway)
                       :position position
-                      ; TODO Command to raise to some max altitude, min speed
-                      ; TODO get target altitude from the airport/departure?
-                      :speed 100
+                      :speed 0
                       :commands {:target-altitude (+ (ft->m 5000)
-                                                     (:z position))}})))]
+                                                     (:z position))
+                                 :target-speed (min config/speed-limit-under-10k-kts
+                                                    (:cruise-speed config))}})))]
       (update this :aircraft assoc callsign (aircraft/create config data)))))
 
 (defn engine-grammar [^Engine engine]

@@ -68,7 +68,11 @@
 ; ======= Altitude ========================================
 
 (defn- apply-altitude [{{from :z} :position :as aircraft} commanded-altitude dt]
-  (if (= from commanded-altitude)
+  (if (or (= from commanded-altitude)
+          ; The aircraft cannot climb if it's going too slow! There's a bit
+          ; of an assumption here that the :landing-speed will never be less
+          ; than this, but that seems... safe?
+          (< (:speed aircraft) (:min-speed (:config aircraft))))
     aircraft
 
     (let [sign (if (> commanded-altitude from) 1 -1)
@@ -162,11 +166,32 @@
     :ils (apply-ils-approach aircraft command dt)))
 
 
-; ======= Publc interface =================================
+; ======= Speed ===========================================
+
+(defn apply-target-speed [{from :speed :as aircraft} commanded-speed dt]
+  (if (= from commanded-speed)
+    aircraft
+    (let [sign (if (> commanded-speed from) 1 -1)
+          rate-key ({-1 :deceleration
+                     1 :acceleration} sign)
+          rate (get-in aircraft [:config rate-key])
+          new-speed (+ from (* sign rate dt))]
+      (if (<= (abs (- commanded-speed new-speed))
+              (* rate 0.5))
+        (-> aircraft
+            (assoc :speed commanded-speed)  ; close enough; snap to
+            (update :commands dissoc :target-speed))
+
+        (-> aircraft
+            (assoc :speed new-speed))))))
+
+
+; ======= Public interface ================================
 
 (defn apply-commanded-inputs [aircraft, commands dt]
   (cond-> aircraft
     (:heading commands) (apply-steering (:heading commands) dt)
     (:direct commands) (apply-direct (:direct commands) dt)
     (:cleared-approach commands) (apply-approach (:cleared-approach commands) dt)
-    (:target-altitude commands) (apply-altitude (:target-altitude commands) dt)))
+    (:target-altitude commands) (apply-altitude (:target-altitude commands) dt)
+    (:target-speed commands) (apply-target-speed (:target-speed commands) dt)))
