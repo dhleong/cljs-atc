@@ -5,6 +5,8 @@
 (defn line [{:keys [from to width color alpha]
              :or {width 1
                   alpha 1}}]
+  (when-not (int? color)
+    (js/console.warn ":color should be an int!"))
   [:> px/Graphics {:draw (fn draw [^js g]
                            (doto g
                              (.clear)
