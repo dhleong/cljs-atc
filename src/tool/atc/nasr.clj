@@ -1,6 +1,7 @@
 (ns atc.nasr
   (:require
    [atc.nasr.apt :as apt]
+   [atc.nasr.arb :as arb]
    [atc.nasr.cdr :as cdr]
    [atc.nasr.fix :as fix]
    [atc.nasr.nav :as nav]
@@ -24,6 +25,10 @@
 (defn find-airport-data [zip-file expected-icao]
   (with-open [in (okay/open-zip-file zip-file "APT.txt")]
     (apt/find-airport-data in expected-icao)))
+
+(defn find-artcc-boundaries [zip-file artcc-id]
+  (with-open [in (okay/open-zip-file zip-file "ARB.txt")]
+    (arb/find-artcc-boundaries in artcc-id)))
 
 (defn find-departure-routes [zip-file icao]
   (with-open [in (okay/open-zip-file zip-file "CDR.txt")]

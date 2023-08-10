@@ -260,7 +260,7 @@
                              :key k
                              :produced read-value})))
           (if (pred key-value)
-            (cons current frames)
+            (cons (.copy current) frames)
             (recur (next frames))))))))
 
 

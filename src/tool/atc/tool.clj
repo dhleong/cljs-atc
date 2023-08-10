@@ -231,4 +231,5 @@
                       airac (airac-data)]
                   (nasr/locate-zip airac destination-dir)))
 
-  (-main "build-airport" "kjfk" #_"--write"))
+  (-main "build-airport" "kjfk" #_"--write")
+  (-main "build-airport" "kjfk" "--write"))
