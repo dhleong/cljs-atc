@@ -1,8 +1,7 @@
 (ns atc.nasr.aff
   (:require
    [atc.nasr.types :refer [create-formatted-coordinate justified-keyword]]
-   [atc.okay :as okay :refer [compile-record ignore-bytes justified-string]]
-   [clojure.string :as str]))
+   [atc.okay :as okay :refer [compile-record ignore-bytes justified-string]]))
 
 (def ^:private formatted-coordinate (create-formatted-coordinate 14))
 
@@ -46,24 +45,29 @@
                                  :aff3 aff3-record}))))
 
 (defn compose-facility [parts]
-  (let [base (first parts)
+  (let [{:keys [latitude] :as base} (first parts)
         radio (->> parts
-                   (filter #(when-some [altitude (:altitude %)]
-                              (str/includes? altitude "LOW")))
+                   (filter #(= (:altitude %) "LOW"))
                    first)]
-    (when radio
+    (when (and radio latitude)
       (merge base (select-keys radio [:frequency
+                                      :altitude
                                       :landing-facility-location-id])))))
 
-(defn find-facilities [in artcc]
-  (->> (okay/fixed-record-sequence aff-file-record in)
-       (into
-         []
-         (comp
-           (drop-while #(not= (:artcc %) artcc))
-           (take-while #(= (:artcc %) artcc))
-           (partition-by :site-location)
-           (keep compose-facility)))))
+(defn find-facilities
+  ([in] (find-facilities in nil))
+  ([in artcc]
+   (->> (okay/fixed-record-sequence aff-file-record in)
+        (into
+          []
+          (comp
+            (if artcc
+              (comp
+                (drop-while #(not= (:artcc %) artcc))
+                (take-while #(= (:artcc %) artcc)))
+              identity)
+            (partition-by :site-location)
+            (keep compose-facility))))))
 
 (comment
   #_:clj-kondo/ignore

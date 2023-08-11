@@ -63,7 +63,7 @@
    "KELM" {:fix "GAYEL", :route "KJFK GAYEL V374 CFB V270 ULW KELM"},
    "KMDW"
    {:fix "CANDR",
-    :route "KJFK DEEZZ5 CANDR J60 DJB BAGEL PANGG4 KMDW"},
+    :route "KJFK DEEZZ5 CANDR J60 DJB BAGEL PANGG5 KMDW"},
    "KSTL"
    {:fix "RBV", :route "KJFK RBV Q430 AIR J110 VHP AARCH2 KSTL"},
    "KDAB"
@@ -71,7 +71,8 @@
     :route
     "KJFK WAVEY EMJAY Q167 ZJAAY Q97 SAWED MOXXY Q85 LPERD TTHOR3 KDAB"},
    "KBWI"
-   {:fix "WAVEY", :route "KJFK WAVEY PLUME V308 LAFLN MIIDY2 KBWI"},
+   {:fix "WAVEY",
+    :route "KJFK WAVEY PLUME T320 WNSTN ATR LAFLN MIIDY2 KBWI"},
    "KCHA"
    {:fix "RBV",
     :route "KJFK RBV Q430 BYRDD J48 CSN FANPO Q40 JAARE GQO KCHA"},
@@ -171,7 +172,7 @@
    {:fix "COATE",
     :route
     "KJFK COATE Q436 YARRK TRESL WODDS FRSST PMM FIYER OBK KPWK"},
-   "KPIT" {:fix "RBV", :route "KJFK RBV V276 RAV PSB HAYNZ7 KPIT"},
+   "KPIT" {:fix "RBV", :route "KJFK RBV T438 RAV PSB HAYNZ7 KPIT"},
    "KRIC" {:fix "WHITE", :route "KJFK WHITE Q409 TRPOD JAMIE KRIC"},
    "KBED" {:fix "MERIT", :route "KJFK MERIT HFD DREEM2 KBED"},
    "KDET"
@@ -209,7 +210,7 @@
    "KJAX"
    {:fix "WHITE", :route "KJFK WHITE Q409 SESUE ESENT LUNNI1 KJAX"},
    "KMCI"
-   {:fix "RBV", :route "KJFK RBV Q430 AIR J80 SPI EUING RUDDH2 KMCI"},
+   {:fix "RBV", :route "KJFK RBV Q430 AIR J80 SPI EUING RUDDH3 KMCI"},
    "KCAK"
    {:fix "CANDR",
     :route "KJFK DEEZZ5 CANDR J60 PSB SOORD ZZIPS1 KCAK"},
@@ -262,8 +263,7 @@
    {:fix "COATE", :route "KJFK COATE LAAYK ULW WOZEE LINNG3 CYYZ"},
    "KIAD"
    {:fix "DIXIE",
-    :route
-    "KJFK DIXIE V1 LEEAH GARED PXT V157 SVILL THHMP CAVLR4 KIAD"},
+    :route "KJFK DIXIE V1 LEEAH T315 TAPPA THHMP CAVLR4 KIAD"},
    "KROC"
    {:fix "COATE", :route "KJFK COATE LAAYK CFB V252 GIBBE KROC"},
    "KAGC" {:fix "COATE", :route "KJFK COATE Q436 REBBL SLT REC KAGC"},
@@ -271,13 +271,13 @@
    {:fix "COATE", :route "KJFK COATE LAAYK ULW BUF DONEO TPGUN2 KDTW"},
    "KMVY"
    {:fix "BAYYS",
-    :route "KJFK BAYYS V229 SEALL V188 GON V374 MVY KMVY"},
+    :route "KJFK BAYYS T315 SEALL V188 GON V374 MVY KMVY"},
    "KSJC"
    {:fix "COATE",
     :route
     "KJFK COATE Q436 RAAKK Q440 HUFFR DKOTA DDY OCS DTA KNGRY RAZRR5 KSJC"},
    "KCLE"
-   {:fix "RBV", :route "KJFK RBV V276 RAV PSB UPPRR TRYBE4 KCLE"},
+   {:fix "RBV", :route "KJFK RBV T438 RAV PSB UPPRR TRYBE4 KCLE"},
    "KGSP"
    {:fix "RBV",
     :route "KJFK RBV Q430 COPES Q75 GVE FUBLL JUNNR3 KGSP"},
@@ -301,21 +301,21 @@
    "KSYR" {:fix "COATE", :route "KJFK COATE LAAYK CFB V29 SYR KSYR"}},
   :runways
   [{:start-id "13R",
-    :start-threshold [:N40*38'54.1020 :W073*49'00.1730],
+    :start-threshold [:N40*38'54.1008 :W073*49'00.1730],
     :end-id "31L",
-    :end-threshold [:N40*37'40.7810 :W073*46'18.4130]}
+    :end-threshold [:N40*37'40.7799 :W073*46'18.4107]}
    {:start-id "13L",
-    :start-threshold [:N40*39'27.9533 :W073*47'24.8600],
+    :start-threshold [:N40*39'27.9520 :W073*47'24.8606],
     :end-id "31R",
-    :end-threshold [:N40*38'37.4079 :W073*45'33.3832]}
+    :end-threshold [:N40*38'37.4085 :W073*45'33.3818]}
    {:start-id "04R",
-    :start-threshold [:N40*37'31.5320 :W073*46'13.2500],
+    :start-threshold [:N40*37'31.5418 :W073*46'13.2441],
     :end-id "22L",
-    :end-threshold [:N40*38'42.8490 :W073*45'17.5090]}
+    :end-threshold [:N40*38'42.8531 :W073*45'17.5027]}
    {:start-id "04L",
-    :start-threshold [:N40*37'19.2759 :W073*47'08.1038],
+    :start-threshold [:N40*37'19.2754 :W073*47'08.1029],
     :end-id "22R",
-    :end-threshold [:N40*39'01.8337 :W073*45'47.9596]}],
+    :end-threshold [:N40*39'01.8338 :W073*45'47.9596]}],
   :navaids
   [{:id "ACOVE",
     :position [:N42*14'05.220 :W074*01'54.590],
@@ -453,7 +453,7 @@
     :type :fix,
     :pronunciation "jeno"}
    {:id "JFK",
-    :position [:N40*37'58.400 :W073*46'17.000],
+    :position [:N40*37'58.382 :W073*46'17.010],
     :type :vor/dme,
     :name "kennedy"}
    {:id "KARRS",
@@ -553,4 +553,17 @@
     :position [:N40*00'24.320 :W074*15'04.610],
     :type :fix}],
   :id "KJFK",
-  :position [:N40*38'23.7400 :W073*46'43.2930 13.0]})
+  :center-facilities
+  [{:id "COLTS NECK",
+    :position [:N40*18'42.000 :W074*09'37.000],
+    :frequency "118.975"}
+   {:id "SPARTA",
+    :position [:N41*04'03.000 :W074*32'19.000],
+    :frequency "133.15"}
+   {:id "CALVERTON",
+    :position [:N40*55'47.350 :W072*47'55.360],
+    :frequency "124.525"}
+   {:id "SHELTON",
+    :position [:N41*19'37.340 :W073*06'55.390],
+    :frequency "126.275"}],
+  :position [:N40*38'23.7410 :W073*46'43.2920 13.0]})

@@ -1,5 +1,6 @@
 (ns atc.tool
   (:require
+   [atc.data.core :refer [coord-distance]]
    [atc.nasr :as nasr]
    [atc.nasr.airac :refer [airac-data]]
    [atc.pronunciation :as pronunciation]
@@ -68,6 +69,11 @@
   [(:destination route) {:fix (:departure-fix route)
                          :route (:route-string route)}])
 
+(defn- format-center-facility [facility]
+  {:id (:site-location facility)
+   :position [(:latitude facility) (:longitude facility)]
+   :frequency (:frequency facility)})
+
 (defn- resolve-departure-fix-collisions [collisions codings]
   (loop [collisions collisions
          codings codings]
@@ -110,7 +116,8 @@
           (map-invert)))))
 
 (defn build-airport [zip-file icao]
-  (let [{[apt] :apt :as data} (time (nasr/find-airport-data zip-file icao))
+  (let [all-facilities (future (time (nasr/find-facilities zip-file)))
+        {[apt] :apt :as data} (time (nasr/find-airport-data zip-file icao))
         runways (compose-runways data)
         position [(:latitude apt) (:longitude apt) (:elevation apt)]
 
@@ -139,7 +146,17 @@
         navaids (future
                   (time (nasr/find-navaids
                           zip-file
-                          :ids (concat procedure-navaid-ids departure-exit-fix-names))))]
+                          :ids (concat procedure-navaid-ids departure-exit-fix-names))))
+
+        closest-centers (future
+                          (time (->> @all-facilities
+                                     (filter :latitude)
+                                     (sort-by
+                                       #(do
+                                          (coord-distance
+                                            position
+                                            [(:latitude %)
+                                             (:longitude %)]))))))]
 
     {:id (:icao apt)
      :name (:name apt)
@@ -174,7 +191,11 @@
 
      :departure-fix-codes (->> departures
                                (map :departure-fix)
-                               (generate-departure-fix-codings))}))
+                               (generate-departure-fix-codings))
+
+     :center-facilities (->> @closest-centers
+                             (take 4)
+                             (mapv format-center-facility))}))
 
 (defn- build-airport-cli [{{:keys [icao nasr-path write]} :opts}]
   {:pre [icao nasr-path]}
