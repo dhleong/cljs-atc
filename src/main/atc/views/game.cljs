@@ -3,11 +3,12 @@
    ["@inlet/react-pixi" :as px]
    [archetype.util :refer [<sub]]
    [atc.events :as events]
-   [atc.styles :refer [full-screen]]
+   [atc.styles :refer [full-screen]] ; [atc.theme :as theme]
    [atc.views.game-setup :as game-setup]
    [atc.views.game.controls :refer [game-controls]]
    [atc.views.game.graphics.aircraft :as aircraft]
-   [atc.views.game.graphics.navaid :as navaid]
+   [atc.views.game.graphics.center-facility :as center-facility]
+   [atc.views.game.graphics.navaid :as navaid] ; [atc.views.game.graphics.polygon :refer [static-polygon]]
    [atc.views.game.graphics.runway :as runway]
    [atc.views.game.stage :refer [stage]]
    [atc.views.game.viewport :refer [viewport]]
@@ -38,6 +39,12 @@
      ^{:key (key-fn entity)}
      [positioner scale entity
       [render entity]])])
+
+(defn all-neighboring-sectors [entity-scale]
+  [entities-renderer {:scale entity-scale
+                      :<sub [:game/neighboring-centers]
+                      :key-fn :id
+                      :render center-facility/entity}])
 
 (defn all-runways []
   [entities-renderer {:scale 1
@@ -79,6 +86,8 @@
                   :world-width default-world-dimension
                   :world-height default-world-dimension}
 
+        ; [airspace-geometry]
+        [all-neighboring-sectors entity-scale]
         [all-runways]
         [all-aircraft entity-scale]
         [all-navaids entity-scale]]])))

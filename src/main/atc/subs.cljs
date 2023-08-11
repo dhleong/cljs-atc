@@ -2,6 +2,7 @@
   (:require
    [atc.data.airports :refer [runway->heading]]
    [atc.data.core :refer [local-xy]]
+   [atc.engine.model :refer [v* vec3]]
    [atc.structures.rolling-history :refer [most-recent-n]]
    [clojure.string :as str]
    [re-frame.core :refer [reg-sub]]))
@@ -125,6 +126,35 @@
   (fn [navaids]
     (when navaids
       (vals navaids))))
+
+; (reg-sub
+;   :game/airport-polygons
+;   :<- [:game/airport]
+;   (fn [{:keys [boundaries] :as airport}]
+;     (map
+;       (fn [{:keys [id points]}]
+;         {:id id
+;          :points (map
+;                    #(local-xy % airport)
+;                    points)})
+;       boundaries)))
+
+(reg-sub
+  :game/neighboring-centers
+  :<- [:game/airport]
+  (fn [{:keys [center-facilities] :as airport}]
+    (map-indexed
+      (fn [idx {:keys [id frequency position]}]
+        {:id id
+         :label (str "SECTOR " (inc idx))
+         :position (-> (local-xy position airport)
+                       vec3
+                       ; Push the positions away from the center of the map
+                       ; to try to avoid overlap with navaids
+                       (v* 1.8))
+         :frequency frequency})
+      center-facilities)))
+
 
 (reg-sub
   :game/airport-runway-ids

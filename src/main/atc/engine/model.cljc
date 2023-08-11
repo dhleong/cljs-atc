@@ -47,29 +47,29 @@
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defrecord Vec3 [x y z]
   Vector
-  (v+ [this ^Vec3 other]
+  (v+ [this other]
     (assoc this
            :x (+ x (:x other))
            :y (+ y (:y other))
-           :z (+ z (:z other 0))))
+           :z (+ (or z 0) (:z other 0))))
 
-  (v- [this ^Vec3 other]
+  (v- [this other]
     (assoc this
            :x (- x (:x other))
            :y (- y (:y other))
-           :z (- z (:z other 0))))
+           :z (- (or z 0) (:z other 0))))
 
   (v* [this other]
     (if (number? other)
       (assoc this
              :x (* x other)
              :y (* y other)
-             :z (* z other))
+             :z (when z (* z other)))
 
       (assoc this
              :x (* x (:x other))
              :y (* y (:y other))
-             :z (* z (:z other 1)))))
+             :z (* (or z 1) (:z other 1)))))
 
   (vmag2 [this]
     (let [{dx :x dy :y dz :z} this]
