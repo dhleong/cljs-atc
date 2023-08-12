@@ -17,13 +17,21 @@
   ; NOTE: We normalize the angle here such that 0 is "north" on the screen
   (to-radians (- heading 90)))
 
+(defn altitude-agl-m [airport ^Aircraft aircraft]
+  (- (:z (:position aircraft))
+     (ft->m (last (:position airport)))))
+
+
 ; ======= Radiology =======================================
+
+(defn build-utterance-from [craft]
+  (assoc (:pilot craft)
+         :name (:callsign craft)))
 
 (defn- build-utterance [craft parts]
   (when (seq parts)
     {:message (conj parts ["," craft])
-     :from (assoc (:pilot craft)
-                  :name (:callsign craft))}))
+     :from (build-utterance-from craft)}))
 
 
 ; ======= Main record =====================================

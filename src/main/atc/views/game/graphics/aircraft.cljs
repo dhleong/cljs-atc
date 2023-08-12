@@ -98,10 +98,11 @@
    [:> px/Text {:text (or track-symbol "＊")
                 :anchor 0.5
                 :style untracked-aircraft-style}]
-   [data-block-positioning craft
-    [:> px/Text {:text (format-altitude altitude)
-                 :anchor {:x 0 :y 0.5}
-                 :style untracked-aircraft-style}]]])
+   (when track-symbol
+     [data-block-positioning craft
+      [:> px/Text {:text (format-altitude altitude)
+                   :anchor {:x 0 :y 0.5}
+                   :style untracked-aircraft-style}]])])
 
 
 ; ======= Public interface ================================
@@ -111,9 +112,10 @@
         track (get tracked-map callsign)
         self-tracked? (:self? track)]
     ; TODO render different graphics based on aircraft state
-    (if self-tracked?
-      [tracked craft]
-      [untracked craft track])))
+    (cond
+      self-tracked? [tracked craft]
+      (some? track) [untracked craft track]
+      (> (:speed craft) 25) [untracked craft])))
 
 (defn entity-historical [_entity]
   [:> px/Container {:alpha 0.3}

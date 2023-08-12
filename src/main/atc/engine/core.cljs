@@ -6,6 +6,7 @@
    [atc.data.airports :refer [runway->heading runway-coords]]
    [atc.data.units :refer [ft->m]]
    [atc.engine.aircraft :as aircraft]
+   [atc.engine.aircraft.states :refer [update-state-machine]]
    [atc.engine.model :as engine-model :refer [consume-pending-communication
                                               IGameEngine pending-communication
                                               prepare-pending-communication Simulated spawn-aircraft tick]]
@@ -30,6 +31,17 @@
             (>evt [:speech/enqueue utterance]))
           (consume-pending-communication simulated))))))
 
+(defn- update-engine-states [engine callsigns dt]
+  (let [engine' (reduce
+                  (fn [engine' callsign]
+                    (or (update-state-machine engine' callsign dt)
+                        engine'))
+                  (assoc engine :speech/enqueue [])
+                  callsigns)]
+    (doseq [enqueued (:speech/enqueue engine')]
+      (>evt [:speech/enqueue enqueued]))
+    (dissoc engine' :speech/enqueue)))
+
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defrecord Engine [airport aircraft parsing-machine
                    tracked-aircraft
@@ -48,23 +60,22 @@
                   0)
                 0.001)
 
-          ; Tick all aircraft, and detect events like landing, etc.
-          updated-aircraft (reduce-kv
-                             (fn [m callsign aircraft]
-                               (let [updated (tick aircraft dt)]
-                                 (if (= :landed (:state updated))
-                                   (update m ::events conj {:type :aircraft-landed
-                                                            :aircraft updated})
-                                   (assoc m callsign updated))))
-                             {}
-                             aircraft)]
+          ; Tick all aircraft
+          updated-aircraft (reduce
+                             (fn [m callsign]
+                               (update m callsign tick dt))
+                             aircraft
+                             (keys aircraft))
 
-      (assoc this
-             :aircraft (dissoc updated-aircraft ::events)
-             :elapsed-s (+ (:elapsed-s this) dt)
-             :events (::events updated-aircraft)
-             :last-tick (when-not (= 0 time-scale)
-                          now))))
+          ; Stash back in the engine, with updated timestamps
+          engine (assoc this
+                        :aircraft updated-aircraft
+                        :elapsed-s (+ (:elapsed-s this) dt)
+                        :last-tick (when-not (= 0 time-scale)
+                                     now))]
+
+      ; Now update the engine, detecting any events like landing, etc.
+      (update-engine-states engine (keys aircraft) dt)))
 
   (command [this command]
     ; NOTE: The Engine actually receives a full Command object so we know where
@@ -129,7 +140,7 @@
       spawn-aircraft
       (map->Engine
         {:aircraft {}
-         :tracked-aircraft {"DAL22" {:self? true}} ; TODO Empty this out when we handle handoffs
+         :tracked-aircraft {}
          :airport airport
          :parsing-machine (build-machine (airport-parsing/generate-parsing-context airport))
          :elapsed-s 0
