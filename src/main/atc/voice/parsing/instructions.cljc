@@ -19,14 +19,14 @@
    "cleared-approach = <'cleared'> approach-type <'approach'>? <'runway'>? runway <'approach'>?"
    "cancel-approach = <'cancel'> <'approach clearance'>"
 
-   "contact-other = <'contact'> other-position <frequency>? pleasantry?"
+   "contact-other = <'contact'> other-position frequency? pleasantry?"
 
    "direct = <'proceed direct'> navaid"
 
    "steer = (<'fly'> | 'turn right' | 'turn left') <'heading'> heading"])
 
 (def rules
-  (concat 
+  (concat
     ["command = callsign instruction+"
      (str "<instruction> = " (->> instructions-rules
                                   (map #(let [parts (str/split % #" = ")]
@@ -43,6 +43,13 @@
   {:command (fn [callsign & instructions]
               {:callsign (second callsign)
                :instructions instructions})
+
+   :contact-other (fn [other-position & etc]
+                    [:contact-other
+                     other-position
+                     {:frequency (when (= :frequency (ffirst etc))
+                                   (second (first etc)))
+                      :pleasant? (= :pleasantry (first (last etc)))}])
 
    :steer (fn [?direction ?heading]
             (if ?heading

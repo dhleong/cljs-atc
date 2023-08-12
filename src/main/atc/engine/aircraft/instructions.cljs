@@ -47,6 +47,28 @@
             (utter "cancel approach"))))
 
 (defmethod dispatch-instruction
+ :contact-other
+ [craft {:keys [airport]} [_ other-position {:keys [frequency pleasant?]}]]
+ ; TODO Check if the given frequency is valid
+ (let [new-track (case other-position
+                   :tower (get-in airport [:positions :twr])
+                   :ground (get-in airport [:positions :gnd])
+                   :center {:track-symbol "C"
+                            ; TODO filter by provided frequency
+                            :frequency (->> airport
+                                            :center-facilities
+                                            first
+                                            :frequency)})]
+   (-> craft
+       (assoc :state :handing-off)
+       (update :commands assoc :handoff-to {:position other-position
+                                            :track new-track
+                                            :frequency frequency})
+       (utter "over to" (name other-position)
+              (when pleasant?
+                "good day")))))
+
+(defmethod dispatch-instruction
   :steer
   [craft _ [_ heading steer-direction]]
   ; TODO Check state; if in approach, we should reject

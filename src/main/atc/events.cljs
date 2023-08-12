@@ -364,4 +364,5 @@
 (comment
   (dispatch [:game/reset])
 
-  (dispatch [::voice-handle-text "delta twenty two turn right heading one eight zero"]))
+  (dispatch [::voice-handle-text "delta twenty two turn right heading one eight zero"])
+  (dispatch [::voice-handle-text "delta twenty two contact center point eight good day"]))

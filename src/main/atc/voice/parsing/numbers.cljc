@@ -86,4 +86,12 @@
    :altitude-thousands-feet (fn [thousands]
                               (* 1000 thousands))
    :flight-level (fn [hundreds]
-                   (* 100 hundreds))})
+                   (* 100 hundreds))
+   :frequency (fn [& parts]
+                [:frequency (->> parts
+                                 (transduce
+                                   (mapcat (fn [part]
+                                             (if (string? part)
+                                               ["."]
+                                               part)))
+                                   str ""))])})

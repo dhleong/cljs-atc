@@ -11,6 +11,24 @@
   (fn [engine callsign _dt]
     (get-in engine [:aircraft callsign :state])))
 
+(defmethod update-state-machine :handing-off
+  [engine callsign _dt]
+  (let [aircraft (get-in engine [:aircraft callsign])
+        handoff-data (get-in aircraft [:commands :handoff-to])]
+    (cond-> engine
+      true (assoc-in [:aircraft callsign :state] (case (:position handoff-data)
+                                                   :center :flight
+                                                   :tower :landing
+                                                   :ground :taxi))
+      true (update :tracked-aircraft assoc callsign (:track handoff-data))
+
+      ; If we just handed off to center, this plane is out of here!
+      ; TODO Center might reject the handoff if they're not near the edge
+      ; of our airspace....
+      (= :center (:position handoff-data))
+      (update :events conj {:type :aircraft-departed
+                            :aircraft aircraft}))))
+
 (defmethod update-state-machine :takeoff
   [engine callsign _dt]
   (let [aircraft (get-in engine [:aircraft callsign])
