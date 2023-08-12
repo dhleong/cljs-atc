@@ -31,6 +31,7 @@
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defrecord Aircraft [^AircraftConfig config
                      ^String callsign, ^String radio-name, pilot
+                     tx-frequency
                      state
                      ^Vec3 position heading speed
                      commands]

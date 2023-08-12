@@ -7,6 +7,7 @@
    [atc.nasr.fix :as fix]
    [atc.nasr.nav :as nav]
    [atc.nasr.stardp :as stardp]
+   [atc.nasr.twr :as twr]
    [atc.okay :as okay]
    [clojure.java.io :as io]))
 
@@ -53,3 +54,7 @@
 (defn find-procedures [zip-file airport-id]
   (with-open [in (okay/open-zip-file zip-file "STARDP.txt")]
     (stardp/find-procedures in airport-id)))
+
+(defn find-terminal-frequencies [zip-file facility-id]
+  (with-open [in (okay/open-zip-file zip-file "TWR.txt")]
+    (twr/find-terminal-frequencies in facility-id)))

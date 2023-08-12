@@ -93,6 +93,7 @@
                  (-> this :airport :departure-routes
                      (get (:destination opts))
                      (rename-key :fix :departure-fix))
+                 {:tx-frequency :self} ; NOTE: default to "my" frequency
                  (when runway
                    ; FIXME: This heading doesn't seem to *look* quite correct
                    ; TODO get target altitude from the airport/departure?
@@ -100,6 +101,9 @@
                      {:heading (runway->heading (:airport this) runway)
                       :position position
                       :speed 0
+                      :state :takeoff
+                      :tx-frequency (get-in (:airport this)
+                                            [:positions :twr :frequency])
                       :commands {:target-altitude (+ (ft->m 5000)
                                                      (:z position))
                                  :target-speed (min config/speed-limit-under-10k-kts

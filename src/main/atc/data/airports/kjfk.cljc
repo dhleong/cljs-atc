@@ -566,4 +566,8 @@
    {:id "SHELTON",
     :position [:N41*19'37.340 :W073*06'55.390],
     :frequency "126.275"}],
-  :position [:N40*38'23.7410 :W073*46'43.2920 13.0]})
+  :position [:N40*38'23.7410 :W073*46'43.2920 13.0],
+  :positions
+  {:cd {:frequency "135.05", :track-symbol "D"},
+   :twr {:frequency "119.1", :track-symbol "T"},
+   :gnd {:frequency "121.9", :track-symbol "G"}}})

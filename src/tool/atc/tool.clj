@@ -120,6 +120,7 @@
         {[apt] :apt :as data} (time (nasr/find-airport-data zip-file icao))
         runways (compose-runways data)
         position [(:latitude apt) (:longitude apt) (:elevation apt)]
+        all-frequencies (future (nasr/find-terminal-frequencies zip-file (:id apt)))
 
         procedures (time (nasr/find-procedures zip-file (:id apt)))
         departures (time (nasr/find-departure-routes zip-file icao))
@@ -195,7 +196,27 @@
 
      :center-facilities (->> @closest-centers
                              (take 4)
-                             (mapv format-center-facility))}))
+                             (mapv format-center-facility))
+
+     :positions {:cd {:frequency (->> @all-frequencies
+                                      (filter #(and
+                                                 (nil? (:sectorization %))
+                                                 (str/starts-with? (:usage %) "CD")))
+                                      first
+                                      :frequency)
+                      :track-symbol "D"}
+                 :twr {:frequency (->> @all-frequencies
+                                       (filter #(= "LCL/P" (:usage %)))
+                                       first
+                                       :frequency)
+                       :track-symbol "T"}
+                 :gnd {:frequency (->> @all-frequencies
+                                       (filter #(= "GND/P" (:usage %)))
+                                       first
+                                       :frequency)
+                       :track-symbol "G"}
+                 ; NOTE: app/dep positions aren't always provided...
+}}))
 
 (defn- build-airport-cli [{{:keys [icao nasr-path write]} :opts}]
   {:pre [icao nasr-path]}

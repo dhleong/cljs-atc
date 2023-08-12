@@ -127,6 +127,15 @@
 (def justified-int (partial justified-string-number #(Long/parseLong %)))
 (def justified-float (partial justified-string-number #(Double/parseDouble %)))
 
+(defn repeated-record [repeat-count record]
+  ((with-bytes-count (* repeat-count
+                        (fixed-record-length record)))
+    (fn repeated-record [^BufferedSource frame]
+      (vec
+        (repeatedly
+          repeat-count
+          #(read-record record frame))))))
+
 (defn ignore-bytes [bytes-count]
   ((with-bytes-count bytes-count)
     (fn ignore-bytes
