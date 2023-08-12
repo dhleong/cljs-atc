@@ -144,6 +144,6 @@
          :airport airport
          :parsing-machine (build-machine (airport-parsing/generate-parsing-context airport))
          :elapsed-s 0
-         :events nil
+         :events []
          :time-scale 1})
       aircraft)))

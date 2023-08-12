@@ -9,6 +9,7 @@
   {:page [:game]
 
    :game-history (rolling-history max-game-snapshots)
+   :game-events []
 
    ; Vec of {:speaker str, :text str, :self? bool}
    :radio-history []

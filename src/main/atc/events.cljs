@@ -112,10 +112,16 @@
   (fn [{:keys [db]} _]
     (when-let [engine (:engine db)]
       (let [engine' (engine-model/tick engine nil)
-            new-events (:events engine)
-            engine' (assoc engine' :events nil)
+            event-metadata {:elapsed-s (:elapsed-s engine')}
+            new-events (map
+                         (fn [event-vec]
+                           (conj event-vec event-metadata))
+                         (:events engine'))
+            engine' (assoc engine' :events [])
 
-            db' (assoc db :engine engine')
+            db' (-> db
+                    (assoc :engine engine')
+                    (update :game-events into new-events))
 
             seconds-since-last-snapshot (- (:elapsed-s engine')
                                            (:elapsed-s (peek (:game-history db))))]
@@ -147,6 +153,7 @@
     (println "Clear game engine")
     {:db (-> db
              (dissoc :engine :engine-config)
+             (update :game-events empty)
              (update :game-history empty)
              (update :radio-history empty))
      :dispatch [:voice/stop!]}))
