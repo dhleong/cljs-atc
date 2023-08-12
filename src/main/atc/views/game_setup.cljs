@@ -1,6 +1,6 @@
 (ns atc.views.game-setup
   (:require
-   [archetype.util :refer [>evt]]
+   [archetype.util :refer [<sub >evt]]
    [atc.data.airports :refer [list-airports]]
    [atc.styles :refer [full-screen]]
    [garden.units :refer [px]]
@@ -11,6 +11,34 @@
    [santiago.select :refer [select]]
    [spade.core :refer [defattrs]]))
 
+(defattrs last-game-info-attrs []
+  {:margin-right (px 16)
+   :background :*background-secondary*
+   :border-radius (px 4)
+   :padding (px 32)}
+  [:.title {:margin 0}]
+  [:.stats {:text-align :left
+            :margin [[(px 16) 0]]}])
+
+(defn- last-game-info []
+  (when-let [{:keys [airport counts elapsed-time]} (<sub [:last-game/summary])]
+    [:div (last-game-info-attrs)
+     [:h3.title "Last game"]
+
+     [:table.stats
+      [:tr
+       [:th "Airport"]
+       [:td (:id airport)]]
+      [:tr
+       [:th "Elapsed Time"]
+       [:td elapsed-time]]
+      [:tr
+       [:th "Aircraft Deparated"]
+       [:td (:aircraft-departed counts 0)]]]
+
+     [:button {:on-click #(>evt [:game/resume-last])}
+      "Resume"]]))
+
 (defattrs setup-container-attrs []
   {:composes (full-screen)
    :background :*background*
@@ -19,7 +47,7 @@
   [:.title {:margin 0}]
   [:.content {:align-items :center
               :background :*background-secondary*
-              :border-radius (px 8)
+              :border-radius (px 4)
               :display :flex
               :flex-direction :column
               :padding (px 32)
@@ -55,6 +83,8 @@
                loading? (r/atom false)
                on-start-game (partial start-game! loading?)]
     [:div (setup-container-attrs)
+     [last-game-info]
+
      [:div.content
       [:h1.title "cljs-atc"]
 

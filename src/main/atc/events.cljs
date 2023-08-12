@@ -88,8 +88,26 @@
 (reg-event-fx
   :game/init
   [unwrap]
-  (fn [_ game-options]
-    {:game/init-async game-options}))
+  (fn [{:keys [db]} game-options]
+    {:db (dissoc db :last-game) ; We can release this memory, now
+     :game/init-async game-options}))
+
+(reg-event-fx
+  :game/resume-last
+  [unwrap]
+  (fn [{:keys [db]}]
+    (if-some [last-game (:last-game db)]
+      {:db (-> db
+               (dissoc :last-game)
+               (merge last-game))
+       :fx [[:dispatch
+             [:game/init-loaded-engine
+              (assoc (:engine-config last-game)
+                     :engine (-> (:engine last-game)
+                                 (assoc :time-scale 1)))]]]}
+
+      (throw (ex-info "Invalid state: cannot :game/resume-last without last-game"
+                      {})))))
 
 (reg-event-fx
   :game/init-loaded-engine
@@ -155,7 +173,10 @@
              (dissoc :engine :engine-config)
              (update :game-events empty)
              (update :game-history empty)
-             (update :radio-history empty))
+             (update :radio-history empty)
+             (assoc :last-game (select-keys db [:engine :engine-config
+                                                :game-events :game-history
+                                                :radio-history])))
      :dispatch [:voice/stop!]}))
 
 (reg-event-fx

@@ -4,12 +4,14 @@
    [atc.data.core :refer [local-xy]]
    [atc.engine.model :refer [v* vec3]]
    [atc.structures.rolling-history :refer [most-recent-n]]
+   [clojure.math :refer [floor]]
    [clojure.string :as str]
    [re-frame.core :refer [reg-sub]]))
 
 (reg-sub
   :page
   :-> :page)
+
 
 ; ======= Voice ===========================================
 
@@ -212,3 +214,26 @@
 (reg-sub
   :radio-history
   :-> :radio-history)
+
+
+; ======= Game stats ======================================
+
+(reg-sub
+  :last-game
+  :-> :last-game)
+
+(reg-sub
+  :last-game/summary
+  :<- [:last-game]
+  (fn [{:keys [engine game-events]}]
+    (when game-events
+      (let [events-by-type (->> game-events
+                                (group-by :type))]
+        {:airport (:airport engine)
+         :elapsed-time (->> engine
+                            :elapsed-s
+                            floor) ; TODO format?
+         :counts (->> events-by-type
+                      (map (fn [[k events]]
+                             [k (count events)]))
+                      (into {}))}))))
