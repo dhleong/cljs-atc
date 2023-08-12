@@ -85,13 +85,26 @@
   :-> :aircraft)
 
 (reg-sub
+  :game/tracked-aircraft-map
+  :<- [::engine]
+  :-> :tracked-aircraft)
+
+(reg-sub
   :game/aircraft
   :<- [:game/aircraft-map]
   :-> vals)
 
 (reg-sub
-  :game/aircraft-historical
+  :game/tracked-aircraft
   :<- [:game/aircraft]
+  :<- [:game/tracked-aircraft-map]
+  (fn [aircraft tracked-map]
+    (->> aircraft
+         (filter #(get-in tracked-map [(:callsign %) :self?])))))
+
+(reg-sub
+  :game/aircraft-historical
+  :<- [:game/tracked-aircraft]
   :<- [:game/recent-history]
   (fn [[current history]]
     (->> current

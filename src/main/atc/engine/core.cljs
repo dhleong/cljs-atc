@@ -31,7 +31,10 @@
           (consume-pending-communication simulated))))))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
-(defrecord Engine [airport aircraft parsing-machine time-scale elapsed-s last-tick events]
+(defrecord Engine [airport aircraft parsing-machine
+                   tracked-aircraft
+                   time-scale elapsed-s last-tick
+                   events]
   ; NOTE: It is sort of laziness that we're implementing Simulated here,
   ; since we aren't, properly. Technically we should have a separate Simulator
   ; protocol and implement that to be more correct...
@@ -122,6 +125,7 @@
       spawn-aircraft
       (map->Engine
         {:aircraft {}
+         :tracked-aircraft {"DAL22" {:self? true}} ; TODO Empty this out when we handle handoffs
          :airport airport
          :parsing-machine (build-machine (airport-parsing/generate-parsing-context airport))
          :elapsed-s 0

@@ -17,12 +17,13 @@
                                              :fontSize 8}))
 
 (def untracked-aircraft-style (TextStyle. #js {:fill theme/aircraft-untracked-obj
-                                               :fontSize 8}))
+                                               :fontFamily "monospace"
+                                               :fontSize 12}))
 
 ; ======= Data formatting =================================
 
 (defn- format-data-block-line [line]
-  ; TODO Should we to some length...?
+  ; TODO Should we trim to some length...?
   (str/join " " line))
 
 (defn format-altitude [altitude-meters]
@@ -91,26 +92,28 @@
    [data-block-positioning craft
     [full-data-block craft]]])
 
-(defn- untracked [{{altitude :z} :position :as craft}]
+(defn- untracked [{{altitude :z} :position :as craft}
+                  {:keys [track-symbol]}]
   [:<>
-   [:> px/Text {:text "*"
+   [:> px/Text {:text (or track-symbol "＊")
                 :anchor 0.5
-                :x 0
-                :y 0
                 :style untracked-aircraft-style}]
    [data-block-positioning craft
     [:> px/Text {:text (format-altitude altitude)
+                 :anchor {:x 0 :y 0.5}
                  :style untracked-aircraft-style}]]])
 
 
 ; ======= Public interface ================================
 
 (defn entity [{:keys [callsign] :as craft}]
-  ; TODO render different graphics based on aircraft state
-  ; TODO "tracked" vs "untracked" state
-  (if callsign
-    [tracked craft]
-    [untracked craft]))
+  (let [tracked-map (<sub [:game/tracked-aircraft-map])
+        track (get tracked-map callsign)
+        self-tracked? (:self? track)]
+    ; TODO render different graphics based on aircraft state
+    (if self-tracked?
+      [tracked craft]
+      [untracked craft track])))
 
 (defn entity-historical [_entity]
   [:> px/Container {:alpha 0.3}
