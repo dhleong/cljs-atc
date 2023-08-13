@@ -18,4 +18,6 @@
                 ; TODO weather; runway selection
                 :runway (-> airport :runways first :start-id)
                 :config configs/common-jet}
-     :delay-to-next-s 100}))
+
+     ; TODO This should at least depend on the spawned aircraft's speed, etc. Maybe "difficulty"?
+     :delay-to-next-s 240}))

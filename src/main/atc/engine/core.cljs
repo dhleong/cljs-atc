@@ -8,8 +8,8 @@
    [atc.engine.aircraft.states :refer [update-state-machine]]
    [atc.engine.model :as engine-model :refer [consume-pending-communication
                                               IGameEngine pending-communication
-                                              prepare-pending-communication Simulated spawn-aircraft tick]]
-   [atc.game.traffic.model :refer [next-departure]]
+                                              prepare-pending-communication Simulated tick]]
+   [atc.engine.queues :refer [run-queues]]
    [atc.radio :as radio]
    [atc.util.maps :refer [rename-key]]
    [atc.voice.parsing.airport :as airport-parsing]
@@ -45,6 +45,7 @@
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defrecord Engine [airport aircraft parsing-machine
                    tracked-aircraft
+                   traffic queues
                    time-scale elapsed-s last-tick
                    events]
   ; NOTE: It is sort of laziness that we're implementing Simulated here,
@@ -74,8 +75,12 @@
                         :last-tick (when-not (= 0 time-scale)
                                      now))]
 
-      ; Now update the engine, detecting any events like landing, etc.
-      (update-engine-states engine (keys aircraft) dt)))
+      (-> engine
+          ; Now update the engine, detecting any events like landing, etc.
+          (update-engine-states (keys aircraft) dt)
+
+          ; And process any "queued" events (like generating departures)
+          (run-queues))))
 
   (command [this command]
     ; NOTE: The Engine actually receives a full Command object so we know where
@@ -119,6 +124,7 @@
                                                      (:z position))
                                  :target-speed (min config/speed-limit-under-10k-kts
                                                     (:cruise-speed config))}})))]
+      (println "[engine] spawn" callsign)
       (update this :aircraft assoc callsign (aircraft/create config data)))))
 
 (defn engine-grammar [^Engine engine]
@@ -130,19 +136,13 @@
 
 (defn generate [{:keys [airport traffic]}]
   ; TODO: Probably, generate the parsing-machine elsewhere for better loading states
-  (let [engine (map->Engine
-                 {:aircraft {}
-                  :tracked-aircraft {}
-                  :airport airport
-                  :parsing-machine (build-machine (airport-parsing/generate-parsing-context airport))
-                  :elapsed-s 0
-                  :events []
-                  :time-scale 1})
-
-        departure (next-departure traffic engine)
-        aircraft [(:aircraft departure)]]
-    ; TODO stash :delay-to-next-s from next-departure somewhere
-    (reduce
-      spawn-aircraft
-      engine
-      aircraft)))
+  (map->Engine
+    {:aircraft {}
+     :tracked-aircraft {}
+     :airport airport
+     :traffic traffic
+     :parsing-machine (build-machine (airport-parsing/generate-parsing-context airport))
+     :elapsed-s 0
+     :events []
+     :queues {}
+     :time-scale 1}))
