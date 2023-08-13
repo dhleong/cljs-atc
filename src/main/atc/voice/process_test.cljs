@@ -39,7 +39,8 @@
    (testing "Multiple instructions"
     (is (= {:callsign "N2"
             :instructions [[:adjust-altitude 11000]
-                           [:contact-other :tower]]}
+                           [:contact-other :tower {:frequency nil
+                                                   :pleasant? false}]]}
            (find-command "piper two climb maintain one one thousand contact tower"))))
 
    (testing "Handle unparseable input gracefully"
