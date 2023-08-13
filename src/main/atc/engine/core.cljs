@@ -2,7 +2,6 @@
   (:require
    [archetype.util :refer [>evt]]
    [atc.config :as config]
-   [atc.data.aircraft-configs :as configs]
    [atc.data.airports :refer [runway->heading runway-coords]]
    [atc.data.units :refer [ft->m]]
    [atc.engine.aircraft :as aircraft]
@@ -10,6 +9,7 @@
    [atc.engine.model :as engine-model :refer [consume-pending-communication
                                               IGameEngine pending-communication
                                               prepare-pending-communication Simulated spawn-aircraft tick]]
+   [atc.game.traffic.model :refer [next-departure]]
    [atc.radio :as radio]
    [atc.util.maps :refer [rename-key]]
    [atc.voice.parsing.airport :as airport-parsing]
@@ -128,22 +128,21 @@
   (when-not (= 0 (:time-scale engine))
     (* 250 (/ 1 (:time-scale engine)))))
 
-(defn generate [airport]
+(defn generate [{:keys [airport traffic]}]
   ; TODO: Probably, generate the parsing-machine elsewhere for better loading states
-  (let [aircraft [{:type :airline
-                   :airline "DAL"
-                   :flight-number 22
-                   :destination (-> airport :departure-routes ffirst)
-                   :runway (-> airport :runways first :start-id)
-                   :config configs/common-jet}]]
+  (let [engine (map->Engine
+                 {:aircraft {}
+                  :tracked-aircraft {}
+                  :airport airport
+                  :parsing-machine (build-machine (airport-parsing/generate-parsing-context airport))
+                  :elapsed-s 0
+                  :events []
+                  :time-scale 1})
+
+        departure (next-departure traffic engine)
+        aircraft [(:aircraft departure)]]
+    ; TODO stash :delay-to-next-s from next-departure somewhere
     (reduce
       spawn-aircraft
-      (map->Engine
-        {:aircraft {}
-         :tracked-aircraft {}
-         :airport airport
-         :parsing-machine (build-machine (airport-parsing/generate-parsing-context airport))
-         :elapsed-s 0
-         :events []
-         :time-scale 1})
+      engine
       aircraft)))
