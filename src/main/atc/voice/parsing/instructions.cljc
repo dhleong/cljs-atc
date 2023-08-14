@@ -32,10 +32,9 @@
 (defalternates-expr ^:hide-tag instruction
   (->> instructions-rules
        :grammar
-       keys
-       (map name)))
+       keys))
 
-(defrules rules
+(defrules ^:private core-rules
   ["command = callsign instruction+"
 
    "approach-type = 'i l s' | 'r nav' | 'visual'"
@@ -46,6 +45,10 @@
    :instruction instruction
    :number-sequence nil
    :letter nil})
+
+(def rules (merge-with merge
+                       core-rules
+                       instructions-rules))
 
 (def transformers
   {:command (fn [callsign & instructions]

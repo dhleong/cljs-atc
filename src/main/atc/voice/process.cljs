@@ -1,6 +1,7 @@
 (ns atc.voice.process
   (:require
-   [atc.util.instaparse :as instaparse]
+   [atc.data.airports :refer [airport-parsing-rules
+                              airport-parsing-transformers]]
    [atc.util.with-timing :refer-macros [with-timing]]
    [atc.voice.parsing.callsigns :as callsigns]
    [atc.voice.parsing.instructions :as instructions]
@@ -10,12 +11,13 @@
    [clojure.string :as str]
    [instaparse.core :as insta]))
 
-(def builtin-rules (merge-with merge
-                     instructions/rules
-                     navaids/rules
-                     letters/rules
-                     callsigns/rules
-                     numbers/rules))
+(def builtin-rules (->> [instructions/rules
+                         navaids/rules
+                         callsigns/rules
+                         letters/rules
+                         numbers/rules]
+                        (map :grammar)
+                        (apply merge)))
 
 (def builtin-transformers (merge
                             instructions/transformers
@@ -24,15 +26,21 @@
                             numbers/transformers
                             callsigns/transformers))
 
-(defn build-machine [airport-context]
-  {:fsm (with-timing "build-machine"
-          (-> (insta/parser
-                (str/join "\n" (concat (:rules airport-context)
-                                       (instaparse/generate-grammar-nops
-                                         (keys (:grammar builtin-rules)))))
-                :auto-whitespace :standard)
-              (update :grammar merge builtin-rules)))
-   :transformers (merge builtin-transformers (:transformers airport-context))})
+(defn build-machine
+  ([airport] (let [kw (-> (:id airport)
+                          str/lower-case
+                          keyword)]
+               (build-machine (airport-parsing-rules kw)
+                              (airport-parsing-transformers kw))))
+  ([airport-rules airport-transformers]
+   {:fsm (with-timing "build-machine"
+           (-> (merge
+                 builtin-rules
+                 (:grammar airport-rules))
+               (insta/parser :start :command
+                             :auto-whitespace :standard)))
+    :transformers (merge builtin-transformers
+                         airport-transformers)}))
 
 (defn- parse-input [machine input]
   (insta/parse (:fsm machine) input :total true))

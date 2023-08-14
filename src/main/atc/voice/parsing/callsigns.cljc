@@ -10,14 +10,14 @@
    "brickyard" "RPA"
    "south west" "SWA"})
 
-(defalternates ^:hide-tag plane-types
+(defalternates ^:hide-tag plane-type
   ["piper"])
 
 (defrules rules
   ["callsign = airline-callsign | ga-callsign"
    "airline-callsign = airline-names number-sequence"
    "ga-callsign = <('november' | plane-type)> number-sequence (letter-sequence)?"]
-  {:plane-type plane-types
+  {:plane-type plane-type
    :airline-names airline-names
    :number-sequence nil
    :letter-sequence nil}

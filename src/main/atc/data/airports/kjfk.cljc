@@ -1,4 +1,7 @@
-(ns atc.data.airports.kjfk)
+(ns atc.data.airports.kjfk
+ (:require
+  [atc.voice.parsing.airport :as parsing]
+  [atc.util.instaparse :refer-macros [defalternates-expr]]))
 
 (def airport
  {:magnetic-north -13.0,
@@ -571,3 +574,15 @@
   {:cd {:frequency "135.05", :track-symbol "D"},
    :twr {:frequency "119.1", :track-symbol "T"},
    :gnd {:frequency "121.9", :track-symbol "G"}}})
+
+
+(def navaids-by-pronunciation
+  (parsing/airport->navaids-by-pronunciation airport))
+
+(defalternates-expr navaid-pronounced
+  (keys navaids-by-pronunciation))
+
+(def exports
+ {:airport airport
+  :navaids-by-pronunciation navaids-by-pronunciation
+  :navaid-pronounced navaid-pronounced})

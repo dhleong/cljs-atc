@@ -23,6 +23,10 @@
                  (keyword? n) (subs 1)))
        nop-names))
 
+(defn extract-grammar [v]
+  (or (:grammar (meta v))
+      (:grammar v)))
+
 (defmacro defalternates
   "The name can be tagged with ^:hide-tag to hide the tag from the output.
    This is equivalent to declaring the rule with <angle brackets> around the
@@ -39,25 +43,35 @@
                   ~value
                   {:grammar ~(compile-grammar parseable-grammar)}))))
 
+(defn format-alternate-expr [v]
+  (cond
+    (string? v)
+    {:tag :string, :string v}
+
+    (keyword? v)
+    {:tag :nt :keyword v}))
+
 (defmacro defalternates-expr [name expr]
-  (let [red (if (:hide-tag (meta name))
+  (let [kw (keyword (str name))
+        red (if (:hide-tag (meta name))
               {:reduction-type :raw}
-              {:reduction-type :hiccup, :key :other-position})]
+              {:reduction-type :hiccup, :key kw})]
     `(def ~name {:grammar
-                 {~(keyword (str name))
+                 {~kw
                   {:tag :alt
                    :red ~red
                    :parsers (->> ~expr
-                                 (map (fn [v#]
-                                        {:tag :string, :string v#})))}}})))
+                                 (map format-alternate-expr))}}})))
 
-(defn- format-dependencies-map [dependencies-map]
-  (->> dependencies-map
-       (map (fn [[k v]]
-              [k
-               `(or (:grammar (meta ~v))
-                    (:grammar ~v))]))
-       (into {})))
+(defn- format-dependencies-map [grammar dependencies-map]
+  (if-some [deps (->> dependencies-map
+                      vals
+                      (keep (fn [v]
+                              (when v
+                                `(extract-grammar ~v))))
+                      seq)]
+    (concat `(merge ~grammar) deps)
+    grammar))
 
 (defmacro defrules
   "Declare a set of composed rules. `dependencies` may be a list of
@@ -80,6 +94,6 @@
                       (as-> g
                         (apply dissoc g nop-names)))
          grammar (cond-> compiled
-                   (map? dependencies) (merge (format-dependencies-map
-                                                dependencies)))]
+                   (map? dependencies)
+                   (format-dependencies-map dependencies))]
      `(def ~name {:grammar ~grammar}))))

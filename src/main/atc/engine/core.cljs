@@ -12,7 +12,6 @@
    [atc.engine.queues :refer [run-queues]]
    [atc.radio :as radio]
    [atc.util.maps :refer [rename-key]]
-   [atc.voice.parsing.airport :as airport-parsing]
    [atc.voice.process :refer [build-machine]]))
 
 (defn- dispatch-instructions [^Simulated simulated, context instructions]
@@ -141,7 +140,7 @@
      :tracked-aircraft {}
      :airport airport
      :traffic traffic
-     :parsing-machine (build-machine (airport-parsing/generate-parsing-context airport))
+     :parsing-machine (build-machine airport)
      :elapsed-s 0
      :events []
      :queues {}
