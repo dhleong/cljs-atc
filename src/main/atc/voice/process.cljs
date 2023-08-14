@@ -11,7 +11,7 @@
    [instaparse.core :as insta]))
 
 (def builtin-rules (merge-with merge
-                     #_instructions/rules
+                     instructions/rules
                      navaids/rules
                      letters/rules
                      callsigns/rules
@@ -27,8 +27,7 @@
 (defn build-machine [airport-context]
   {:fsm (with-timing "build-machine"
           (-> (insta/parser
-                (str/join "\n" (concat instructions/rules
-                                       (:rules airport-context)
+                (str/join "\n" (concat (:rules airport-context)
                                        (instaparse/generate-grammar-nops
                                          (keys (:grammar builtin-rules)))))
                 :auto-whitespace :standard)

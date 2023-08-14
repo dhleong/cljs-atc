@@ -39,6 +39,18 @@
                   ~value
                   {:grammar ~(compile-grammar parseable-grammar)}))))
 
+(defmacro defalternates-expr [name expr]
+  (let [red (if (:hide-tag (meta name))
+              {:reduction-type :raw}
+              {:reduction-type :hiccup, :key :other-position})]
+    `(def ~name {:grammar
+                 {~(keyword (str name))
+                  {:tag :alt
+                   :red ~red
+                   :parsers (->> ~expr
+                                 (map (fn [v#]
+                                        {:tag :string, :string v#})))}}})))
+
 (defn- format-dependencies-map [dependencies-map]
   (->> dependencies-map
        (map (fn [[k v]]

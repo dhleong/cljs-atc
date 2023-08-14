@@ -29,5 +29,6 @@
            secretary.core/defroute clojure.core/fn
 
            atc.util.instaparse/defalternates clojure.core/def
+           atc.util.instaparse/defalternates-expr clojure.core/def
            atc.util.instaparse/defrules clojure.core/def}}
 
