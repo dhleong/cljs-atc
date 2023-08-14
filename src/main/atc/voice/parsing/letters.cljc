@@ -1,8 +1,8 @@
 (ns atc.voice.parsing.letters
   (:require
-   [atc.voice.parsing.core :refer [declare-alternates]]))
+   [atc.util.instaparse :refer-macros [defalternates defrules]]))
 
-(def letter-values
+(defalternates letter
   {"alpha" "A"
    "bravo" "B"
    "charlie" "C"
@@ -30,10 +30,10 @@
    "yankee" "Y"
    "zulu" "Z"})
 
-(def rules
-  ["letter-sequence = letter+"
-   (declare-alternates "letter" (keys letter-values))])
+(defrules rules
+  "letter-sequence = letter+"
+  {:letter letter})
 
 (def transformers
-  {:letter letter-values
+  {:letter letter
    :letter-sequence (fn [& values] values)})

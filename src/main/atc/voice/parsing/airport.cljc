@@ -14,10 +14,5 @@
                                             id))
                                    {}
                                    (:navaids airport))]
-    {:rules ["<navaid> = navaid-pronounced | navaid-spelled"
-             "navaid-spelled = (letter letter letter <'v o r'>?) | (letter letter letter letter letter <'intersection'>?)"
-
-             (declare-alternates "navaid-pronounced" (keys navaids-by-pronunciation))]
-     :transformers {:navaid-pronounced navaids-by-pronunciation
-                    :navaid-spelled (fn [& letters]
-                                      (str/join letters))}}))
+    {:rules [(declare-alternates "navaid-pronounced" (keys navaids-by-pronunciation))]
+     :transformers {:navaid-pronounced navaids-by-pronunciation}}))

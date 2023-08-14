@@ -1,26 +1,30 @@
 (ns atc.voice.parsing.callsigns
   (:require
-   [atc.data.airlines :refer [all-airlines]]
-   [atc.voice.parsing.core :refer [declare-alternates]]))
+   [atc.util.instaparse :refer-macros [defalternates defrules]]))
 
-(def airlines
-  (->> all-airlines
-       (map (fn [[id {:keys [radio-name]}]]
-              [radio-name id]))
-       (into {})))
+(defalternates airline-names
+  {"american" "AAL"
+   "speed bird" "BAW"
+   "delta" "DAL"
+   "jet blue" "JBU"
+   "brickyard" "RPA"
+   "south west" "SWA"})
 
-(def plane-types
+(defalternates ^:hide-tag plane-types
   ["piper"])
 
-(def rules
+(defrules rules
   ["callsign = airline-callsign | ga-callsign"
    "airline-callsign = airline-names number-sequence"
-   "ga-callsign = <('november' | plane-type)> number-sequence (letter-sequence)?"
-   (declare-alternates "<plane-type>" plane-types)
-   (declare-alternates "airline-names" (keys airlines))])
+   "ga-callsign = <('november' | plane-type)> number-sequence (letter-sequence)?"]
+  {:plane-type plane-types
+   :airline-names airline-names
+   :number-sequence nil
+   :letter-sequence nil}
+   #_(declare-alternates "airline-names" (keys airlines)))
 
 (def transformers
-  {:airline-names airlines
+  {:airline-names airline-names
    :airline-callsign (fn [airline numbers]
                        (apply str airline numbers))
 

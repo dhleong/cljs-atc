@@ -26,5 +26,8 @@
            gloss.core/defcodec clojure.core/def
            instaparse.core/defparser clojure.core/def
            reagent.core/with-let clojure.core/let
-           secretary.core/defroute clojure.core/fn}}
+           secretary.core/defroute clojure.core/fn
+
+           atc.util.instaparse/defalternates clojure.core/def
+           atc.util.instaparse/defrules clojure.core/def}}
 
