@@ -51,17 +51,25 @@
     (keyword? v)
     {:tag :nt :keyword v}))
 
+(defn generate-alternatives-grammar [kw hide-tag? expr]
+  {:grammar
+   {kw
+    {:tag :alt
+     :red (if hide-tag?
+            {:reduction-type :raw}
+            {:reduction-type :hiccup, :key kw})
+     :parsers (cond->> expr
+                (map? expr) keys
+                true (map format-alternate-expr))}}})
+
 (defmacro defalternates-expr [name expr]
-  (let [kw (keyword (str name))
-        red (if (:hide-tag (meta name))
-              {:reduction-type :raw}
-              {:reduction-type :hiccup, :key kw})]
-    `(def ~name {:grammar
-                 {~kw
-                  {:tag :alt
-                   :red ~red
-                   :parsers (->> ~expr
-                                 (map format-alternate-expr))}}})))
+  (let [kw (keyword (str name))]
+    `(def ~name (let [v# ~expr]
+                  (with-meta
+                    v#
+                    (generate-alternatives-grammar
+                      ~kw ~(:hide-tag (meta name))
+                      v#))))))
 
 (defn- format-dependencies-map [grammar dependencies-map]
   (if-some [deps (->> dependencies-map

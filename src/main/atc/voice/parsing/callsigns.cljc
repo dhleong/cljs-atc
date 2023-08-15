@@ -1,14 +1,15 @@
 (ns atc.voice.parsing.callsigns
   (:require
-   [atc.util.instaparse :refer-macros [defalternates defrules]]))
+   [atc.data.airlines :refer [all-airlines]]
+   [atc.util.instaparse :refer-macros [defalternates
+                                       defalternates-expr
+                                       defrules]]))
 
-(defalternates airline-names
-  {"american" "AAL"
-   "speed bird" "BAW"
-   "delta" "DAL"
-   "jet blue" "JBU"
-   "brickyard" "RPA"
-   "south west" "SWA"})
+(defalternates-expr airline-names
+  (->> all-airlines
+       (into {}
+             (map (fn [[callsign {:keys [radio-name]}]]
+                    [radio-name callsign])))))
 
 (defalternates ^:hide-tag plane-type
   ["piper"])
@@ -20,8 +21,7 @@
   {:plane-type plane-type
    :airline-names airline-names
    :number-sequence nil
-   :letter-sequence nil}
-   #_(declare-alternates "airline-names" (keys airlines)))
+   :letter-sequence nil})
 
 (def transformers
   {:airline-names airline-names

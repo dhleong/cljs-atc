@@ -2,6 +2,7 @@
   (:require
    [atc.data.airports :refer [airport-parsing-rules
                               airport-parsing-transformers]]
+   [atc.util.instaparse :refer [extract-grammar]]
    [atc.util.with-timing :refer-macros [with-timing]]
    [atc.voice.parsing.callsigns :as callsigns]
    [atc.voice.parsing.instructions :as instructions]
@@ -36,7 +37,7 @@
    {:fsm (with-timing "build-machine"
            (-> (merge
                  builtin-rules
-                 (:grammar airport-rules))
+                 (extract-grammar airport-rules))
                (insta/parser :start :command
                              :auto-whitespace :standard)))
     :transformers (merge builtin-transformers
