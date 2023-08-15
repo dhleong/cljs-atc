@@ -134,7 +134,6 @@
     (* 250 (/ 1 (:time-scale engine)))))
 
 (defn generate [{:keys [airport traffic]}]
-  ; TODO: Probably, generate the parsing-machine elsewhere for better loading states
   (map->Engine
     {:aircraft {}
      :tracked-aircraft {}
