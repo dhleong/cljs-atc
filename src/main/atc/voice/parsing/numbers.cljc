@@ -19,8 +19,6 @@
    "nine" 9
    "niner" 9})
 
-(def digit-values digit)
-
 (defalternates teens-value
   {"eleven" 11
    "twelve" 12
@@ -31,8 +29,6 @@
    "seventeen" 17
    "eighteen" 18
    "nineteen" 19})
-
-(def teens-values teens-value)
 
 (defalternates tens-value
   {"twenty" 20
@@ -73,7 +69,7 @@
         (+ result (* multiplier (first numbers)))))))
 
 (def transformers
-  {:digit digit-values
+  {:digit digit
    :tens-value tens-value
    :teens-value teens-value
    :double-digit (fn [tens ones]

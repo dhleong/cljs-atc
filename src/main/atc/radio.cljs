@@ -46,10 +46,10 @@
   [[_ v]]
   (cond
     (<= 0 v 9)
-    (get (map-invert numbers/digit-values) v)
+    (get (map-invert numbers/digit) v)
 
     (<= 10 v 19)
-    (get (map-invert numbers/teens-values) v)
+    (get (map-invert numbers/teens-value) v)
 
     :else v))
 
