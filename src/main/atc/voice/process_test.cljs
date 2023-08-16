@@ -1,13 +1,15 @@
 (ns atc.voice.process-test
   (:require
    [atc.data.airports.kjfk :as kjfk]
-   [atc.voice.parsing.airport :as airport-parsing]
    [atc.voice.process :rename {find-command actual-find-command} :refer [build-machine]]
    [cljs.test :refer-macros [deftest is testing]]))
 
 (def machine
   (delay
-    (build-machine (airport-parsing/generate-parsing-context kjfk/airport))))
+    (build-machine
+      (:navaid-pronounced kjfk/exports)
+      {:navaid-pronounced
+       (:navaids-by-pronunciation kjfk/exports)})))
 
 (defn find-command [input]
   (actual-find-command @machine input))
@@ -55,7 +57,10 @@
   (testing "Pronounceable navaids"
     (is (= [[:direct "MERIT"]]
            (find-instructions
-             "piper one proceed direct merit"))))
+             "piper one proceed direct merit")))
+    (is (= [[:direct "LGA"]]
+           (find-instructions
+             "piper one proceed direct la guardia"))))
 
   (testing "Spelled navaids"
     (is (= [[:direct "BDR"]]

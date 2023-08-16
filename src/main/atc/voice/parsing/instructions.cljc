@@ -1,17 +1,19 @@
 (ns atc.voice.parsing.instructions
   (:require
-   [atc.voice.parsing.core :refer [declare-alternates]]
+   [atc.util.instaparse :refer-macros [defalternates
+                                       defalternates-expr
+                                       defrules]]
    [clojure.string :as str]))
 
-(def handoffs
+(defalternates other-position
   ["center"
    "tower"
    "ground"])
 
-(def pleasantries
+(defalternates pleasantry
   ["good day"])
 
-(def ^:private instructions-rules
+(defrules ^:private instructions-rules
   ["standby = <'standby'>"
 
    "adjust-altitude = (<'climb'> | <'descend'>)? <'and'>? <'maintain'> altitude"
@@ -23,21 +25,30 @@
 
    "direct = <'proceed direct'> navaid"
 
-   "steer = (<'fly'> | 'turn right' | 'turn left') <'heading'> heading"])
+   "steer = (<'fly'> | 'turn right' | 'turn left') <'heading'> heading"]
 
-(def rules
-  (concat
-    ["command = callsign instruction+"
-     (str "<instruction> = " (->> instructions-rules
-                                  (map #(let [parts (str/split % #" = ")]
-                                          (first parts)))
-                                  (str/join " | ")))
+  [:other-position :pleasantry :frequency :navaid :altitude :approach-type :runway :heading])
 
-     "approach-type = 'i l s' | 'r nav' | 'visual'"
-     "runway = number-sequence (letter | 'left' | 'right' | 'north' | 'south')?"
-     (declare-alternates "other-position" handoffs)
-     (declare-alternates "pleasantry" pleasantries)]
-    instructions-rules))
+(defalternates-expr ^:hide-tag instruction
+  (->> instructions-rules
+       :grammar
+       keys))
+
+(defrules ^:private core-rules
+  ["command = callsign instruction+"
+
+   "approach-type = 'i l s' | 'r nav' | 'visual'"
+   "runway = number-sequence (letter | 'left' | 'right' | 'north' | 'south')?"]
+  {:other-position other-position
+   :pleasantry pleasantry
+   :callsign nil
+   :instruction instruction
+   :number-sequence nil
+   :letter nil})
+
+(def rules (merge-with merge
+                       core-rules
+                       instructions-rules))
 
 (def transformers
   {:command (fn [callsign & instructions]

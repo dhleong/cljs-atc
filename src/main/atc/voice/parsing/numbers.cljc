@@ -1,10 +1,10 @@
 (ns atc.voice.parsing.numbers
   (:require
-   [atc.voice.parsing.core :refer [declare-alternates]]))
+   [atc.util.instaparse :refer-macros [defalternates defrules]]))
 
 ; NOTE: The "correct" radio phonology should come later in the map
 ; so it's used instead of the "plain" word when we do map-invert
-(def digit-values
+(defalternates digit
   {"zero" 0
    "one" 1
    "two" 2
@@ -19,7 +19,7 @@
    "nine" 9
    "niner" 9})
 
-(def teens-values
+(defalternates teens-value
   {"eleven" 11
    "twelve" 12
    "thirteen" 13
@@ -30,7 +30,7 @@
    "eighteen" 18
    "nineteen" 19})
 
-(def tens-values
+(defalternates tens-value
   {"twenty" 20
    "thirty" 30
    "forty" 40
@@ -40,7 +40,7 @@
    "eighty" 80
    "ninety" 90})
 
-(def rules
+(defrules rules
   ["frequency = number-sequence? decimal number-sequence"
    "heading = number-sequence"
    "<altitude> = flight-level | altitude-thousands-feet"
@@ -52,10 +52,10 @@
    "number-sequence = number+"
    "number = digit | double-digit"
    "digit-sequence = digit+"
-   "double-digit = (tens-value digit) | teens-value"
-   (declare-alternates "digit" (keys digit-values))
-   (declare-alternates "tens-value" (keys tens-values))
-   (declare-alternates "teens-value" (keys teens-values))])
+   "double-digit = (tens-value digit) | teens-value"]
+  {:digit digit
+   :tens-value tens-value
+   :teens-value teens-value})
 
 (defn digits->number [digits]
   (loop [numbers (reverse digits)
@@ -69,9 +69,9 @@
         (+ result (* multiplier (first numbers)))))))
 
 (def transformers
-  {:digit digit-values
-   :tens-value tens-values
-   :teens-value teens-values
+  {:digit digit
+   :tens-value tens-value
+   :teens-value teens-value
    :double-digit (fn [tens ones]
                    (if (some? ones)
                      (+ tens ones)

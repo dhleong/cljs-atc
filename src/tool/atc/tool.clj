@@ -246,10 +246,25 @@
         (spit
           (io/file file-path)
           (str
-            (format "(ns atc.data.airports.%s)\n\n" icao-sym)
+            (format (str "(ns atc.data.airports.%s\n"
+                         " (:require\n"
+                         "  [atc.voice.parsing.airport :as parsing]\n"
+                         "  [atc.util.instaparse :refer-macros [defalternates-expr]]))\n\n")
+                    icao-sym)
             (with-out-str
               (pprint (cons (symbol "def airport")
-                            (list airport))))))
+                            (list airport))))
+            "\n\n"
+            "(def navaids-by-pronunciation\n"
+            "  (parsing/airport->navaids-by-pronunciation airport))"
+            "\n\n"
+            "(defalternates-expr navaid-pronounced\n"
+            "  (keys navaids-by-pronunciation))"
+            "\n\n"
+            "(def exports\n"
+            " {:airport airport\n"
+            "  :navaids-by-pronunciation navaids-by-pronunciation\n"
+            "  :navaid-pronounced navaid-pronounced})"))
         (println "... done!")))))
 
 (defn- pronounceable-cli [{{:keys [word]} :opts}]
