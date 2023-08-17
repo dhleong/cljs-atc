@@ -1,7 +1,6 @@
 (ns atc.views.game
   (:require
    ["@inlet/react-pixi" :as px]
-   ["pixi.js" :refer [TextStyle]]
    [archetype.util :refer [<sub]]
    [atc.events :as events]
    [atc.styles :refer [full-screen]] ; [atc.theme :as theme]
@@ -43,24 +42,12 @@
      [positioner scale entity
       [render entity]])])
 
-(def geometry-style (TextStyle. #js {:fill theme/aircraft-untracked-obj
-                                     :fontFamily "monospace"
-                                     :fontSize 12}))
-
-(defn airspace-geometry [scale]
+(defn airspace-geometry []
   [:<>
    (for [{:keys [id points]} (<sub [:game/airport-polygons])]
      ^{:key (str "_" id)}
      [polygon #js {:points points
-                   :color theme/map-label-opaque-int}])
-
-   #_(for [point (:points (first (<sub [:game/airport-polygons])))]
-     [positioner scale point
-      [:> px/Text {:text "＊"
-                   :anchor 0.5
-                   :style geometry-style}]]
-     #_[polygon #js {:points points
-                   :color theme/map-label-opaque-int}])])
+                   :color theme/map-airspace-boundaries-int}])])
 
 (defn all-neighboring-sectors [entity-scale]
   [entities-renderer {:scale entity-scale
@@ -108,7 +95,7 @@
                   :world-width default-world-dimension
                   :world-height default-world-dimension}
 
-        [airspace-geometry entity-scale]
+        [airspace-geometry]
         [all-neighboring-sectors entity-scale]
         [all-runways]
         [all-aircraft entity-scale]
