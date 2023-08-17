@@ -127,13 +127,14 @@
   :game/navaids-by-id
   :<- [:game/airport]
   (fn [airport]
-    (when airport
+    (some->>
+      airport
+      :navaids
       (reduce
         (fn [m {:keys [position] :as navaid}]
           (assoc m (:id navaid)
                  (merge navaid (local-xy position airport))))
-        {}
-        (:navaids airport)))))
+        {}))))
 
 (reg-sub
   :game/airport-navaids
@@ -142,17 +143,15 @@
     (when navaids
       (vals navaids))))
 
-; (reg-sub
-;   :game/airport-polygons
-;   :<- [:game/airport]
-;   (fn [{:keys [boundaries] :as airport}]
-;     (map
-;       (fn [{:keys [id points]}]
-;         {:id id
-;          :points (map
-;                    #(local-xy % airport)
-;                    points)})
-;       boundaries)))
+(reg-sub
+  :game/airport-polygons
+  :<- [:game/airport]
+  (fn [{:keys [airspace-geometry] :as airport}]
+    (->> airspace-geometry
+         (map
+           (fn [{:keys [id points]}]
+             {:id id
+              :points (map #(local-xy % airport) points)})))))
 
 (reg-sub
   :game/neighboring-centers

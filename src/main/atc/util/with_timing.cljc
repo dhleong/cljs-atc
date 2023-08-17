@@ -1,9 +1,15 @@
 (ns atc.util.with-timing)
 
+(defn now []
+  #? (:cljs (js/Date.now)
+      :clj (System/nanoTime)))
+
 (defmacro with-timing [label expr]
-  `(let [start# (js/Date.now)
-         ret# ~expr]
-     (prn (cljs.core/str ~(str "[" label "]") " Elapsed time: "
-                         (.toFixed (- (js/Date.now) start#) 6)
-                         " msecs"))
+  `(let [start# (now)
+         ret# ~expr
+         elapsed# (- (now) start#)]
+     (prn (str ~(str "[" label "]") " Elapsed time: "
+               #? (:cljs (.toFixed elapsed# 6)
+                   :clj (/ (double elapsed#) 1000000.0))
+               " msecs"))
      ret#))

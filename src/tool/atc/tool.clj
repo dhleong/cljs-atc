@@ -1,9 +1,11 @@
 (ns atc.tool
   (:require
    [atc.data.core :refer [coord-distance]]
+   [atc.kmz :as kmz]
    [atc.nasr :as nasr]
    [atc.nasr.airac :refer [airac-data]]
    [atc.pronunciation :as pronunciation]
+   [atc.util.with-timing :refer [with-timing]]
    [babashka.cli :as cli]
    [clojure.java.io :as io]
    [clojure.pprint :refer [pprint]]
@@ -115,15 +117,19 @@
       (-> (resolve-departure-fix-collisions collisions codings)
           (map-invert)))))
 
-(defn build-airport [zip-file icao]
-  (let [all-facilities (future (time (nasr/find-facilities zip-file)))
-        {[apt] :apt :as data} (time (nasr/find-airport-data zip-file icao))
+(defn build-airport [zip-file kmz-file icao]
+  (let [all-facilities (future (with-timing "all-facilities"
+                                 (nasr/find-facilities zip-file)))
+        {[apt] :apt :as data} (with-timing "apt"
+                                (nasr/find-airport-data zip-file icao))
         runways (compose-runways data)
         position [(:latitude apt) (:longitude apt) (:elevation apt)]
         all-frequencies (future (nasr/find-terminal-frequencies zip-file (:id apt)))
 
-        procedures (time (nasr/find-procedures zip-file (:id apt)))
-        departures (time (nasr/find-departure-routes zip-file icao))
+        procedures (with-timing "procedures"
+                     (nasr/find-procedures zip-file (:id apt)))
+        departures (with-timing "departures"
+                     (nasr/find-departure-routes zip-file icao))
 
         ; TODO read vor/dmes from here
         departure-exit-fix-names (->> departures
@@ -141,23 +147,35 @@
                                   (map :fix-id))
 
         fixes (future
-                (time (nasr/find-fixes
-                        zip-file
-                        :ids (concat procedure-fix-ids departure-exit-fix-names))))
+                (with-timing "fixes"
+                  (nasr/find-fixes
+                    zip-file
+                    :ids (concat procedure-fix-ids departure-exit-fix-names))))
         navaids (future
-                  (time (nasr/find-navaids
-                          zip-file
-                          :ids (concat procedure-navaid-ids departure-exit-fix-names))))
+                  (with-timing "navaids"
+                    (nasr/find-navaids
+                      zip-file
+                      :ids (concat procedure-navaid-ids departure-exit-fix-names))))
 
         closest-centers (future
-                          (time (->> @all-facilities
-                                     (filter :latitude)
-                                     (sort-by
-                                       #(do
-                                          (coord-distance
-                                            position
-                                            [(:latitude %)
-                                             (:longitude %)]))))))]
+                          (with-timing "closest-centers"
+                            (->> @all-facilities
+                                 (filter :latitude)
+                                 (sort-by
+                                   #(do
+                                      (coord-distance
+                                        position
+                                        [(:latitude %)
+                                         (:longitude %)]))))))
+
+        airspace (future
+                   (with-timing "airspace"
+                     (->> @all-facilities
+                         (filter #(= (:boundary-artcc-id apt)
+                                     (:artcc %)))
+                         first
+                         :name
+                         (kmz/find-airspace-regions-in-kmz kmz-file))))]
 
     {:id (:icao apt)
      :name (:name apt)
@@ -216,7 +234,9 @@
                                        :frequency)
                        :track-symbol "G"}
                  ; NOTE: app/dep positions aren't always provided...
-}}))
+}
+
+     :airspace-geometry (vec @airspace)}))
 
 (defn- build-airport-cli [{{:keys [icao nasr-path write]} :opts}]
   {:pre [icao nasr-path]}
@@ -225,11 +245,16 @@
         destination-dir (io/file nasr-path)
         airac (airac-data)
         zip-file (nasr/locate-zip airac destination-dir)
+        kmz-file (io/file
+                   ; FIXME TODO:
+                   (System/getenv "HOME")
+                   "Downloads/2020ADS-BAirspaceMap.kmz")
 
-        airport (build-airport zip-file icao)]
+        airport (with-timing "build-airport"
+                  (build-airport zip-file kmz-file icao))]
     (pprint airport)
 
-    (when-let [unpronounceable (time
+    (when-let [unpronounceable (with-timing "unpronounceable"
                                  (->> (:navaids airport)
                                       (map #(or (:pronunciation %)
                                                 (:name %)
