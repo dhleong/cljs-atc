@@ -71,12 +71,13 @@
   #?(:clj clojure.lang.PersistentVector
      :cljs cljs.core/PersistentVector)
   (latlng [this] this)
-  (local-xy [[lat lng] reference]
-    (let [ref-position (:position reference)
-          [ref-lat ref-lng] (latlng ref-position)
+  (local-xy [this reference]
+    (let [ref-position (latlng-degrees (:position reference))
+          [lat lng] (latlng-degrees this)
+          [ref-lat ref-lng] ref-position
           abs-x (coord-distance ref-position [ref-lat lng])
           abs-y (coord-distance ref-position [lat ref-lng])]
       (adjust-by-magnetic-north
-        (if (< ref-lng lng) (- abs-x) abs-x)
+        (if (> ref-lng lng) (- abs-x) abs-x)
         (if (< ref-lat lat) (- abs-y) abs-y)
         (:magnetic-north reference 0)))))
