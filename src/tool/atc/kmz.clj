@@ -1,8 +1,31 @@
 (ns atc.kmz
   (:require
    [atc.okay :as okay]
-   [clojure.xml :as xml]
-   [clojure.string :as str]))
+   [atc.util.with-timing :refer [with-timing]]
+   [clj-http.lite.client :as http]
+   [clojure.java.io :as io]
+   [clojure.string :as str]
+   [clojure.xml :as xml]))
+
+(defn locate-kmz [airac destination-directory]
+  (let [expected-file (io/file destination-directory
+                               (:airspace-kmz-name airac))]
+    (if (.exists expected-file)
+      expected-file
+
+      (do
+        (println "Downloading " (:airspace-kmz-url airac) "to" expected-file "...")
+        (with-timing "Fetch kmz"
+          ; NOTE: For some reason, the FAA's website 403's for Java's
+          ; default user agent
+          (with-open [in (-> (http/get (:airspace-kmz-url airac)
+                                       {:as :stream
+                                        :headers
+                                        {"user-agent" "clj-atc-tool"}})
+                             :body)
+                      out (io/output-stream expected-file)]
+            (io/copy in out)))
+        expected-file))))
 
 (defn- format-point [raw-point]
   (let [[lng lat alt] (map parse-double (str/split raw-point #","))]
@@ -43,7 +66,7 @@
 #_:clj-kondo/ignore
 (comment
   (with-open
-    (let [kmz-file (clojure.java.io/file
+    (let [kmz-file (io/file
                      (System/getenv "HOME")
                      "Downloads/2020ADS-BAirspaceMap.kmz")]
       (clojure.pprint/pprint

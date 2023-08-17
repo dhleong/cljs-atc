@@ -4,9 +4,9 @@
   #? (:cljs (js/Date.now)
       :clj (System/nanoTime)))
 
-(defmacro with-timing [label expr]
+(defmacro with-timing [label & expr]
   `(let [start# (now)
-         ret# ~expr
+         ret# (do ~@expr)
          elapsed# (- (now) start#)]
      (prn (str ~(str "[" label "]") " Elapsed time: "
                #? (:cljs (.toFixed elapsed# 6)

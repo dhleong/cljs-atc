@@ -28,4 +28,9 @@
          zip-name (str "28DaySubscription_Effective_" url-date-formatted ".zip")]
      {:period-start period-start
       :zip-name zip-name
-      :url (str "https://nfdc.faa.gov/webContent/28DaySub/" zip-name)})))
+      :url (str "https://nfdc.faa.gov/webContent/28DaySub/" zip-name)
+
+      ; Sadly, this file doesn't seem to be updated regularly, so we
+      ; just use a static config:
+      :airspace-kmz-url "https://www.faa.gov/sites/faa.gov/files/air_traffic/technology/equipadsb/research/2020ADS-BAirspaceMap.kmz"
+      :airspace-kmz-name "class-bravo.kmz"})))

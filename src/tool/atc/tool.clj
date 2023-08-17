@@ -171,11 +171,11 @@
         airspace (future
                    (with-timing "airspace"
                      (->> @all-facilities
-                         (filter #(= (:boundary-artcc-id apt)
-                                     (:artcc %)))
-                         first
-                         :name
-                         (kmz/find-airspace-regions-in-kmz kmz-file))))]
+                          (filter #(= (:boundary-artcc-id apt)
+                                      (:artcc %)))
+                          first
+                          :name
+                          (kmz/find-airspace-regions-in-kmz kmz-file))))]
 
     {:id (:icao apt)
      :name (:name apt)
@@ -245,10 +245,7 @@
         destination-dir (io/file nasr-path)
         airac (airac-data)
         zip-file (nasr/locate-zip airac destination-dir)
-        kmz-file (io/file
-                   ; FIXME TODO:
-                   (System/getenv "HOME")
-                   "Downloads/2020ADS-BAirspaceMap.kmz")
+        kmz-file (kmz/locate-kmz airac destination-dir)
 
         airport (with-timing "build-airport"
                   (build-airport zip-file kmz-file icao))]
