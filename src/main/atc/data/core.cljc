@@ -62,7 +62,7 @@
     (* angular-radians 2 earth-radius-m)))
 
 (defn- adjust-by-magnetic-north [x y magnetic-north]
-  (let [th (- (atan2 y x) magnetic-north)
+  (let [th (- (atan2 y x) (deg->rad magnetic-north))
         r (sqrt (+ (* x x) (* y y)))]
     {:x (* r (cos th))
      :y (* r (sin th))}))
