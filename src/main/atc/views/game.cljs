@@ -45,7 +45,7 @@
 (defn airspace-geometry []
   [:<>
    (for [{:keys [id points]} (<sub [:game/airport-polygons])]
-     ^{:key (str "_" id)}
+     ^{:key id}
      [polygon #js {:points points
                    :color theme/map-airspace-boundaries-int}])])
 
