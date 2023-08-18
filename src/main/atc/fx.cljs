@@ -74,8 +74,10 @@
   :speech/say
   (fn [{:keys [message on-complete] :as opts}]
     (-> (speech/say! opts)
-        (p/catch (fn [e] (println "Failed to speak `" message "`: " e)))
-        (p/finally on-complete))))
+        (p/catch (fn [e] (println "[:speech/say] Failed to speak `" message "`: " e)
+                   (on-complete)))
+        (p/then (fn [_] (println "[:speech/say] Spoke `" message "`")
+                  (on-complete))))))
 
 (comment
   (>evt [:voice/set-paused false])

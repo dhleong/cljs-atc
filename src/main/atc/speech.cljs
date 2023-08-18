@@ -38,9 +38,22 @@
                   (j/assoc! :pitch pitch)
                   (j/assoc! :voice (::instance voice voice))
 
+                  (.addEventListener "start" (fn []
+                                               (let [{:keys [timeout]} @state]
+                                                 (js/clearTimeout timeout))))
                   (.addEventListener "end" (comp p-resolve clear-active))
                   (.addEventListener "error" (comp p-reject clear-active)))]
         ; NOTE: We stash the utterance in some state to avoid it getting GC'd before
         ; it completes (which could result in listeners not firing)
-        (swap! state assoc :active utt)
+        ; NOTE: Also, occasionally it seems like the speech never starts.
+        ; So, we set a timeout here and clear it on `start`---that's the
+        ; common (success) case; if the timeout actually fires, we'll reject
+        ; the promise to allow the voice state to get cleared out.
+        (reset! state {:active utt
+                       :timeout (js/setTimeout
+                                  (partial
+                                    (p-reject
+                                      (ex-info "Speech synthesis timeout"
+                                               {:message message})))
+                                  750)})
         (js/window.speechSynthesis.speak utt)))))

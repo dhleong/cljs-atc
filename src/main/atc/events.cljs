@@ -252,6 +252,7 @@
   ::speech-utterance-complete
   [trim-v (path :speech)]
   (fn [{speech :db}]
+    (println "[speech] utterance complete")
     {:db (assoc speech :speaking? false)
      :dispatch-later {:dispatch [::speech-check-queue]
                       ; TODO Perhaps, randomize this a bit:
