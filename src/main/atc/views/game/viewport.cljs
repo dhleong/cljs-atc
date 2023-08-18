@@ -4,15 +4,29 @@
    ["@inlet/react-pixi" :as px]
    [applied-science.js-interop :as j]))
 
+(j/defn ^:private center-equals? [oldv newv]
+  (and (= (j/get oldv :x)
+          (j/get newv :x))
+       (= (j/get oldv :y)
+          (j/get newv :y))))
+
 (defn- apply-center! [^Viewport viewport center]
-  (when-not (= (j/get viewport :initial-center)
-               center)
+  (when-not (center-equals?
+              (j/get viewport :initial-center)
+              center)
     (when center
       (j/assoc! viewport :initial-center center)
       (j/call viewport :moveCenter (j/get center :x) (j/get center :y))
       ; TODO how big should it actually be...?
       (j/call viewport :fitHeight (j/get viewport :worldHeight) true)
       (j/call viewport :render!))))
+
+(defn- handle-resize! [viewport]
+  (let [x (j/get-in viewport [:initial-center :x] 0)
+        y (j/get-in viewport [:initial-center :y] 0)]
+    (j/assoc! viewport :screenWidth js/window.innerWidth)
+    (j/assoc! viewport :screenHeight js/window.innerHeight)
+    (j/call viewport :moveCenter x y)))
 
 (def PixiViewportComponent
   (px/PixiComponent
@@ -57,13 +71,23 @@
 
                      viewport))
 
+         :didMount (fn [viewport]
+                     (let [on-resize (partial handle-resize! viewport)]
+                       (j/assoc! viewport :resize-handler)
+                       (js/window.addEventListener "resize" on-resize)))
+
+         :didUnmount (fn [viewport]
+                       (js/window.removeEventListener
+                         "resize"
+                         (j/get viewport :resize-handler)))
+
          :applyProps (fn [viewport old-props new-props]
                        (doseq [prop (js/Object.keys new-props)]
                          (when-not (or (#{"plugins" "center" "children" "app"} prop)
                                        (= (j/get new-props prop)
                                           (j/get old-props prop)))
                            (j/assoc! viewport (j/get new-props prop)))
-                         (apply-center! viewport (:center new-props))))}))
+                         (apply-center! viewport (j/get new-props :center))))}))
 
 (defn- viewport-fn [props children]
   (let [app (px/useApp)]
