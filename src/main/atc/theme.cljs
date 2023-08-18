@@ -9,6 +9,7 @@
 (def map-label-alpha 0.4)
 (def map-label-opaque "#626366")
 (def map-label-opaque-int 0x626366)
+(def map-airspace-boundaries-int 0x202022)
 
 (def aircraft-tracked-label "#ffffff")
 (def aircraft-tracked-obj "#1f478f")

@@ -4,11 +4,13 @@
    [archetype.util :refer [<sub]]
    [atc.events :as events]
    [atc.styles :refer [full-screen]] ; [atc.theme :as theme]
+   [atc.theme :as theme]
    [atc.views.game-setup :as game-setup]
    [atc.views.game.controls :refer [game-controls]]
    [atc.views.game.graphics.aircraft :as aircraft]
    [atc.views.game.graphics.center-facility :as center-facility]
-   [atc.views.game.graphics.navaid :as navaid] ; [atc.views.game.graphics.polygon :refer [static-polygon]]
+   [atc.views.game.graphics.navaid :as navaid]
+   [atc.views.game.graphics.polygon :refer [polygon]]
    [atc.views.game.graphics.runway :as runway]
    [atc.views.game.stage :refer [stage]]
    [atc.views.game.viewport :refer [viewport]]
@@ -39,6 +41,13 @@
      ^{:key (key-fn entity)}
      [positioner scale entity
       [render entity]])])
+
+(defn airspace-geometry []
+  [:<>
+   (for [{:keys [id points]} (<sub [:game/airport-polygons])]
+     ^{:key id}
+     [polygon #js {:points points
+                   :color theme/map-airspace-boundaries-int}])])
 
 (defn all-neighboring-sectors [entity-scale]
   [entities-renderer {:scale entity-scale
@@ -86,7 +95,7 @@
                   :world-width default-world-dimension
                   :world-height default-world-dimension}
 
-        ; [airspace-geometry]
+        [airspace-geometry]
         [all-neighboring-sectors entity-scale]
         [all-runways]
         [all-aircraft entity-scale]

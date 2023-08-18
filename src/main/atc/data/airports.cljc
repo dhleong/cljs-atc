@@ -61,7 +61,6 @@
         [start end]
         [end start]))))
 
-(defn runway->heading [airport runway]
+(defn runway->heading [_airport runway]
   (-> (->int runway)
-      (* 10)
-      (- (:magnetic-north airport))))
+      (* 10)))
