@@ -20,7 +20,8 @@
    "niner" 9})
 
 (defalternates teens-value
-  {"eleven" 11
+  {"ten" 10
+   "eleven" 11
    "twelve" 12
    "thirteen" 13
    "fourteen" 14
