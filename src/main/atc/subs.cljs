@@ -100,7 +100,7 @@
   :game/tracked-aircraft
   :<- [:game/aircraft]
   :<- [:game/tracked-aircraft-map]
-  (fn [aircraft tracked-map]
+  (fn [[aircraft tracked-map]]
     (->> aircraft
          (filter #(get-in tracked-map [(:callsign %) :self?])))))
 
