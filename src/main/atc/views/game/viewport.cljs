@@ -48,7 +48,14 @@
                          render! (fn []
                                    (when-let [on-scale (j/get viewport :onScale)]
                                      (on-scale (j/get viewport :scaled)))
-                                   (j/call-in app [:renderer :render] (j/get app :stage)))]
+
+                                   ; Update the viewport *first* (since we're)
+                                   ; not automatically ticking
+                                   (j/call viewport :update 16)
+
+                                   ; Then, render the app
+                                   (j/call-in app [:renderer :render]
+                                              (j/get app :stage)))]
 
                      ; Enable plugins
                      (doseq [plugin plugins]
@@ -59,17 +66,15 @@
                      ; Stash this for use in the above callback:
                      ; NOTE: reagent "helpfully" converts to camel case here:
                      (j/assoc! viewport :onScale (j/get js-props :onScale))
-
                      (j/assoc! viewport :render! render!)
 
                      (apply-center! viewport center)
 
                      ; Ensure render on move
                      ; FIXME: moved doesn't seem to be emitted on drag...
-                     (.on viewport "moved" render!)
-                     (.on viewport "zoomed" render!)
-
-                     viewport))
+                     (doto viewport
+                       (.on "moved" render!)
+                       (.on "zoomed" render!))))
 
          :didMount (fn [viewport]
                      (let [on-resize (partial handle-resize! viewport)]
