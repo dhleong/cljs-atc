@@ -33,6 +33,10 @@
   (with-open [in (okay/open-zip-file zip-file "ARB.txt")]
     (arb/find-artcc-boundaries in artcc-id)))
 
+(defn find-arrival-routes [zip-file icao]
+  (with-open [in (okay/open-zip-file zip-file "CDR.txt")]
+    (cdr/find-arrival-routes in icao)))
+
 (defn find-departure-routes [zip-file icao]
   (with-open [in (okay/open-zip-file zip-file "CDR.txt")]
     (cdr/find-departure-routes in icao)))

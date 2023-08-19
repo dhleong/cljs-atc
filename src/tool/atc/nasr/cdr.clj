@@ -3,11 +3,10 @@
    [atc.okay :as okay]
    [clojure.string :as str]))
 
-(defn find-departure-routes [in icao]
+(defn- enumerate-routes [in]
   (->> in
        (okay/newlines-sequence)
-       (into
-         []
+       (sequence
          (comp
            (map #(str/split % #","))
            (map (fn [[route-code origin destination departure-fix route-string artcc]]
@@ -16,8 +15,18 @@
                    :destination destination
                    :departure-fix departure-fix
                    :route-string route-string
-                   :artcc artcc}))
-           (filter #(= icao (:origin %)))))))
+                   :artcc artcc}))))))
+
+(defn find-arrival-routes [in icao]
+  (->> in
+       (enumerate-routes)
+       (into [] (filter #(= icao (:destination %))))))
+
+(defn find-departure-routes [in icao]
+  (->> in
+       (enumerate-routes)
+       (into [] (filter #(= icao (:origin %))))))
+
 
 (comment
   #_:clj-kondo/ignore

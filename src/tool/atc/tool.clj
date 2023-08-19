@@ -55,6 +55,9 @@
    (format-navaids
      (map #(assoc % :type type) items))))
 
+(defn- format-arrival-route [{:keys [origin route-string]}]
+  [origin {:route route-string}])
+
 (defn- format-departure [departure]
   (let [id (:computer-code departure)
         part-fn (if (:transitions departure)
@@ -131,6 +134,9 @@
                      (nasr/find-procedures zip-file (:id apt)))
         departures (with-timing "departures"
                      (nasr/find-departure-routes zip-file icao))
+        arrivals (future
+                   (with-timing "arrivals"
+                     (nasr/find-arrival-routes zip-file icao)))
 
         ; TODO read vor/dmes from here
         departure-exit-fix-names (->> departures
@@ -196,6 +202,21 @@
                    ; TODO Also also, include fixes on airways, stars/sids, etc.
                    (sort-by :id)
                    vec)
+
+     :arrivals (->> procedures
+                    (into
+                      {}
+                      (comp
+                        (filter #(= :arrival (:type %)))
+                        (map format-departure))))
+
+     :arrival-routes (->> @arrivals
+                          (group-by :origin)
+                          (into {}
+                                (comp
+                                  (map val)
+                                  (map first)
+                                  (map format-arrival-route))))
 
      :departures (->> procedures
                       (into
