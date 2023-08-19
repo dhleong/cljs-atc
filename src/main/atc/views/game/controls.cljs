@@ -25,16 +25,28 @@
   [:.history-entry
    [:&.self {:font-style :italic
              :opacity 0.8
-             :margin-top (px 2)}]])
+             :margin-top (px 2)}]
+
+   ; Speaker classes
+   [:&.system-message {:color "green"
+                       :opacity 0.8}]])
+
+(def ^:private speaker-classes
+  {"system" :system-message})
 
 (defn- radio-history []
   [bottom-scroller (radio-history-attrs)
    [:ul.list {:aria-label "Radio History"}
-    (for [history (<sub [:radio-history])]
+    (for [{:keys [speaker] :as history} (<sub [:radio-history])]
       ^{:key (:timestamp history)}
-      [:li.history-entry {:class (when (:self? history)
-                                   :self)}
-       "[" (:speaker history) "] "
+      [:li.history-entry {:class [(when (:self? history)
+                                    :self)
+
+                                  (when (keyword? speaker)
+                                    (or (speaker-classes speaker)
+                                        (speaker-classes (namespace speaker))
+                                        :default-special-speaker))]}
+       "[" speaker "] "
        (:text history)])]])
 
 (defattrs voice-controls-active-attrs [recording?]

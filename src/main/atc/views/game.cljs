@@ -25,7 +25,6 @@
   {:position :absolute
    :bottom 0
    :left 0
-   :right 0
    :visibility (when paused? :hidden)})
 
 (defn- positioner [scale entity & children]
@@ -93,7 +92,9 @@
                   :center {:x 0 :y 0}
                   :on-scale set-scale!
                   :world-width default-world-dimension
-                  :world-height default-world-dimension}
+                  :world-height default-world-dimension
+                  :disable-on-context-menu true
+                  :stop-propagation true}
 
         [airspace-geometry]
         [all-neighboring-sectors entity-scale]

@@ -229,22 +229,21 @@
 
 (reg-event-fx
   ::speech-check-queue
-  [trim-v (inject-cofx ::cofx/now)]
-  (fn [{{:keys [speech] :as db} :db :keys [now]}]
+  [trim-v]
+  (fn [{{:keys [speech] :as db} :db}]
     (when (and (not (:speaking? speech))
                (or (:paused? (:voice db))
                    (nil? (:voice db))))
       (when-let [enqueued (first (:queue speech))]
         {:db (-> db
                  (assoc-in [:speech :speaking?] true)
-                 (update-in [:speech :queue] pop)
-                 (update :radio-history conj
-                         (let [obj (::raw enqueued)]
-                           {:speaker (:name (:from obj))
-                            :freq 127.1 ; TODO get this from :engine
-                            :timestamp now
-                            :text (->readable (:message obj))})))
-         :speech/say (assoc enqueued :on-complete #(dispatch [::speech-utterance-complete]))}))))
+                 (update-in [:speech :queue] pop))
+         :speech/say (assoc enqueued :on-complete #(dispatch [::speech-utterance-complete]))
+         :dispatch (let [obj (::raw enqueued)]
+                     [:radio-history/push
+                      {:speaker (:name (:from obj))
+                       :freq 127.1 ; TODO get this from :engine
+                       :text (:message obj)}])}))))
 
 (def delay-between-enqueued-radio-ms 1250)
 
@@ -389,6 +388,31 @@
        :fx [(when (and (= :ready new-state)
                        will-be-paused?)
               [:dispatch [:voice/set-paused true]])]})))
+
+
+; ======= UI state ========================================
+
+(reg-event-fx
+  :radio-history/push
+  [unwrap (path :radio-history) (inject-cofx ::cofx/now)]
+  (fn [{radio-history :db :keys [now]} message]
+    {:db (conj radio-history
+               (-> message
+                   (assoc :timestamp now)
+                   (update :text ->readable)))}))
+
+; ======= "Help" functionality ============================
+
+(reg-event-fx
+  :help/identify-navaid
+  [trim-v injected-engine (path :engine)]
+  (fn [{engine :db} [id]]
+    (let [navaid (get-in engine [:game/navaids-by-id id])]
+      {:dispatch [:radio-history/push
+                  {:speaker :system/help
+                   :text [id (name (:type navaid))
+                          ": pronounced " (->speakable [navaid])]}]})))
+
 
 (comment
   (dispatch [:game/reset])
