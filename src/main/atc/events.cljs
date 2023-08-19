@@ -443,6 +443,14 @@
                   {:speaker :system/help
                    :text msg}]})))
 
+(reg-event-fx
+  :help/warning
+  [trim-v]
+  (fn [_ message]
+    {:dispatch [:radio-history/push
+                {:speaker :system/warning
+                 :text message}]}))
+
 (comment
   (dispatch [:game/reset])
 

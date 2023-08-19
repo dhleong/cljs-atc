@@ -29,10 +29,13 @@
 
    ; Speaker classes
    [:&.system-message {:color "green"
-                       :opacity 0.8}]])
+                       :opacity 0.8}]
+   [:&.warning-message {:color "orange"
+                        :opacity 0.8}]])
 
 (def ^:private speaker-classes
-  {"system" :system-message})
+  {:system/warning :warning-message
+   "system" :system-message})
 
 (defn- radio-history []
   [bottom-scroller (radio-history-attrs)

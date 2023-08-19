@@ -91,6 +91,8 @@
         ; There is no ~~spoon~~such aircraft:
         (do
           (println "WARNING: No such aircraft: " callsign)
+          ; This is a bit impure, but we're doing it for many other things...
+          (>evt [:help/warning (str "No such aircraft: " callsign)])
           this))))
 
   IGameEngine
