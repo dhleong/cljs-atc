@@ -8,6 +8,8 @@
   ; NOTE: default to game, for now
   {:page [:game]
 
+   :ui-config {}
+
    :game-history (rolling-history max-game-snapshots)
    :game-events []
 

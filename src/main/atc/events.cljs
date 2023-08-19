@@ -401,6 +401,16 @@
                    (assoc :timestamp now)
                    (update :text ->readable)))}))
 
+; ======= UI Config =======================================
+
+; TODO auto-persist these + wire up
+(reg-event-db
+  :config/set
+  [unwrap (path :ui-config)]
+  (fn [config updates]
+    (merge config updates)))
+
+
 ; ======= "Help" functionality ============================
 
 (reg-event-fx
@@ -435,6 +445,8 @@
 
 (comment
   (dispatch [:game/reset])
+
+  (dispatch [:config/set {:range-rings-nm 10}])
 
   (dispatch [::voice-handle-text "delta twenty two turn right heading one eight zero"])
   (dispatch [::voice-handle-text "delta twenty two contact center point eight good day"]))
