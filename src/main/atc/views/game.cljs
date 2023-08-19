@@ -11,6 +11,7 @@
    [atc.views.game.graphics.center-facility :as center-facility]
    [atc.views.game.graphics.navaid :as navaid]
    [atc.views.game.graphics.polygon :refer [polygon]]
+   [atc.views.game.graphics.range-rings :refer [range-rings]]
    [atc.views.game.graphics.runway :as runway]
    [atc.views.game.stage :refer [stage]]
    [atc.views.game.viewport :refer [viewport]]
@@ -18,8 +19,8 @@
    [reagent.core :as r]
    [spade.core :refer [defattrs]]))
 
-; Basically a 3x a ~100 km CTR controller's radius, I guess
-(def default-world-dimension (* 3 100 1000))
+; Basically a ~100 km CTR controller's radius, I guess
+(def default-world-dimension (* 100 1000))
 
 (defattrs game-controls-container-attrs [{:keys [paused?]}]
   {:position :absolute
@@ -97,6 +98,7 @@
                   :stop-propagation true}
 
         [airspace-geometry]
+        [range-rings entity-scale]
         [all-neighboring-sectors entity-scale]
         [all-runways]
         [all-aircraft entity-scale]

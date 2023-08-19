@@ -4,13 +4,27 @@
    [atc.data.core :refer [local-xy]]
    [atc.engine.model :refer [v* vec3]]
    [atc.structures.rolling-history :refer [most-recent-n]]
+   [atc.util.subs :refer [get-or-identity]]
    [clojure.math :refer [floor]]
    [clojure.string :as str]
-   [re-frame.core :refer [reg-sub]]))
+   [re-frame.core :refer [reg-sub]]
+   [atc.config :as config]))
 
 (reg-sub
   :page
   :-> :page)
+
+
+; ======= UI Config =======================================
+
+(reg-sub
+  ::ui-config
+  :-> :ui-config)
+
+(reg-sub
+  :ui-config
+  :<- [::ui-config]
+  :=> get-or-identity)
 
 
 ; ======= Voice ===========================================
@@ -236,3 +250,12 @@
                       (map (fn [[k events]]
                              [k (count events)]))
                       (into {}))}))))
+
+
+; ======= UI ==============================================
+
+(reg-sub
+  :ui/range-rings
+  :<- [:ui-config :range-rings-nm config/default-range-ring-nm]
+  :-> (fn [range-nm]
+        (range range-nm config/max-range-ring-nm range-nm)))

@@ -8,3 +8,6 @@
 (def min-radar-visbility-altitude-agl-m 10)
 (def min-twr->departure-handoff-altitude-agl-m 25)
 
+; UI Config
+(def default-range-ring-nm 5)
+(def max-range-ring-nm 140)
