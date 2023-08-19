@@ -1,7 +1,7 @@
 (ns atc.views.game.graphics.center-facility
    (:require
+    ["@pixi/react" :as px]
     ["pixi.js" :refer [TextStyle]]
-    ["@inlet/react-pixi" :as px]
     [atc.theme :as theme]))
 
 (def frequency-style (TextStyle. #js {:align "center"

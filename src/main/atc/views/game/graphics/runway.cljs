@@ -1,6 +1,6 @@
 (ns atc.views.game.graphics.runway
   (:require
-   ["@inlet/react-pixi" :as px]
+   ["@pixi/react" :as px]
    ["pixi.js" :refer [TextStyle]]
    [atc.theme :as theme]
    [atc.views.game.graphics.line :refer [line]]))

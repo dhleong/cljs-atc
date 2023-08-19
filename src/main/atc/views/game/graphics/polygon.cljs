@@ -1,6 +1,6 @@
 (ns atc.views.game.graphics.polygon
   (:require
-   ["@inlet/react-pixi" :as px]
+   ["@pixi/react" :as px]
    [applied-science.js-interop :as j]
    [reagent.core :as r]))
 
