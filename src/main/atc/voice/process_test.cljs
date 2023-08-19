@@ -54,7 +54,16 @@
                             "piper one fly heading two three four have fun")]
          (is (= [[:steer 234]]
                 (pop instructions)))
-         (is (= :error (-> instructions last first)))))))
+         (is (= :error (-> instructions last first))))))
+
+   (testing "Ignore everything before a disregard"
+     ; When we *end* with disregard... ignore the entire thing!
+     (is (nil?
+           (find-command "piper one proceed direct disregard")))
+
+     (is (= {:callsign "N2"
+             :instructions [[:direct "JFK"]]}
+            (find-command "piper one proceed direct disregard piper two proceed disregard piper two proceed direct kennedy")))))
 
 (deftest navaid-test
   (testing "Pronounceable navaids"

@@ -47,20 +47,25 @@
   (insta/parse (:fsm machine) input :total true))
 
 (defn find-command [machine input]
-  (let [output (->> input
-                    (parse-input machine)
+  (when-not (str/ends-with? input "disregard")
+    (let [input (if-some [parts (str/split input "disregard")]
+                  (last parts)
+                  input)
+          output (->> input
+                      (parse-input machine)
 
-                    ; NOTE: clj-kondo seems confused but this fn definitely exists!
-                    #_{:clj-kondo/ignore [:unresolved-var]}
-                    (insta/transform (:transformers machine)))]
-    (if (insta/failure? output)
-      (let [failure (insta/get-failure output)
-            {:keys [callsign instructions]} output
-            instructions (vec instructions)
-            without-trailing-standby (if (= [:standby] (peek instructions))
-                                       (pop instructions)
-                                       instructions)]
-        (println "Unable to fully parse input: " failure)
-        {:callsign callsign
-         :instructions (conj without-trailing-standby [:error failure])})
-      output)))
+                      ; NOTE: clj-kondo seems confused but this fn definitely exists!
+                      #_{:clj-kondo/ignore [:unresolved-var]}
+                      (insta/transform (:transformers machine)))]
+      (if (insta/failure? output)
+        (let [failure (insta/get-failure output)
+              {:keys [callsign instructions]} output
+              instructions (vec instructions)
+              without-trailing-standby (if (#{[:disregard]
+                                              [:standby]} (peek instructions))
+                                         (pop instructions)
+                                         instructions)]
+          (println "Unable to fully parse input: " failure)
+          {:callsign callsign
+           :instructions (conj without-trailing-standby [:error failure])})
+        output))))
