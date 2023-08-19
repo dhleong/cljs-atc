@@ -2,7 +2,7 @@
   (:require
    ["@inlet/react-pixi" :as px]
    ["pixi.js" :refer [TextStyle]]
-   [archetype.util :refer [<sub]]
+   [archetype.util :refer [<sub >evt]]
    [atc.data.units :as units]
    [atc.theme :as theme]
    [atc.views.game.graphics.line :refer [line]]
@@ -93,11 +93,13 @@
     [full-data-block craft]]])
 
 (defn- untracked [{{altitude :z} :position :as craft}
-                  {:keys [track-symbol]}]
+                  {:keys [track-symbol] :as track}]
   [:<>
-   [:> px/Text {:text (or track-symbol "＊")
-                :anchor 0.5
-                :style untracked-aircraft-style}]
+   [:> px/Text {:anchor 0.5
+                :interactive true
+                :rightclick #(>evt [:help/identify-untracked track])
+                :style untracked-aircraft-style
+                :text (or track-symbol "＊")}]
    (when track-symbol
      [data-block-positioning craft
       [:> px/Text {:text (format-altitude altitude)

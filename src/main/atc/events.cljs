@@ -413,6 +413,25 @@
                    :text [id (name (:type navaid))
                           ": pronounced " (->speakable [navaid])]}]})))
 
+(reg-event-fx
+  :help/identify-untracked
+  [trim-v]
+  (fn [_ [track]]
+    (let [msg (cond
+                (nil? track)
+                "An untracked aircraft, on the ground or flying VFR."
+
+                (= "C" (:track-symbol track))
+                "An aircraft tracked by another Center controller."
+
+                (= "T" (:track-symbol track))
+                "An aircraft tracked by a Tower controller."
+
+                :else
+                "Huh. Not sure what that is myself (this is a bug)")]
+      {:dispatch [:radio-history/push
+                  {:speaker :system/help
+                   :text msg}]})))
 
 (comment
   (dispatch [:game/reset])
