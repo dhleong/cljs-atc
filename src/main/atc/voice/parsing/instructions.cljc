@@ -15,6 +15,7 @@
 
 (defrules ^:private instructions-rules
   ["standby = <'standby'>"
+   "disregard = <'disregard'>"
 
    "adjust-altitude = (<'climb'> | <'descend'>)? <'and'>? <'maintain'> altitude"
 

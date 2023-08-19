@@ -1,4 +1,4 @@
-(ns atc.voice.parsing.core 
+(ns atc.voice.parsing.core
   (:require
    [clojure.string :as str]))
 
