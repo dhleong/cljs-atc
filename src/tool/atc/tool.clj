@@ -10,7 +10,8 @@
    [clojure.java.io :as io]
    [clojure.pprint :refer [pprint]]
    [clojure.set :refer [map-invert]]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [clojure.walk :as w]))
 
 (defn- compose-runways [data]
   (mapv
@@ -53,6 +54,9 @@
   ([type items]
    (format-navaids
      (map #(assoc % :type type) items))))
+
+(defn- format-arrival-route [{:keys [origin route-string]}]
+  [origin {:route route-string}])
 
 (defn- format-departure [departure]
   (let [id (:computer-code departure)
@@ -130,6 +134,9 @@
                      (nasr/find-procedures zip-file (:id apt)))
         departures (with-timing "departures"
                      (nasr/find-departure-routes zip-file icao))
+        arrivals (future
+                   (with-timing "arrivals"
+                     (nasr/find-arrival-routes zip-file icao)))
 
         ; TODO read vor/dmes from here
         departure-exit-fix-names (->> departures
@@ -196,6 +203,14 @@
                    (sort-by :id)
                    vec)
 
+     :arrival-routes (->> @arrivals
+                          (group-by :origin)
+                          (into {}
+                                (comp
+                                  (map val)
+                                  (map first)
+                                  (map format-arrival-route))))
+
      :departures (->> procedures
                       (into
                         {}
@@ -238,6 +253,18 @@
 
      :airspace-geometry (vec @airspace)}))
 
+(defn- pretty [v]
+  (with-out-str
+    (->> v
+         (w/prewalk
+           (fn [form]
+             (if (and (symbol? form)
+                      (#{"atc.tool" "clojure.core"}
+                        (namespace form)))
+               (symbol (name form))
+               form)))
+         pprint)))
+
 (defn- build-airport-cli [{{:keys [icao nasr-path write]} :opts}]
   {:pre [icao nasr-path]}
   (let [icao (str/upper-case icao)
@@ -263,30 +290,34 @@
 
     (when write
       (let [icao-sym (str/lower-case icao)
-            file-path (str "src/main/atc/data/airports/" icao-sym ".cljc")]
+            file-path (str "src/main/atc/data/airports/" icao-sym ".cljc")
+            airport-ns (symbol
+                         (str "atc.data.airports." icao-sym))]
         (println "Writing to: " file-path)
-        (spit
-          (io/file file-path)
-          (str
-            (format (str "(ns atc.data.airports.%s\n"
-                         " (:require\n"
-                         "  [atc.voice.parsing.airport :as parsing]\n"
-                         "  [atc.util.instaparse :refer-macros [defalternates-expr]]))\n\n")
-                    icao-sym)
-            (with-out-str
-              (pprint (cons (symbol "def airport")
-                            (list airport))))
-            "\n\n"
-            "(def navaids-by-pronunciation\n"
-            "  (parsing/airport->navaids-by-pronunciation airport))"
-            "\n\n"
-            "(defalternates-expr navaid-pronounced\n"
-            "  (keys navaids-by-pronunciation))"
-            "\n\n"
-            "(def exports\n"
-            " {:airport airport\n"
-            "  :navaids-by-pronunciation navaids-by-pronunciation\n"
-            "  :navaid-pronounced navaid-pronounced})"))
+        (->>
+          `(do
+             (ns ~airport-ns
+               (:require
+                 [atc.voice.parsing.airport :as parsing]
+                 [atc.util.instaparse :refer-macros [defalternates-expr]]))
+
+             (def airport ~airport)
+
+             (def navaids-by-pronunciation
+               (parsing/airport->navaids-by-pronunciation airport))
+
+             (defalternates-expr navaid-pronounced
+               (keys navaids-by-pronunciation))
+
+             (def exports
+               {:airport airport
+                :navaids-by-pronunciation navaids-by-pronunciation
+                :navaid-pronounced navaid-pronounced}))
+
+          (drop 1)
+          (map pretty)
+          (str/join "\n")
+          (spit (io/file file-path)))
         (println "... done!")))))
 
 (defn- pronounceable-cli [{{:keys [word]} :opts}]
