@@ -69,6 +69,7 @@
               :color 0xffffff}]
 
        [:> px/Container {:interactive true
+                         :cursor :grab
                          :pointerdown on-down
                          :pointerup on-up
                          :pointerupoutside on-up
