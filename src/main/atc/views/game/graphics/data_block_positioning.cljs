@@ -21,6 +21,17 @@
    -2 (Point. 0 -1)
    -1 (.normalize (Point. 1 -1))})
 
+(def ^:private angle-offset-mod
+  {0 1
+   1 0.5
+   2 0.5
+   3 0
+   4 0
+   -4 0
+   -3 0
+   -2 0.5
+   -1 0.5})
+
 (defn- handle-drag [state e]
   (cond-> state
     (:dragging? state)
@@ -31,14 +42,20 @@
             ref-y (j/get (:reference s) :y)
             angle (atan2 (- mouse-y ref-y)
                          (- mouse-x ref-x))
-            rounded-angle (round (/ angle angle-interval))]
+            rounded-angle (round (/ angle angle-interval))
+            block-offset (-> (:block s)
+                             (j/call :getBounds)
+                             (j/get :width)
+                             (* (get angle-offset-mod rounded-angle)))]
         (assoc s
                :length (-> (.subtract
                              (j/get-in e [:data :global])
                              (:reference s))
                            (.magnitude)
                            (abs)
-                           (max 10))
+                           (- block-offset)
+                           (max 10)
+                           (min 200))
                :angle (get angle-vectors rounded-angle))))))
 
 (defn data-block-positioning [{:keys [tracked?]} block]
@@ -50,6 +67,7 @@
                          (swap!
                            datablock-state assoc
                            :dragging? true
+                           :block (j/get e :target)
                            :reference (j/call-in e [:target :parent
                                                     :getGlobalPosition])))
                on-up (fn [e]
