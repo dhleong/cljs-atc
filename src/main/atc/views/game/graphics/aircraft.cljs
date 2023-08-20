@@ -5,7 +5,7 @@
    [archetype.util :refer [<sub >evt]]
    [atc.data.units :as units]
    [atc.theme :as theme]
-   [atc.views.game.graphics.line :refer [line]]
+   [atc.views.game.graphics.data-block-positioning :refer [data-block-positioning]]
    [clojure.math :refer [floor]]
    [clojure.string :as str]))
 
@@ -40,15 +40,6 @@
 
 ; ======= Rendering =======================================
 
-(defn- data-block-positioning [_craft block]
-  [:<>
-   ; TODO choose color based on tracked state
-   [line {:from {:x 10 :y 0}
-          :to {:x 20 :y 0}
-          :color 0xffffff}]
-
-   [:> px/Container {:x 28 :y 0}
-    block]])
 
 (defn- tracked-position-symbol []
   [:> px/Text {:text "⬤"
@@ -85,14 +76,13 @@
                  :style tracked-label-style}]))
 
 (defn- tracked [craft]
-  ; TODO: Adjust label location?
   [:<>
    [tracked-position-symbol]
 
-   [data-block-positioning craft
+   [data-block-positioning {:tracked? true}
     [full-data-block craft]]])
 
-(defn- untracked [{{altitude :z} :position :as craft}
+(defn- untracked [{{altitude :z} :position}
                   {:keys [track-symbol] :as track}]
   [:<>
    [:> px/Text {:anchor 0.5
@@ -101,7 +91,7 @@
                 :style untracked-aircraft-style
                 :text (or track-symbol "＊")}]
    (when track-symbol
-     [data-block-positioning craft
+     [data-block-positioning {:tracked? false}
       [:> px/Text {:text (format-altitude altitude)
                    :anchor {:x 0 :y 0.5}
                    :style untracked-aircraft-style}]])])
@@ -113,7 +103,6 @@
   (let [tracked-map (<sub [:game/tracked-aircraft-map])
         track (get tracked-map callsign)
         self-tracked? (:self? track)]
-    ; TODO render different graphics based on aircraft state
     (cond
       self-tracked? [tracked craft]
       (some? track) [untracked craft track]
