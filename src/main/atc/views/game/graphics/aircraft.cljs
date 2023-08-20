@@ -76,11 +76,10 @@
                  :style tracked-label-style}]))
 
 (defn- tracked [craft]
-  ; TODO: Adjust label location?
   [:<>
    [tracked-position-symbol]
 
-   [data-block-positioning
+   [data-block-positioning {:tracked? true}
     [full-data-block craft]]])
 
 (defn- untracked [{{altitude :z} :position}
@@ -92,7 +91,7 @@
                 :style untracked-aircraft-style
                 :text (or track-symbol "＊")}]
    (when track-symbol
-     [data-block-positioning
+     [data-block-positioning {:tracked? false}
       [:> px/Text {:text (format-altitude altitude)
                    :anchor {:x 0 :y 0.5}
                    :style untracked-aircraft-style}]])])
@@ -104,7 +103,6 @@
   (let [tracked-map (<sub [:game/tracked-aircraft-map])
         track (get tracked-map callsign)
         self-tracked? (:self? track)]
-    ; TODO render different graphics based on aircraft state
     (cond
       self-tracked? [tracked craft]
       (some? track) [untracked craft track]

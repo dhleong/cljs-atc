@@ -14,3 +14,4 @@
 (def aircraft-tracked-label "#ffffff")
 (def aircraft-tracked-obj "#1f478f")
 (def aircraft-untracked-obj "#00ff00")
+(def aircraft-untracked-obj-int 0x00ff00)

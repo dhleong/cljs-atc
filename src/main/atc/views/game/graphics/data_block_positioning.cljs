@@ -4,6 +4,7 @@
    ["@pixi/math-extras"]
    ["pixi.js" :refer [Point]]
    [applied-science.js-interop :as j]
+   [atc.theme :as theme]
    [atc.views.game.graphics.line :refer [line]]
    [clojure.math :refer [atan2 round]]
    [reagent.core :as r]))
@@ -40,7 +41,7 @@
                            (max 10))
                :angle (get angle-vectors rounded-angle))))))
 
-(defn data-block-positioning [block]
+(defn data-block-positioning [{:keys [tracked?]} block]
   (r/with-let [datablock-state (r/atom {:dragging? false
                                         :angle (get angle-vectors 0)
                                         :length 10})
@@ -63,10 +64,11 @@
           line-end (.add line-start line-length)
           container-pos (.add line-end line-start)]
       [:<>
-       ; TODO choose color based on tracked state
        [line {:from line-start
               :to line-end
-              :color 0xffffff}]
+              :color (if tracked?
+                       0xffffff
+                       theme/aircraft-untracked-obj-int)}]
 
        [:> px/Container {:interactive true
                          :cursor :grab
