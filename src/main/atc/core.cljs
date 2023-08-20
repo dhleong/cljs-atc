@@ -1,5 +1,6 @@
 (ns atc.core
   (:require
+    ["@pixi/math-extras"]
     [goog.dom :as gdom]
     [reagent.dom :as rdom]
     [re-frame.core :as re-frame]

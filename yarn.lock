@@ -99,6 +99,11 @@
   resolved "https://registry.yarnpkg.com/@pixi/loaders/-/loaders-6.5.1.tgz#148e2d7e5b30bd81dab4941a857a01b92c5aa65e"
   integrity sha512-3a41RWFWyRtBrs/fboaFHLF7H5uof4XaWqMCxvLzfofHiz2AuiZnAx9YJAjT+RCP2uFfoU1XmDcyGdc1Q0Ib4w==
 
+"@pixi/math-extras@^6.5.1":
+  version "6.5.10"
+  resolved "https://registry.yarnpkg.com/@pixi/math-extras/-/math-extras-6.5.10.tgz#907338a877dbd371df0a161ef13afa5a43fcac67"
+  integrity sha512-TG2zzvdV0F7FmZtsjSrW12ub+QUZadBRCQZt0IaxTl6VBhysBaYhPILC5YpfGhim1uuF1L8W0LLWaGLI8T3VNg==
+
 "@pixi/math@6.5.1":
   version "6.5.1"
   resolved "https://registry.yarnpkg.com/@pixi/math/-/math-6.5.1.tgz#16213190e19400a77067442406e0e5ef206c3cd7"
