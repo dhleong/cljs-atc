@@ -9,6 +9,9 @@
    [clojure.math :refer [atan2 round]]
    [reagent.core :as r]))
 
+(def ^:private min-length 20)
+(def ^:private max-length 200)
+
 (def ^:private angle-interval (/ js/Math.PI 4))
 (def ^:private angle-vectors
   {0 (Point. 1 0)
@@ -54,6 +57,14 @@
    -2 10
    -1 10})
 
+(def ^:private angle-min-lengths
+  ; These prevent the lines from getting too short at the left side
+  ; of the craft
+  {3 50
+   4 60
+   -4 60
+   -3 50})
+
 (defn- handle-drag [state e]
   (cond-> state
     (:dragging? state)
@@ -69,7 +80,8 @@
                              (j/call :getBounds))
             block-offset (-> block-bounds
                              (j/get :width)
-                             (* (get angle-offset-mod rounded-angle)))]
+                             (* (get angle-offset-mod rounded-angle)))
+            min-length' (get angle-min-lengths rounded-angle min-length)]
         (assoc s
                :length (-> (.subtract
                              (j/get-in e [:data :global])
@@ -77,8 +89,8 @@
                            (.magnitude)
                            (abs)
                            (- block-offset)
-                           (max 10)
-                           (min 200))
+                           (max min-length')
+                           (min max-length))
                :width (j/get block-bounds :width)
                :angle rounded-angle)))))
 
@@ -104,7 +116,7 @@
                                         :block-offset 0
                                         :angle 0
                                         :width 0
-                                        :length 10})
+                                        :length min-length})
                on-down (fn [e]
                          (.stopPropagation e)
                          (swap!
