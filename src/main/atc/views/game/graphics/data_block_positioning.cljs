@@ -21,8 +21,19 @@
    -2 (Point. 0 -1)
    -1 (.normalize (Point. 1 -1))})
 
+(def ^:private angle-pivots
+  {0 (Point. 0 0)
+   1 (Point. 0 0)
+   2 (Point. 0.5 -0.2)
+   3 (Point. 0.2 0.2)
+   4 (Point. 0.2 0)
+   -4 (Point. 0.2 0)
+   -3 (Point. 0.2 -0.2)
+   -2 (Point. 0.5 0.2)
+   -1 (Point. 0 0)})
+
 (def ^:private angle-offset-mod
-  {0 1
+  {0 0.5
    1 0.5
    2 0.5
    3 0
@@ -31,6 +42,17 @@
    -3 0
    -2 0.5
    -1 0.5})
+
+(def ^:private angle-line-length-mod
+  {0 10
+   1 10
+   2 10
+   3 38
+   4 48
+   -4 48
+   -3 38
+   -2 10
+   -1 10})
 
 (defn- handle-drag [state e]
   (cond-> state
@@ -43,8 +65,9 @@
             angle (atan2 (- mouse-y ref-y)
                          (- mouse-x ref-x))
             rounded-angle (round (/ angle angle-interval))
-            block-offset (-> (:block s)
-                             (j/call :getBounds)
+            block-bounds (-> (:block s)
+                             (j/call :getBounds))
+            block-offset (-> block-bounds
                              (j/get :width)
                              (* (get angle-offset-mod rounded-angle)))]
         (assoc s
@@ -56,11 +79,31 @@
                            (- block-offset)
                            (max 10)
                            (min 200))
-               :angle (get angle-vectors rounded-angle))))))
+               :width (j/get block-bounds :width)
+               :angle rounded-angle)))))
+
+(defn- compute-positions [{:keys [angle] :as state}]
+  (let [angle-vec (get angle-vectors angle)
+        line-start (.multiplyScalar angle-vec 10)
+        container-offset-length (.multiplyScalar angle-vec (:length state))
+        container-pos (.add line-start container-offset-length)
+        line-end (.subtract
+                   container-pos
+                   (.multiplyScalar angle-vec
+                                    (get angle-line-length-mod angle)))
+        pivot (.multiplyScalar
+                (get angle-pivots angle)
+                (:width state))]
+    {:line-start line-start
+     :line-end line-end
+     :container-pos container-pos
+     :pivot pivot}))
 
 (defn data-block-positioning [{:keys [tracked?]} block]
   (r/with-let [datablock-state (r/atom {:dragging? false
-                                        :angle (get angle-vectors 0)
+                                        :block-offset 0
+                                        :angle 0
+                                        :width 0
                                         :length 10})
                on-down (fn [e]
                          (.stopPropagation e)
@@ -76,11 +119,8 @@
                          (swap! datablock-state assoc :dragging? false)))
                on-move (fn [e]
                          (swap! datablock-state handle-drag e))]
-    (let [{:keys [^js angle] :as state} @datablock-state
-          line-start (.multiplyScalar angle 10)
-          line-length (.multiplyScalar angle (:length state))
-          line-end (.add line-start line-length)
-          container-pos (.add line-end line-start)]
+    (let [{:keys [line-start line-end
+                  pivot container-pos]} (compute-positions @datablock-state)]
       [:<>
        [line {:from line-start
               :to line-end
@@ -94,6 +134,7 @@
                          :pointerup on-up
                          :pointerupoutside on-up
                          :pointermove on-move
+                         :pivot (or pivot js/undefined)
                          :x (j/get container-pos :x)
                          :y (j/get container-pos :y)}
         block]])))
