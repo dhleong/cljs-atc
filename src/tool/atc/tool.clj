@@ -60,7 +60,8 @@
 
 (defn- format-departure [departure]
   (let [id (:computer-code departure)
-        part-fn (if (:transitions departure)
+        part-fn (if (and (not= :arrival (:type departure))
+                         (:transitions departure))
                   first
                   last)
         id (part-fn (str/split id #"\."))

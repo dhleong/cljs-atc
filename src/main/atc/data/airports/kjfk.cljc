@@ -36,9 +36,9 @@
      {:fix "STW"}
      {:fix "LENDY"}
      {:fix "LGA"}]},
-   "PARCH"
+   "PARCH3"
    {:path [{:fix "PARCH"} {:fix "CCC"} {:fix "ROBER"} {:fix "JFK"}]},
-   "PWL"
+   "PWL2"
    {:path
     [{:fix "PWL"}
      {:fix "DEEDE"}
@@ -49,7 +49,7 @@
      {:fix "NESSI"}
      {:fix "BELTT"}
      {:fix "DPK"}]},
-   "ROBER"
+   "ROBER2"
    {:path [{:fix "PARCH"} {:fix "CCC"} {:fix "ROBER"} {:fix "JFK"}]}},
   :name "JOHN F KENNEDY INTL",
   :departure-fix-codes
