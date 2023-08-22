@@ -1,6 +1,6 @@
 (ns atc.engine.model
   (:require
-   [clojure.math :refer [atan2 to-degrees]]))
+   [clojure.math :refer [atan2 sqrt to-degrees]]))
 
 (defprotocol Simulated
   "Anything that is managed by the simulation"
@@ -85,11 +85,18 @@
   ([x y z]
    (->Vec3 x y z)))
 
+(defn normalize [^Vector v]
+  (let [magnitude (sqrt (vmag2 v))]
+    (v* v (/ 1 magnitude))))
+
 (defn distance-to-squared [from to]
   (vmag2 (v- (vec3 to) from)))
 
+(defn bearing-to->vec [from to]
+  (v- (vec3 to) from))
+
 (defn bearing-to [from to]
-  (let [{dx :x dy :y} (v- (vec3 to) from)]
+  (let [{dx :x dy :y} (bearing-to->vec from to)]
     ; NOTE: This may or may not be the right move, but We want 0 degrees to
     ; point "north" on the screen, and so transform that in the Aircraft engine
     ; object with `(- heading 90)`, which means we have to do the opposite

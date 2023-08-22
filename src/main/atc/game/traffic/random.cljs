@@ -4,7 +4,7 @@
    [atc.data.airlines :refer [all-airlines]]
    [atc.game.traffic.model :refer [ITraffic next-arrival]]
    [atc.game.traffic.shared :refer [partial-arrival-route
-                                    space-crafts-along-route]]
+                                    distribute-crafts-along-route]]
    [atc.util.seedable :refer [next-int pick-random]]))
 
 (defrecord RandomTraffic [random]
@@ -17,7 +17,7 @@
       (->> crafts
            (group-by (partial partial-arrival-route airport))
            (mapcat (fn [[route route-crafts]]
-                     (space-crafts-along-route
+                     (distribute-crafts-along-route
                        engine route route-crafts))))))
 
   (next-arrival [_ {:keys [airport]}]
