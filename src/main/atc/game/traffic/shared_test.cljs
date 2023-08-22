@@ -1,7 +1,8 @@
 (ns atc.game.traffic.shared-test
   (:require
    [atc.data.airports.kjfk :as kjfk]
-   [atc.engine.model :refer [distance-to-squared]]
+   [atc.data.core :refer [local-xy]]
+   [atc.engine.model :refer [lateral-distance-to-squared]]
    [atc.game.traffic.shared :as shared :refer [distribute-crafts-along-route
                                                partial-arrival-route]]
    [atc.subs :refer [navaids-by-id]]
@@ -16,17 +17,21 @@
 
 (deftest space-crafts-along-route-test
   (testing "Position crafts along the route"
-    (let [engine {:game/navaids-by-id (navaids-by-id kjfk/airport)}
+    (let [engine {:airport kjfk/airport
+                  :game/navaids-by-id (navaids-by-id kjfk/airport)}
           distributed (distribute-crafts-along-route
                         engine
                         ["PARCH" "CCC" "ROBER"]
                         [{:callsign "DAL22"}
                          {:callsign "DAL23"}])
           [craft1 craft2] distributed]
-      (is (= (get-in engine [:game/navaids-by-id "ROBER" :position])
-             (:position craft1)))
+      (println distributed)
+      (is (= (local-xy
+               (get-in engine [:game/navaids-by-id "ROBER" :position])
+               kjfk/airport)
+             (dissoc (:position craft1) :z)))
 
-      (is (= #'shared/lateral-spacing-m-squared
-             (distance-to-squared
+      (is (= @#'shared/lateral-spacing-m-squared
+             (lateral-distance-to-squared
                (:position craft1)
                (:position craft2)))))))

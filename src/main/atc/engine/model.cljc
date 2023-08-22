@@ -89,6 +89,9 @@
   (let [magnitude (sqrt (vmag2 v))]
     (v* v (/ 1 magnitude))))
 
+(defn lateral-distance-to-squared [from to]
+  (vmag2 (v- (vec3 to 0) (vec3 from 0))))
+
 (defn distance-to-squared [from to]
   (vmag2 (v- (vec3 to) from)))
 
