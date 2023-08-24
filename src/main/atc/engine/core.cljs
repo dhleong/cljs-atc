@@ -66,6 +66,7 @@
                       ; TODO Pick the actual closest center facility
                       first
                       :frequency)
+   ; TODO follow arrival route
    :commands {}})
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
@@ -130,6 +131,7 @@
     (let [{:keys [callsign] :as radio} (radio/format-airline-radio
                                          (:airline opts)
                                          (:flight-number opts))
+          arrival? (nil? runway)
           data (merge
                  radio
                  (select-keys opts [:destination :config])
@@ -137,11 +139,15 @@
                      (get (:destination opts))
                      (rename-key :fix :departure-fix))
                  {:tx-frequency :self} ; NOTE: default to "my" frequency
-                 (if runway
-                   (departing-aircraft-params this opts)
-                   (arriving-aircraft-params this opts)))]
-      (println "[engine] spawn" callsign)
-      (update this :aircraft assoc callsign (aircraft/create config data)))))
+                 (if arrival?
+                   (arriving-aircraft-params this opts)
+                   (departing-aircraft-params this opts)))]
+      (println "[engine] spawn" (if arrival? :arrival :departure) callsign)
+      (cond-> this
+        true (update :aircraft assoc callsign (aircraft/create config data))
+        arrival? (assoc-in [:tracked-aircraft callsign]
+                           {:track-symbol "C"
+                            :frequency (:tx-frequency data)})))))
 
 (defn engine-grammar [^Engine engine]
   (get-in engine [:parsing-machine :fsm :grammar]))
