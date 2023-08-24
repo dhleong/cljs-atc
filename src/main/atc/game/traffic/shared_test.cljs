@@ -25,7 +25,6 @@
                         [{:callsign "DAL22"}
                          {:callsign "DAL23"}])
           [craft1 craft2] distributed]
-      (println distributed)
       (is (= (local-xy
                (get-in engine [:game/navaids-by-id "ROBER" :position])
                kjfk/airport)

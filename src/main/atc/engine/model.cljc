@@ -98,13 +98,16 @@
 (defn bearing-to->vec [from to]
   (v- (vec3 to) from))
 
+(defn bearing-vec->degrees [{dx :x dy :y}]
+  ; NOTE: This may or may not be the right move, but We want 0 degrees to
+  ; point "north" on the screen, and so transform that in the Aircraft engine
+  ; object with `(- heading 90)`, which means we have to do the opposite
+  ; here....
+  (+ (to-degrees (atan2 dy dx)) 90))
+
 (defn bearing-to [from to]
-  (let [{dx :x dy :y} (bearing-to->vec from to)]
-    ; NOTE: This may or may not be the right move, but We want 0 degrees to
-    ; point "north" on the screen, and so transform that in the Aircraft engine
-    ; object with `(- heading 90)`, which means we have to do the opposite
-    ; here....
-    (+ (to-degrees (atan2 dy dx)) 90)))
+  (let [bearing-vec (bearing-to->vec from to)]
+    (bearing-vec->degrees bearing-vec)))
 
 (defn angle-down-to
   "Assuming `from` is an elevated position and `to` is a position on the ground,

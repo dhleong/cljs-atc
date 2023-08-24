@@ -2,8 +2,9 @@
   (:require
    [atc.data.core :refer [local-xy]]
    [atc.data.units :refer [nm->m]]
-   [atc.engine.model :refer [bearing-to bearing-to->vec
-                             lateral-distance-to-squared normalize v* v+ vec3 Vec3]]
+   [atc.engine.model :refer [bearing-to bearing-to->vec bearing-vec->degrees
+                             lateral-distance-to-squared normalize v* v+ vec3
+                             Vec3]]
    [clojure.string :as str]))
 
 (defn partial-arrival-route [airport {:keys [route]}]
@@ -21,6 +22,15 @@
 (def ^:private lateral-spacing-m (nm->m 5))
 (def ^:private lateral-spacing-m-squared (* lateral-spacing-m lateral-spacing-m))
 
+(defn- spawn-craft [craft {:keys [heading position]}]
+  (assoc craft
+         ; TODO Follow arrival route?
+         :heading heading
+         :position (vec3
+                     position
+                     ; TODO altitude?
+                     180000)))
+
 (defn distribute-crafts-along-route [engine route crafts]
   (letfn [(position-of [{:keys [position]}]
             (if (instance? Vec3 position)
@@ -29,18 +39,37 @@
     (loop [results [(let [navaid-pos (position-of
                                        (get-in engine [:game/navaids-by-id
                                                        (last route)]))]
-                      (assoc (first crafts)
-                             ; TODO Follow arrival route?
-                             :heading (bearing-to navaid-pos {:x 0 :y 0})
-                             :position (vec3
-                                         navaid-pos
-                                         ; TODO ?
-                                         180000)))]
+                      (spawn-craft
+                        (first crafts)
+                        {:heading (bearing-to navaid-pos {:x 0 :y 0})
+                         :position navaid-pos}))]
            navaids (next (reverse route))
            crafts (next crafts)]
-      (if-not (seq crafts)
+      (cond
+        (not (seq crafts))
         results
 
+        ; No more navaids; just continue along the last bearing
+        (not (seq navaids))
+        (let [final-craft (peek results)
+              penultimate-craft (peek (pop results))
+              bearing (bearing-to->vec
+                        (vec3 (position-of penultimate-craft) 0)
+                        (vec3 (position-of final-craft) 0))
+              new-position (v+
+                             (position-of (peek results))
+                             (v* (normalize bearing)
+                                 lateral-spacing-m))]
+          (recur
+            (conj results
+                  (spawn-craft
+                    (first crafts)
+                    {:heading (bearing-vec->degrees bearing)
+                     :position new-position}))
+            navaids
+            (next crafts)))
+
+        :else
         (let [next-navaid-id (first navaids)
               next-navaid (get-in engine [:game/navaids-by-id next-navaid-id])
               distance-to-next-navaid-sq (lateral-distance-to-squared
@@ -48,6 +77,9 @@
                                            (position-of next-navaid))]
           (if (>= distance-to-next-navaid-sq lateral-spacing-m-squared)
             ; Plenty of room along the current radial
+            ; TODO The previous craft might not actually be on the radial.
+            ; If that's the case, we need to project the new position onto
+            ; the radial
             (let [bearing-to-previous (bearing-to->vec
                                         (vec3 (position-of (peek results)) 0)
                                         (vec3 (position-of next-navaid) 0))
@@ -57,16 +89,17 @@
                                      lateral-spacing-m))]
               (recur
                 (conj results
-                      (assoc (first crafts)
-                             ; TODO Command to continue arrival
-                             :heading (bearing-to new-position next-navaid)
-                             :position (vec3 new-position
-                                             ; TODO: What should the altitude be here?
-                                             180000)))
+                      (spawn-craft
+                        (first crafts)
+                        {:heading (bearing-to new-position next-navaid)
+                         :position new-position}))
                 navaids
                 (next crafts)))
 
             ; TODO No more room between the last aircraft and the next navaid.
             ; If there's another navaid we need to "turn the corner". If
             ; not, we need to just extend along the current bearing
-            results))))))
+            (recur
+              results
+              (next navaids)
+              crafts)))))))
