@@ -1,10 +1,41 @@
 (ns atc.engine.queues
   (:require
    [atc.engine.model :refer [spawn-aircraft]]
-   [atc.game.traffic.model :refer [next-departure]]))
+   [atc.game.traffic.model :refer [generate-initial-arrivals next-departure]]))
 
 (def ^:private queues
-  {:departure (fn departure-queue [{engine :engine
+  {:arrival (fn arrival-queue [{engine :engine
+                                {:keys [next-time-s]} :state}]
+              (loop [engine engine
+                     next-time-s next-time-s]
+                (cond
+                  ; Spawn initial set of arrivals
+                  (nil? next-time-s)
+                  (let [{:keys [aircrafts delay-to-next-s]}
+                        (generate-initial-arrivals
+                          (:traffic engine)
+                          engine)]
+                    (recur
+                      (loop [engine' engine
+                             aircrafts aircrafts]
+                        (if-let [arrival (first aircrafts)]
+                          (recur (spawn-aircraft engine' arrival)
+                                 (next aircrafts))
+                          engine'))
+                      delay-to-next-s))
+
+                  (> next-time-s
+                     (:elapsed-s engine))
+                  ; Nothing more to do!
+                  {:engine engine
+                   :state {:next-time-s next-time-s}}
+
+                  ; TODO Spawn another arrival
+                  :else
+                  {:engine engine
+                   :state {:next-time-s next-time-s}})))
+
+   :departure (fn departure-queue [{engine :engine
                                     {:keys [next-time-s]} :state}]
                 (loop [engine engine
                        next-time-s next-time-s]

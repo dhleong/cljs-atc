@@ -14,11 +14,15 @@
                    10 ; TODO "difficulty"?
                    #(next-arrival this engine))]
       ; Position at intervals along arrival route
-      (->> crafts
-           (group-by (partial partial-arrival-route airport))
-           (mapcat (fn [[route route-crafts]]
-                     (distribute-crafts-along-route
-                       engine route route-crafts))))))
+      {:aircrafts (->> crafts
+                       (map :aircraft)
+                       (group-by (partial partial-arrival-route airport))
+                       (mapcat (fn [[route route-crafts]]
+                                 (when (seq route)
+                                   (distribute-crafts-along-route
+                                     engine route route-crafts)))))
+
+       :delay-to-next-s (:delay-to-next-s (last crafts))}))
 
   (next-arrival [_ {:keys [airport]}]
     (let [origin (pick-random
@@ -30,9 +34,6 @@
                   :origin origin
                   :destination (:id airport)
                   :route (-> airport (get-in [:arrival-routes origin :route]))
-
-                  ; TODO weather; runway selection
-                  :runway (-> airport :runways first :start-id)
                   :config configs/common-jet}
 
        ; TODO Maybe depend on "difficulty"?

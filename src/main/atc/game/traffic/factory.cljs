@@ -18,3 +18,12 @@
 
     ; Wrap with a validator in debug mode
     goog.DEBUG (->ValidatedTraffic)))
+
+#_{:clj-kondo/ignore [:unresolved-namespace]}
+(comment
+
+  (atc.game.traffic.model/generate-initial-arrivals
+    (create-traffic [:random [:default-seed nil]])
+    {:airport atc.data.airports.kjfk/airport
+     :game/navaids-by-id (atc.subs/navaids-by-id
+                           atc.data.airports.kjfk/airport)}))

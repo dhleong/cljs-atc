@@ -3,15 +3,26 @@
    [clojure.spec.alpha :as s]
    [spec-tools.data-spec :as ds]))
 
+(def traffic-aircraft-spec
+  (ds/spec
+    {:name ::traffic-aircraft
+     :spec {:type (s/spec #{:airline})
+            :airline string?
+            :flight-number number?
+            :destination string? ; eg KJFK
+            (ds/opt :runway) string? ; eg 13L
+            :config map?}}))
+
+(def multi-flight-spec
+  (ds/spec
+    {:name ::multi-flight
+     :spec {:aircrafts (s/coll-of traffic-aircraft-spec)
+            :delay-to-next-s number?}}))
+
 (def flight-spec
   (ds/spec
     {:name ::flight
-     :spec {:aircraft {:type (s/spec #{:airline})
-                       :airline string?
-                       :flight-number number?
-                       :destination string? ; eg KJFK
-                       :runway string? ; eg 13L
-                       :config map?} ; from aircraft-configs
+     :spec {:aircraft traffic-aircraft-spec
             :delay-to-next-s number?}}))
 
 (defprotocol ITraffic
@@ -22,17 +33,23 @@
 (defn- validate-generated-flight [v]
   (when-not (s/valid? flight-spec v)
     (throw (ex-info (str "Generated invalid traffic: "
-                         (s/explain flight-spec v))
+                         (s/explain-str flight-spec v))
                     {:generated v})))
   v)
+
+(defn- validate-generated-multi-flight [v]
+  (when-not (s/valid? multi-flight-spec v)
+    (throw (ex-info (str "Generated invalid multi-traffic: "
+                         (s/explain-str multi-flight-spec v))
+                    {:generated v})))
+  v)
+
 
 (defrecord ValidatedTraffic [base]
   ITraffic
   (generate-initial-arrivals [_this engine]
-    (let [arrivals (generate-initial-arrivals base engine)]
-      (doseq [a arrivals]
-        (validate-generated-flight a))
-      arrivals))
+    (validate-generated-multi-flight
+      (generate-initial-arrivals base engine)))
   (next-arrival [_this engine]
     (validate-generated-flight
       (next-arrival base engine)))
