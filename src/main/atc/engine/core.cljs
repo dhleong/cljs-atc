@@ -60,7 +60,7 @@
   {:heading heading
    :position position
    :speed (:cruise-speed config)
-   :state :flight
+   :state :arriving
    :tx-frequency (->> (:airport this)
                       :center-facilities
                       ; TODO Pick the actual closest center facility
