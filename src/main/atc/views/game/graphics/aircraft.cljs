@@ -33,7 +33,7 @@
                     (floor)))]
 
     ; Pad-left with 0
-    (if (>= 3 (count s))
+    (if (>= (count s) 3)
       s
       (recur (str "0" s)))))
 
