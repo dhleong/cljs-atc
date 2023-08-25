@@ -1,7 +1,7 @@
 (ns atc.game.traffic.shared
   (:require
    [atc.data.core :refer [local-xy]]
-   [atc.data.units :refer [nm->m]]
+   [atc.data.units :refer [ft->m nm->m]]
    [atc.engine.model :refer [bearing-to bearing-to->vec bearing-vec->degrees
                              lateral-distance-to-squared normalize v* v+ vec3
                              Vec3]]
@@ -29,7 +29,7 @@
          :position (vec3
                      position
                      ; TODO altitude?
-                     180000)))
+                     (ft->m 18000))))
 
 (defn distribute-crafts-along-route [engine route crafts]
   (letfn [(position-of [{:keys [position]}]
