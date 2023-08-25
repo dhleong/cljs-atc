@@ -64,7 +64,7 @@
             (conj results
                   (spawn-craft
                     (first crafts)
-                    {:heading (bearing-vec->degrees bearing)
+                    {:heading (+ 180 (bearing-vec->degrees bearing))
                      :position new-position}))
             navaids
             (next crafts)))
@@ -91,7 +91,7 @@
                 (conj results
                       (spawn-craft
                         (first crafts)
-                        {:heading (bearing-to new-position next-navaid)
+                        {:heading (+ 180 (bearing-to new-position next-navaid))
                          :position new-position}))
                 navaids
                 (next crafts)))
