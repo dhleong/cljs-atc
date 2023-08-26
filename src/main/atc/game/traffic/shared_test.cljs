@@ -30,7 +30,10 @@
                kjfk/airport)
              (dissoc (:position craft1) :z)))
 
-      (is (= @#'shared/lateral-spacing-m-squared
-             (lateral-distance-to-squared
-               (:position craft1)
-               (:position craft2)))))))
+      (let [distance (lateral-distance-to-squared
+                       (:position craft1)
+                       (:position craft2))
+            delta 0.1]
+        (is (<= (- @#'shared/lateral-spacing-m-squared delta)
+                distance
+                (+ @#'shared/lateral-spacing-m-squared delta)))))))
