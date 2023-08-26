@@ -3,9 +3,7 @@
    [atc.data.airports.kjfk :as kjfk]
    [atc.data.core :refer [local-xy]]
    [atc.engine.model :refer [lateral-distance-to-squared]]
-   [atc.game.traffic.shared :as shared :refer [distribute-crafts-along-route
-                                               partial-arrival-route
-                                               position-and-format-initial-arrivals
+   [atc.game.traffic.shared :as shared :refer [partial-arrival-route
                                                position-arriving-aircraft]]
    [atc.subs :refer [navaids-by-id]]
    [atc.util.testing :refer [roughly=]]
@@ -28,54 +26,6 @@
              (create-engine)
              {:route (get-in kjfk/airport [:arrival-routes "KBWI" :route])})))))
 
-(deftest space-crafts-along-route-test
-  (testing "Position crafts along the route"
-    (let [engine {:airport kjfk/airport
-                  :game/navaids-by-id (navaids-by-id kjfk/airport)}
-          distributed (distribute-crafts-along-route
-                        engine
-                        ["PARCH" "CCC" "ROBER"]
-                        [{:callsign "DAL22"}
-                         {:callsign "DAL23"}])
-          [craft1 craft2] distributed]
-      (is (roughly=
-            (local-xy
-              (get-in engine [:game/navaids-by-id "ROBER" :position])
-              kjfk/airport)
-            (dissoc (:position craft1) :z)))
-
-      (let [distance (lateral-distance-to-squared
-                       (:position craft1)
-                       (:position craft2))
-            delta 0.1]
-        (is (<= (- @#'shared/lateral-spacing-m-squared delta)
-                distance
-                (+ @#'shared/lateral-spacing-m-squared delta))))))
-
-  (testing "Gracefully handle single-fix routes"
-    (let [engine {:airport kjfk/airport
-                  :game/navaids-by-id (navaids-by-id kjfk/airport)}
-          distributed (distribute-crafts-along-route
-                        engine
-                        ["CAMRN"]
-                        [{:callsign "DAL22"}
-                         {:callsign "DAL23"}])
-          [craft1 _] distributed]
-      (is (= (local-xy
-               (get-in engine [:game/navaids-by-id "CAMRN" :position])
-               kjfk/airport)
-             (dissoc (:position craft1) :z))))))
-
-(deftest position-and-format-initial-arrivals-test
-  (testing "Prevent overlapping planes"
-    ; NOTE: the LENDY8 and IGN1 arrivals both land on LENDY In an ideal
-    ; world we can just shift these apart, but distinct-ifying is simpler
-    (is (= 1
-           (->> (position-and-format-initial-arrivals
-                  (create-engine)
-                  [(get-in kjfk/airport [:arrival-routes "KMKE"])
-                   (get-in kjfk/airport [:arrival-routes "KSBP"])])
-                count)))))
 
 (deftest position-arriving-aircraft-test
   (testing "The first craft should be on its last navaid"
@@ -105,8 +55,7 @@
                            :destination "KJFK"}))
           distance (lateral-distance-to-squared
                      (:position craft1)
-                     (:position craft2))
-          delta 0.1]
-      (is (<= (- @#'shared/lateral-spacing-m-squared delta)
-              distance
-              (+ @#'shared/lateral-spacing-m-squared delta))))))
+                     (:position craft2))]
+      (is (roughly=
+            (* @#'shared/lateral-spacing-m @#'shared/lateral-spacing-m)
+              distance)))))
