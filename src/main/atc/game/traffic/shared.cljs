@@ -7,17 +7,19 @@
                              Vec3]]
    [clojure.string :as str]))
 
-(defn partial-arrival-route [airport {:keys [route]}]
+(defn partial-arrival-route [engine {:keys [route]}]
   (->>
     (str/split route #" ")
     (drop-last)
     (take-last 2)
     (mapcat (fn [id]
-              (or (map :fix
-                       (get-in airport [:arrivals id :path]))
-                  [id])))
-    distinct
-    drop-last))
+              (or (->> (get-in engine [:airport :arrivals id :path])
+                       (map :fix)
+                       (drop-last)
+                       (seq))
+                  (when (get-in engine [:game/navaids-by-id id])
+                    [id]))))
+    (distinct)))
 
 (def ^:private lateral-spacing-m (nm->m 5))
 (def ^:private lateral-spacing-m-squared (* lateral-spacing-m lateral-spacing-m))

@@ -9,14 +9,14 @@
 
 (defrecord RandomTraffic [random]
   ITraffic
-  (generate-initial-arrivals [this {:keys [airport] :as engine}]
+  (generate-initial-arrivals [this engine]
     (let [crafts (repeatedly
                    10 ; TODO "difficulty"?
                    #(next-arrival this engine))]
       ; Position at intervals along arrival route
       {:aircrafts (->> crafts
                        (map :aircraft)
-                       (group-by (partial partial-arrival-route airport))
+                       (group-by (partial partial-arrival-route engine))
                        (mapcat (fn [[route route-crafts]]
                                  (when (seq route)
                                    (distribute-crafts-along-route
