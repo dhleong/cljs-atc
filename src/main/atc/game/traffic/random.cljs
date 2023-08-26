@@ -3,8 +3,7 @@
    [atc.data.aircraft-configs :as configs]
    [atc.data.airlines :refer [all-airlines]]
    [atc.game.traffic.model :refer [ITraffic next-arrival]]
-   [atc.game.traffic.shared :refer [partial-arrival-route
-                                    distribute-crafts-along-route]]
+   [atc.game.traffic.shared :refer [position-and-format-initial-arrivals]]
    [atc.util.seedable :refer [next-int pick-random]]))
 
 (defrecord RandomTraffic [random]
@@ -16,11 +15,7 @@
       ; Position at intervals along arrival route
       {:aircrafts (->> crafts
                        (map :aircraft)
-                       (group-by (partial partial-arrival-route engine))
-                       (mapcat (fn [[route route-crafts]]
-                                 (when (seq route)
-                                   (distribute-crafts-along-route
-                                     engine route route-crafts)))))
+                       (position-and-format-initial-arrivals engine))
 
        :delay-to-next-s (:delay-to-next-s (last crafts))}))
 

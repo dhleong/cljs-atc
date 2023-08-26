@@ -5,7 +5,8 @@
    [atc.engine.model :refer [bearing-to bearing-to->vec bearing-vec->degrees
                              lateral-distance-to-squared normalize v* v+ vec3
                              Vec3]]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [medley.core :refer [distinct-by]]))
 
 (defn partial-arrival-route [engine {:keys [route]}]
   (->>
@@ -37,10 +38,14 @@
   (letfn [(position-of [{:keys [position]}]
             (if (instance? Vec3 position)
               position
-              (local-xy position (:airport engine))))]
+              (local-xy position (:airport engine))))
+
+          (navaid-by-id [id]
+            (or (get-in engine [:game/navaids-by-id id])
+                (throw (ex-info "No such navaid" {:id id}))))]
+
     (loop [results [(let [navaid-pos (position-of
-                                       (get-in engine [:game/navaids-by-id
-                                                       (last route)]))]
+                                       (navaid-by-id (last route)))]
                       (spawn-craft
                         (first crafts)
                         {:heading (bearing-to navaid-pos {:x 0 :y 0})
@@ -54,7 +59,12 @@
         ; No more navaids; just continue along the last bearing
         (not (seq navaids))
         (let [final-craft (peek results)
-              penultimate-craft (peek (pop results))
+              penultimate-craft (or (peek (pop results))
+                                    ; If there's no other craft, create a path
+                                    ; along the airport to the final-craft
+                                    ; TODO: If/when we support jetways, we
+                                    ; should be able to remove this hack...
+                                    {:position (vec3 0 0)})
               bearing (bearing-to->vec
                         (vec3 (position-of penultimate-craft) 0)
                         (vec3 (position-of final-craft) 0))
@@ -73,7 +83,7 @@
 
         :else
         (let [next-navaid-id (first navaids)
-              next-navaid (get-in engine [:game/navaids-by-id next-navaid-id])
+              next-navaid (navaid-by-id next-navaid-id)
               distance-to-next-navaid-sq (lateral-distance-to-squared
                                            (position-of (peek results))
                                            (position-of next-navaid))]
@@ -105,3 +115,13 @@
               results
               (next navaids)
               crafts)))))))
+
+(defn position-and-format-initial-arrivals [engine crafts]
+  (->> crafts
+       (group-by (partial partial-arrival-route engine))
+       (mapcat (fn [[route route-crafts]]
+                 (when (seq route)
+                   (distribute-crafts-along-route
+                     engine route route-crafts))))
+       (distinct-by :position)))
+
