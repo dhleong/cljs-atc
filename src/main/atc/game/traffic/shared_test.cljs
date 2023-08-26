@@ -7,7 +7,8 @@
                                                position-arriving-aircraft]]
    [atc.subs :refer [navaids-by-id]]
    [atc.util.testing :refer [roughly=]]
-   [cljs.test :refer-macros [deftest is testing]]))
+   [cljs.test :refer-macros [deftest is testing]]
+   [clojure.math :refer [sqrt]]))
 
 (defn- create-engine []
   {:airport kjfk/airport
@@ -53,9 +54,10 @@
                    (merge (get-in kjfk/airport [:arrival-routes "KBTV"])
                           {:callsign "DAL2"
                            :destination "KJFK"}))
-          distance (lateral-distance-to-squared
-                     (:position craft1)
-                     (:position craft2))]
+          distance (sqrt
+                     (lateral-distance-to-squared
+                       (:position craft1)
+                       (:position craft2)))]
       (is (roughly=
-            (* @#'shared/lateral-spacing-m @#'shared/lateral-spacing-m)
-              distance)))))
+            @#'shared/lateral-spacing-m
+            distance)))))

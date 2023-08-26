@@ -2,9 +2,8 @@
   (:require
    [atc.data.core :refer [local-xy]]
    [atc.data.units :refer [ft->m nm->m]]
-   [atc.engine.model :refer [bearing-to
-                             distance-to-squared dot*
-                             normalize v* v- vec3 Vec3 vmag vmag2]]
+   [atc.engine.model :refer [bearing-to distance-to-squared dot* normalize v*
+                             v- vec3 Vec3 vmag vmag2]]
    [atc.util.coll :refer [min-by]]
    [clojure.string :as str]))
 
@@ -60,6 +59,42 @@
                    squared-len))
       0)))
 
+(defn- compute-initial-position [{:keys [initializing?
+                                         arrivals-by-route
+                                         first-pos-on-my-route
+                                         last-pos-on-my-route
+                                         my-route]}]
+  ; If this aircraft is the first on its route *and* we're still
+  ; initializing the game, we apply a special case where we
+  ; round-robin distances from last navaid on route to not
+  ; overwhelm the controller with a bunch of simultaneous arrivals
+  (let [arrivals-on-my-route (get arrivals-by-route my-route)
+        distance-from-previous (if-not (or (seq arrivals-on-my-route)
+                                           (not initializing?))
+                                 (* (count arrivals-by-route)
+                                    lateral-spacing-m)
+                                 (* (count arrivals-on-my-route)
+                                    lateral-spacing-m))
+
+        ; For spawning the initial arrivals, we choose a position some
+        ; distance from the airport in the direction of the route
+        rough-initial-distance (+ (vmag last-pos-on-my-route)
+                                  distance-from-previous)
+
+        spawn-distance (if initializing?
+                         ; Always use the rough distance at init
+                         rough-initial-distance
+
+                         ; Otherwise, make sure we're *at least* as
+                         ; far as the furthest fix in the path, to
+                         ; try to avoid pop-in
+                         (let [min-spawn-in-distance (vmag first-pos-on-my-route)]
+                           (max min-spawn-in-distance
+                                rough-initial-distance)))]
+    (v*
+      (normalize last-pos-on-my-route)
+      spawn-distance)))
+
 (defn position-arriving-aircraft
   "Position an arriving aircraft somewhere along its arrival route,
    behind any existing aircraft in `engine` using that same route"
@@ -73,33 +108,22 @@
             (or (get-in engine [:game/navaids-by-id id])
                 (throw (ex-info (str "No such navaid: " id) {:id id}))))]
     (let [my-route (partial-arrival-route engine craft)
-          last-pos-on-my-route (position-of
-                                 (navaid-by-id
-                                   (last my-route)))
           all-arrivals (engine-arrivals engine)
           arrivals-by-route (group-by
                               (partial partial-arrival-route engine)
                               all-arrivals)
-          arrivals-on-my-route (get arrivals-by-route my-route)
 
-          ; If this aircraft is the first on its route *and* we're still
-          ; initializing the game, we apply a special case where we
-          ; round-robin distances from last navaid on route to not
-          ; overwhelm the controller with a bunch of simultaneous arrivals
-          distance-from-previous (if (not (or (seq arrivals-on-my-route)
-                                              (> (:elapsed-s engine) 0)))
-                                   (* (count arrivals-by-route)
-                                      lateral-spacing-m)
-                                   (* (count arrivals-on-my-route)
-                                      lateral-spacing-m))
-
-          ; First, pick a position at a rough distance from the airport
-          ; where we want this craft
-          distance-to-first-point (+ (vmag last-pos-on-my-route)
-                                     distance-from-previous)
-          approx-position (v*
-                            (normalize last-pos-on-my-route)
-                            distance-to-first-point)
+          ; First, pick a rough position where we want this craft
+          approx-position (compute-initial-position
+                            {:initializing? (= 0 (:elapsed-s engine 0))
+                             :arrivals-by-route arrivals-by-route
+                             :first-pos-on-my-route (position-of
+                                                      (navaid-by-id
+                                                        (first my-route)))
+                             :last-pos-on-my-route (position-of
+                                                     (navaid-by-id
+                                                       (last my-route)))
+                             :my-route my-route})
 
           ; Next, find the closest segment on the route to this point
           route-positions (->> my-route
