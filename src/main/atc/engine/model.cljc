@@ -42,6 +42,7 @@
   (v+ [this ^Vector other])
   (v- [this ^Vector other])
   (v* [this other])
+  (dot* [this ^Vector other])
   (vmag2 [this] "Compute the square of the magnitude of this vector"))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
@@ -71,14 +72,24 @@
              :y (* y (:y other))
              :z (* (or z 1) (:z other 1)))))
 
+  (dot* [this other]
+    (+ (* (:x this) (:x other))
+       (* (:y this) (:y other))
+       (* (:z this 0) (:z other 0))))
+
   (vmag2 [this]
     (let [{dx :x dy :y dz :z} this]
       (+ (* dx dx)
          (* dy dy)
          (* dz dz)))))
 
+(defn vmag [^Vector v]
+  (sqrt (vmag2 v)))
+
+(def vec3? (partial instance? Vec3))
+
 (defn vec3
-  ([v] (if (instance? Vec3 v) v
+  ([v] (if (vec3? v) v
          (->Vec3 (:x v) (:y v) (:z v))))
   ([v z] (let [{:keys [x y]} (vec3 v)]
            (->Vec3 x y z)))
@@ -86,7 +97,7 @@
    (->Vec3 x y z)))
 
 (defn normalize [^Vector v]
-  (let [magnitude (sqrt (vmag2 v))]
+  (let [magnitude (vmag v)]
     (v* v (/ 1 magnitude))))
 
 (defn lateral-distance-to-squared [from to]

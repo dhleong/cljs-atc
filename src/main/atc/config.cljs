@@ -18,3 +18,6 @@
 ; UI Config
 (def default-range-ring-nm 5)
 (def max-range-ring-nm 140)
+
+; Game Config
+(def initial-arrivals-to-spawn 10)

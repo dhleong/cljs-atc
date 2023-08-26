@@ -5,8 +5,10 @@
    [atc.engine.model :refer [lateral-distance-to-squared]]
    [atc.game.traffic.shared :as shared :refer [distribute-crafts-along-route
                                                partial-arrival-route
-                                               position-and-format-initial-arrivals]]
+                                               position-and-format-initial-arrivals
+                                               position-arriving-aircraft]]
    [atc.subs :refer [navaids-by-id]]
+   [atc.util.testing :refer [roughly=]]
    [cljs.test :refer-macros [deftest is testing]]))
 
 (defn- create-engine []
@@ -36,10 +38,11 @@
                         [{:callsign "DAL22"}
                          {:callsign "DAL23"}])
           [craft1 craft2] distributed]
-      (is (= (local-xy
-               (get-in engine [:game/navaids-by-id "ROBER" :position])
-               kjfk/airport)
-             (dissoc (:position craft1) :z)))
+      (is (roughly=
+            (local-xy
+              (get-in engine [:game/navaids-by-id "ROBER" :position])
+              kjfk/airport)
+            (dissoc (:position craft1) :z)))
 
       (let [distance (lateral-distance-to-squared
                        (:position craft1)
@@ -73,3 +76,37 @@
                   [(get-in kjfk/airport [:arrival-routes "KMKE"])
                    (get-in kjfk/airport [:arrival-routes "KSBP"])])
                 count)))))
+
+(deftest position-arriving-aircraft-test
+  (testing "The first craft should be on its last navaid"
+    ; NOTE: KBTV uses the ROBER2 arrival
+    (let [craft (position-arriving-aircraft
+                  (create-engine)
+                  (get-in kjfk/airport [:arrival-routes "KBTV"]))]
+      (is (roughly=
+           (local-xy
+             (get-in (create-engine) [:game/navaids-by-id "ROBER" :position])
+             kjfk/airport)
+           (dissoc (:position craft) :z)))))
+
+  (testing "The second craft on a route should be laterally-spaced"
+    (let [engine (create-engine)
+          craft1 (position-arriving-aircraft
+                   engine
+                   (merge (get-in kjfk/airport [:arrival-routes "KBTV"])
+                          {:callsign "DAL1"
+                           :destination "KJFK"}))
+          engine (assoc-in engine [:aircraft (:callsign craft1)] craft1)
+
+          craft2 (position-arriving-aircraft
+                   engine
+                   (merge (get-in kjfk/airport [:arrival-routes "KBTV"])
+                          {:callsign "DAL2"
+                           :destination "KJFK"}))
+          distance (lateral-distance-to-squared
+                     (:position craft1)
+                     (:position craft2))
+          delta 0.1]
+      (is (<= (- @#'shared/lateral-spacing-m-squared delta)
+              distance
+              (+ @#'shared/lateral-spacing-m-squared delta))))))

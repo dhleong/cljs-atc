@@ -13,12 +13,6 @@
             (ds/opt :runway) string? ; eg 13L
             :config map?}}))
 
-(def multi-flight-spec
-  (ds/spec
-    {:name ::multi-flight
-     :spec {:aircrafts (s/coll-of traffic-aircraft-spec)
-            :delay-to-next-s number?}}))
-
 (def flight-spec
   (ds/spec
     {:name ::flight
@@ -26,7 +20,7 @@
             :delay-to-next-s number?}}))
 
 (defprotocol ITraffic
-  (generate-initial-arrivals [this engine])
+  (spawn-initial-arrivals [this engine])
   (next-arrival [this engine])
   (next-departure [this engine]))
 
@@ -37,19 +31,10 @@
                     {:generated v})))
   v)
 
-(defn- validate-generated-multi-flight [v]
-  (when-not (s/valid? multi-flight-spec v)
-    (throw (ex-info (str "Generated invalid multi-traffic: "
-                         (s/explain-str multi-flight-spec v))
-                    {:generated v})))
-  v)
-
-
 (defrecord ValidatedTraffic [base]
   ITraffic
-  (generate-initial-arrivals [_this engine]
-    (validate-generated-multi-flight
-      (generate-initial-arrivals base engine)))
+  (spawn-initial-arrivals [_this engine]
+    (spawn-initial-arrivals base engine))
   (next-arrival [_this engine]
     (validate-generated-flight
       (next-arrival base engine)))
