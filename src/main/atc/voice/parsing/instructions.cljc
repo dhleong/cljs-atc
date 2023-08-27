@@ -19,6 +19,7 @@
 
    "adjust-altitude = (<'climb'> | <'descend'>)? <'and'>? <'maintain'> altitude"
 
+   "expect-runway = <'expect'> approach-type? <'runway'> runway"
    "cleared-approach = <'cleared'> approach-type <'approach'>? <'runway'>? runway <'approach'>?"
    "cancel-approach = <'cancel'> <'approach clearance'>"
 
@@ -62,6 +63,11 @@
                      {:frequency (when (= :frequency (ffirst etc))
                                    (second (first etc)))
                       :pleasant? (= :pleasantry (first (last etc)))}])
+
+   :expect-runway (fn expect-runway
+                    ([runway] (expect-runway nil runway))
+                    ([approach-type runway]
+                     [:expect-runway runway {:approach-type approach-type}]))
 
    :steer (fn [?direction ?heading]
             (if ?heading

@@ -25,6 +25,13 @@
     :else
     (-> v str)))
 
+(defmethod process-speakable :approach-type
+  [[_ v]]
+  (case v
+    :ils "I L S"
+    :rnav "R nav"
+    :visual "visual"))
+
 (defmethod process-speakable :heading
   [[_ v]]
   ; TODO 040 might come in as the int 40
