@@ -18,7 +18,9 @@
         ; Spawn another craft
         (let [{:keys [aircraft delay-to-next-s]}
               (generate-fn (:traffic engine) engine)]
-          (recur (spawn-aircraft engine aircraft)
+          (recur (if (some? aircraft)
+                   (spawn-aircraft engine aircraft)
+                   engine)
                  (+ next-time-s delay-to-next-s)))))))
 
 (def ^:private base-arrival-queue

@@ -20,6 +20,8 @@
   (ds/spec
     {:name ::game-options
      :spec {:airport-id keyword?
+            (ds/opt :arrivals?) boolean?
+            (ds/opt :departures?) boolean?
             (ds/opt :voice-input?) boolean?
             (ds/opt :traffic) traffic-spec}}))
 
@@ -36,7 +38,8 @@
               airport (airports/load-airport airport-id)
               _ (println "Loaded " airport-id "in " (- (js/Date.now) start) "ms")
               traffic (create-traffic
-                        (:traffic opts))
+                        (:traffic opts)
+                        opts)
 
               new-engine (engine/generate {:airport airport
                                            :traffic traffic})]
