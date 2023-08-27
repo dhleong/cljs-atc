@@ -1,5 +1,6 @@
 (ns atc.game.traffic.shared
   (:require
+   [atc.config :as config]
    [atc.data.core :refer [local-xy]]
    [atc.data.units :refer [ft->m nm->m]]
    [atc.engine.model :refer [bearing-to distance-to-squared dot* normalize v*
@@ -76,21 +77,27 @@
                                  (* (count arrivals-on-my-route)
                                     lateral-spacing-m))
 
+        base-distance (max
+                        (vmag last-pos-on-my-route)
+
+                        ; Make sure we don't spawn inside the control range
+                        (+ config/ctr-control-radius-m
+                           (nm->m 5)))
+
         ; For spawning the initial arrivals, we choose a position some
         ; distance from the airport in the direction of the route
-        rough-initial-distance (+ (vmag last-pos-on-my-route)
+        rough-initial-distance (+ base-distance
                                   distance-from-previous)
 
-        spawn-distance (if initializing?
+        spawn-distance (max
                          ; Always use the rough distance at init
                          rough-initial-distance
 
                          ; Otherwise, make sure we're *at least* as
                          ; far as the furthest fix in the path, to
                          ; try to avoid pop-in
-                         (let [min-spawn-in-distance (vmag first-pos-on-my-route)]
-                           (max min-spawn-in-distance
-                                rough-initial-distance)))]
+                         (when-not initializing?
+                           (vmag first-pos-on-my-route)))]
     (v*
       (normalize last-pos-on-my-route)
       spawn-distance)))

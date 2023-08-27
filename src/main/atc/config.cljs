@@ -11,9 +11,10 @@
 (def min-twr->departure-handoff-altitude-agl-m 25)
 
 ; *Rough* Radius under the CTR position's control in squared meters
-(def ^:private ctr-control-radius-nm 25)
-(def ctr-control-radius-m-sq (let [m (nm->m ctr-control-radius-nm)]
-                               (* m m)))
+(def ^:private ctr-control-radius-nm 35)
+(def ctr-control-radius-m (nm->m ctr-control-radius-nm))
+(def ctr-control-radius-m-sq (* ctr-control-radius-m
+                                ctr-control-radius-m))
 
 ; UI Config
 (def default-range-ring-nm 5)
