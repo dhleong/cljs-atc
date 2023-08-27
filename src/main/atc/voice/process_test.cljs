@@ -86,6 +86,15 @@
            (find-instructions
              "piper one proceed direct tango oscar whiskey india november intersection")))))
 
+(deftest expect-runway-test
+  (testing "Process expect runway"
+    (is (= [[:expect-runway "22L" {:approach-type :ils}]]
+           (find-instructions
+             "piper one expect i l s runway two two left")))
+    (is (= [[:expect-runway "22L" {:approach-type nil}]]
+           (find-instructions
+             "piper one expect runway two two left")))))
+
 (deftest steer-test
   (testing "Process steer direction"
     (is (= [[:steer 985 :right]]

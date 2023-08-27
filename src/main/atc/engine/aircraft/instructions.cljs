@@ -34,6 +34,24 @@
             (utter "cleared approach runway" [:runway runway]))))
 
 (defmethod dispatch-instruction
+  :expect-runway
+  [craft context [_ runway {:keys [approach-type]}]]
+  (cond
+    (not (contains? (:game/airport-runway-ids context) runway))
+    (utter craft "unable" runway)
+
+    (contains? #{:visual :rnav} approach-type)
+    (utter craft "unable" (name approach-type))
+
+    ; TODO: Stash this in the flight strip
+    :else (-> craft
+              (utter "we'll expect"
+                     (when approach-type "the")
+                     (when approach-type
+                       [:approach-type approach-type])
+                     "runway" [:runway runway]))))
+
+(defmethod dispatch-instruction
   :cancel-approach
   [craft _ _]
   (cond
