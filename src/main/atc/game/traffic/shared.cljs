@@ -24,8 +24,6 @@
     (distinct)
     (vec)))
 
-(def ^:private lateral-spacing-m (nm->m 5))
-
 (defn- spawn-craft [craft {:keys [heading position]}]
   (assoc craft
          ; TODO Follow arrival route?
@@ -87,7 +85,7 @@
         rough-initial-distance (if use-round-robin-positioning?
                                  (+ base-distance
                                     (* (count arrivals-by-route)
-                                       lateral-spacing-m))
+                                       config/lateral-spacing-m))
 
                                  ; In the normal case, just start with
                                  ; the *farthest* aircraft from the airport
@@ -96,7 +94,7 @@
                                        arrivals-on-my-route)
                                      (:size)
                                      (sqrt) ; Only perform sqrt once!
-                                     (+ lateral-spacing-m)))
+                                     (+ config/lateral-spacing-m)))
 
         spawn-distance (max
                          ; Always use the rough distance at init

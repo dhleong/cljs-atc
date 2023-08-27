@@ -16,6 +16,8 @@
 (def ctr-control-radius-m-sq (* ctr-control-radius-m
                                 ctr-control-radius-m))
 
+(def lateral-spacing-m (nm->m 10))
+
 ; UI Config
 (def default-range-ring-nm 5)
 (def max-range-ring-nm 140)
