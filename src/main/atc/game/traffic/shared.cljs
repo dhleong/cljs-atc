@@ -62,15 +62,14 @@
 
 (defn- compute-initial-position [{:keys [initializing?
                                          arrivals-by-route
+                                         arrivals-on-my-route
                                          first-pos-on-my-route
-                                         last-pos-on-my-route
-                                         my-route]}]
+                                         last-pos-on-my-route]}]
   ; If this aircraft is the first on its route *and* we're still
   ; initializing the game, we apply a special case where we
   ; round-robin distances from last navaid on route to not
   ; overwhelm the controller with a bunch of simultaneous arrivals
-  (let [arrivals-on-my-route (get arrivals-by-route my-route)
-        distance-from-previous (if-not (or (seq arrivals-on-my-route)
+  (let [distance-from-previous (if-not (or (seq arrivals-on-my-route)
                                            (not initializing?))
                                  (* (count arrivals-by-route)
                                     lateral-spacing-m)
@@ -115,22 +114,25 @@
             (or (get-in engine [:game/navaids-by-id id])
                 (throw (ex-info (str "No such navaid: " id) {:id id}))))]
     (let [my-route (partial-arrival-route engine craft)
+          my-final-navaid (last my-route)
           all-arrivals (engine-arrivals engine)
           arrivals-by-route (group-by
-                              (partial partial-arrival-route engine)
+                              (comp last
+                                    (partial partial-arrival-route engine))
                               all-arrivals)
 
           ; First, pick a rough position where we want this craft
           approx-position (compute-initial-position
                             {:initializing? (= 0 (:elapsed-s engine 0))
                              :arrivals-by-route arrivals-by-route
+                             :arrivals-on-my-route (get arrivals-by-route
+                                                        my-final-navaid)
                              :first-pos-on-my-route (position-of
                                                       (navaid-by-id
                                                         (first my-route)))
                              :last-pos-on-my-route (position-of
                                                      (navaid-by-id
-                                                       (last my-route)))
-                             :my-route my-route})
+                                                       (last my-route)))})
 
           ; Next, find the closest segment on the route to this point
           route-positions (->> my-route
