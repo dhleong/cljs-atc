@@ -112,11 +112,13 @@
 (reg-event-fx
   :game/init-loaded-engine
   [unwrap]
-  (fn [{:keys [db]} {:keys [engine voice-input?]}]
+  (fn [{:keys [db]} {:keys [engine arrivals? departures? voice-input?]}]
     {:db (assoc db
                 :ui/tick 0
                 :engine engine
-                :engine-config {:voice-input? voice-input?})
+                :engine-config {:voice-input? voice-input?
+                                :arrivals? arrivals?
+                                :departures? departures?})
      :dispatch-n [[:game/tick]
                   [:ui/tick]
                   (when voice-input?

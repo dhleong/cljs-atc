@@ -26,15 +26,16 @@
      [:h3.title "Last game"]
 
      [:table.stats
-      [:tr
-       [:th "Airport"]
-       [:td (:id airport)]]
-      [:tr
-       [:th "Elapsed Time"]
-       [:td elapsed-time]]
-      [:tr
-       [:th "Aircraft Deparated"]
-       [:td (:aircraft-departed counts 0)]]]
+      [:tbody
+       [:tr
+        [:th "Airport"]
+        [:td (:id airport)]]
+       [:tr
+        [:th "Elapsed Time"]
+        [:td elapsed-time]]
+       [:tr
+        [:th "Aircraft Deparated"]
+        [:td (:aircraft-departed counts 0)]]]]
 
      [:button {:on-click #(>evt [:game/resume-last])}
       "Resume"]]))
@@ -61,24 +62,44 @@
            :flex-direction :column
            :gap (px 8)}
    [:&.loading {:opacity 0.5}]]
+
+  [:.form-section {:display :flex
+                   :flex-direction :column
+                   :align-items :center}]
+
   [:.labeled {:display :flex
               :font-size :105%
               :gap (px 4)
               :user-select :none
               :align-items :center}]
-  [:.explanation {:text-align :center}]
+  [:.explanation {:text-align :center
+                  :font-size :95%}]
   [:.spacer {:height (px 8)}])
 
-(defn- start-game! [loading?-ref ^js e {:keys [airport-id use-voice-input]}]
+(defn- start-game! [loading?-ref ^js e
+                    {:keys [airport-id use-voice-input
+                            arrivals? departures?]}]
   (.preventDefault e)
   (p/do
     (reset! loading?-ref true)
     (p/delay 10) ; Leave time to show loading state
     (>evt [:game/init {:airport-id airport-id
+                       :arrivals? arrivals?
+                       :departures? departures?
                        :voice-input? use-voice-input}])))
+
+(defn- labeled-input [{:keys [type disabled label key]}]
+  [:div.labeled
+   [:label {:for key} label]
+   [input {:type type
+           :disabled disabled
+           :key key
+           :id key}]])
 
 (defn view []
   (r/with-let [form-value (r/atom {:airport-id :kjfk
+                                   :arrivals? true
+                                   :departures? true
                                    :use-voice-input true})
                loading? (r/atom false)
                on-start-game (partial start-game! loading?)]
@@ -105,16 +126,27 @@
            ^{:key key}
            [:option {:key key} label])]]
 
-       [:div.labeled
-        [:label {:for ::use-voice-input}
-         "Use voice input"]
-        [input {:type :checkbox
-                :aria-describedby ::voice-explanation
-                :disabled @loading?
-                :key :use-voice-input
-                :id ::use-voice-input}]]
-       [:div.explanation {:id ::voice-explanation}
-        "If enabled, you will be prompted to allow microphone input once the game is loaded. You can then hold the spacebar to activate the mic and talk to pilots on your frequency!"]
+       [:div.form-section
+        [:h2 "Traffic"]
+        [labeled-input {:type :checkbox
+                        :disabled (or @loading?
+                                      (not (:departures? @form-value)))
+                        :label "Enable Arrivals"
+                        :key :arrivals?}]
+        [labeled-input {:type :checkbox
+                        :disabled (or @loading?
+                                      (not (:arrivals? @form-value)))
+                        :label "Enable Departures"
+                        :key :departures?}]]
+
+       [:div.form-section
+        [:h2 "Gameplay"]
+        [labeled-input {:type :checkbox
+                        :disabled @loading?
+                        :label "Use voice input"
+                        :key :use-voice-input}]
+        [:div.explanation {:id ::voice-explanation}
+         "If enabled, you will be prompted to allow microphone input once the game is loaded. You can then hold the spacebar to activate the mic and talk to pilots on your frequency!"]]
 
        [:div.spacer]
 
