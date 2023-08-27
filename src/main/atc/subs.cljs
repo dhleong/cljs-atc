@@ -223,7 +223,7 @@
     ; Eventually there might be other datablock modes to rotate between?
     (case (mod tick 3)
       0 :altitude/speed
-      1 :exit-fix/aircraft-type
+      1 :destination/aircraft-type
       2 :altitude/speed)))
 
 (reg-sub

@@ -48,17 +48,19 @@
                :y 0
                :style tracked-aircraft-style}])
 
-(defn- build-datablock [airport mode
-                        {:keys [config departure-fix position speed]}]
+(defn- build-datablock [_airport mode
+                        {:keys [config departure-fix position speed] :as craft}]
   (case mode
     :altitude/speed
     (let [alt-hundreds-ft (format-altitude (:z position))
           speed-tens-kts (js/Math.floor (/ speed 10))]
       [alt-hundreds-ft speed-tens-kts])
 
-    :exit-fix/aircraft-type
-    (let [exit-fix-code (get-in airport [:departure-fix-codes
-                                         departure-fix])
+    :destination/aircraft-type
+    (let [exit-fix-code (or (when departure-fix
+                              (subs departure-fix 0 3))
+                            (-> (get craft :destination)
+                                (subs 1)))
           aircraft-type (get config :type)]
       [exit-fix-code aircraft-type])
 
