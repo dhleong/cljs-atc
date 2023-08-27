@@ -129,11 +129,13 @@
        [:div.form-section
         [:h2 "Traffic"]
         [labeled-input {:type :checkbox
-                        :disabled @loading?
+                        :disabled (or @loading?
+                                      (not (:departures? @form-value)))
                         :label "Enable Arrivals"
                         :key :arrivals?}]
         [labeled-input {:type :checkbox
-                        :disabled @loading?
+                        :disabled (or @loading?
+                                      (not (:arrivals? @form-value)))
                         :label "Enable Departures"
                         :key :departures?}]]
 
