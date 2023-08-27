@@ -40,6 +40,17 @@
              kjfk/airport)
            (dissoc (:position craft) :z)))))
 
+  (testing "Handle single-item route"
+    ; NOTE: KBWI just ends at CAMRN
+    (let [craft (position-arriving-aircraft
+                  (create-engine)
+                  (get-in kjfk/airport [:arrival-routes "KBWI"]))]
+      (is (roughly=
+            (local-xy
+              (get-in (create-engine) [:game/navaids-by-id "CAMRN" :position])
+              kjfk/airport)
+            (dissoc (:position craft) :z)))))
+
   (testing "The second craft on a route should be laterally-spaced"
     (let [engine (create-engine)
           craft1 (position-arriving-aircraft
