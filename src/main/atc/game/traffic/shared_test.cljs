@@ -1,5 +1,6 @@
 (ns atc.game.traffic.shared-test
   (:require
+   [atc.config :as config]
    [atc.data.airports.kjfk :as kjfk]
    [atc.engine.model :refer [lateral-distance-to-squared]]
    [atc.game.traffic.shared :as shared :refer [partial-arrival-route
@@ -59,15 +60,15 @@
                                              "KBWI"
                                              "KBWI")]
       (is (roughly=
-            @#'shared/lateral-spacing-m
+            config/lateral-spacing-m
             (aircraft-distance craft1 craft2)
             :delta 250))
       (is (roughly=
-            @#'shared/lateral-spacing-m
+            config/lateral-spacing-m
             (aircraft-distance craft2 craft3)
             :delta 350))
       (is (roughly=
-            (* 2 @#'shared/lateral-spacing-m)
+            (* 2 config/lateral-spacing-m)
             (aircraft-distance craft1 craft3)
             :delta 450))))
 
@@ -76,7 +77,7 @@
                                       "KBTV"
                                       "KBTV")]
       (is (roughly=
-            @#'shared/lateral-spacing-m
+            config/lateral-spacing-m
             (aircraft-distance craft1 craft2)
             :delta 250))))
 
@@ -90,7 +91,7 @@
           [craft1 craft2] crafts]
       (is (= 4 (count (distinct (map :position crafts)))))
       (is (roughly=
-            @#'shared/lateral-spacing-m
+            config/lateral-spacing-m
             (aircraft-distance craft1 craft2)
             :delta 250))))
 
