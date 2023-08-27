@@ -41,6 +41,34 @@
       (>evt [:speech/enqueue enqueued]))
     (dissoc engine' :speech/enqueue)))
 
+(defn- departing-aircraft-params [this {:keys [config runway]}]
+  ; FIXME: This heading doesn't seem to *look* quite correct
+  ; TODO get target altitude from the airport/departure?
+  (let [position (first (runway-coords (:airport this) runway))]
+    {:heading (runway->heading (:airport this) runway)
+     :position position
+     :speed 0
+     :state :takeoff
+     :tx-frequency (get-in (:airport this)
+                           [:positions :twr :frequency])
+     :commands {:target-altitude (+ (ft->m 5000)
+                                    (:z position))
+                :target-speed (min config/speed-limit-under-10k-kts
+                                   (:cruise-speed config))}}))
+
+(defn- arriving-aircraft-params [this {:keys [config position heading]}]
+  {:heading heading
+   :position position
+   :speed (:cruise-speed config)
+   :state :arriving
+   :tx-frequency (->> (:airport this)
+                      :center-facilities
+                      ; TODO Pick the actual closest center facility
+                      first
+                      :frequency)
+   ; TODO follow arrival route
+   :commands {}})
+
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defrecord Engine [airport aircraft parsing-machine
                    tracked-aircraft
@@ -100,10 +128,10 @@
     (when (= :ga (:type opts))
       (throw (ex-info "GA aircraft not yet supported" {:opts opts})))
 
-    ; TODO: Support arrivals
     (let [{:keys [callsign] :as radio} (radio/format-airline-radio
                                          (:airline opts)
                                          (:flight-number opts))
+          arrival? (nil? runway)
           data (merge
                  radio
                  (select-keys opts [:destination :config])
@@ -111,22 +139,16 @@
                      (get (:destination opts))
                      (rename-key :fix :departure-fix))
                  {:tx-frequency :self} ; NOTE: default to "my" frequency
-                 (when runway
-                   ; FIXME: This heading doesn't seem to *look* quite correct
-                   ; TODO get target altitude from the airport/departure?
-                   (let [position (first (runway-coords (:airport this) runway))]
-                     {:heading (runway->heading (:airport this) runway)
-                      :position position
-                      :speed 0
-                      :state :takeoff
-                      :tx-frequency (get-in (:airport this)
-                                            [:positions :twr :frequency])
-                      :commands {:target-altitude (+ (ft->m 5000)
-                                                     (:z position))
-                                 :target-speed (min config/speed-limit-under-10k-kts
-                                                    (:cruise-speed config))}})))]
-      (println "[engine] spawn" callsign)
-      (update this :aircraft assoc callsign (aircraft/create config data)))))
+                 (select-keys opts [:origin :route])
+                 (if arrival?
+                   (arriving-aircraft-params this opts)
+                   (departing-aircraft-params this opts)))]
+      (println "[engine] spawn" (if arrival? :arrival :departure) callsign)
+      (cond-> this
+        true (update :aircraft assoc callsign (aircraft/create config data))
+        arrival? (assoc-in [:tracked-aircraft callsign]
+                           {:track-symbol "C"
+                            :frequency (:tx-frequency data)})))))
 
 (defn engine-grammar [^Engine engine]
   (get-in engine [:parsing-machine :fsm :grammar]))

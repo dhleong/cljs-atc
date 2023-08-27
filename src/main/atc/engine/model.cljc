@@ -1,6 +1,6 @@
 (ns atc.engine.model
   (:require
-   [clojure.math :refer [atan2 to-degrees]]))
+   [clojure.math :refer [atan2 sqrt to-degrees]]))
 
 (defprotocol Simulated
   "Anything that is managed by the simulation"
@@ -42,6 +42,7 @@
   (v+ [this ^Vector other])
   (v- [this ^Vector other])
   (v* [this other])
+  (dot* [this ^Vector other])
   (vmag2 [this] "Compute the square of the magnitude of this vector"))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
@@ -71,30 +72,53 @@
              :y (* y (:y other))
              :z (* (or z 1) (:z other 1)))))
 
+  (dot* [this other]
+    (+ (* (:x this) (:x other))
+       (* (:y this) (:y other))
+       (* (:z this 0) (:z other 0))))
+
   (vmag2 [this]
     (let [{dx :x dy :y dz :z} this]
       (+ (* dx dx)
          (* dy dy)
          (* dz dz)))))
 
+(defn vmag [^Vector v]
+  (sqrt (vmag2 v)))
+
+(def vec3? (partial instance? Vec3))
+
 (defn vec3
-  ([v] (if (instance? Vec3 v) v
+  ([v] (if (vec3? v) v
          (->Vec3 (:x v) (:y v) (:z v))))
   ([v z] (let [{:keys [x y]} (vec3 v)]
            (->Vec3 x y z)))
   ([x y z]
    (->Vec3 x y z)))
 
+(defn normalize [^Vector v]
+  (let [magnitude (vmag v)]
+    (v* v (/ 1 magnitude))))
+
+(defn lateral-distance-to-squared [from to]
+  (vmag2 (v- (vec3 to 0) (vec3 from 0))))
+
 (defn distance-to-squared [from to]
   (vmag2 (v- (vec3 to) from)))
 
+(defn bearing-to->vec [from to]
+  (v- (vec3 to) from))
+
+(defn bearing-vec->degrees [{dx :x dy :y}]
+  ; NOTE: This may or may not be the right move, but We want 0 degrees to
+  ; point "north" on the screen, and so transform that in the Aircraft engine
+  ; object with `(- heading 90)`, which means we have to do the opposite
+  ; here....
+  (+ (to-degrees (atan2 dy dx)) 90))
+
 (defn bearing-to [from to]
-  (let [{dx :x dy :y} (v- (vec3 to) from)]
-    ; NOTE: This may or may not be the right move, but We want 0 degrees to
-    ; point "north" on the screen, and so transform that in the Aircraft engine
-    ; object with `(- heading 90)`, which means we have to do the opposite
-    ; here....
-    (+ (to-degrees (atan2 dy dx)) 90)))
+  (let [bearing-vec (bearing-to->vec from to)]
+    (bearing-vec->degrees bearing-vec)))
 
 (defn angle-down-to
   "Assuming `from` is an elevated position and `to` is a position on the ground,
