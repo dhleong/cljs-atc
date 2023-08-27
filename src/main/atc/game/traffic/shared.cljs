@@ -5,7 +5,8 @@
    [atc.data.units :refer [ft->m nm->m]]
    [atc.engine.model :refer [bearing-to distance-to-squared dot* normalize v*
                              v- vec3 Vec3 vmag vmag2]]
-   [atc.util.coll :refer [min-by]]
+   [atc.util.coll :refer [max-by-with-size min-by]]
+   [clojure.math :refer [sqrt]]
    [clojure.string :as str]))
 
 (defn partial-arrival-route [engine {:keys [route]}]
@@ -69,24 +70,33 @@
   ; initializing the game, we apply a special case where we
   ; round-robin distances from last navaid on route to not
   ; overwhelm the controller with a bunch of simultaneous arrivals
-  (let [distance-from-previous (if-not (or (seq arrivals-on-my-route)
-                                           (not initializing?))
-                                 (* (count arrivals-by-route)
-                                    lateral-spacing-m)
-                                 (* (count arrivals-on-my-route)
-                                    lateral-spacing-m))
+  (let [use-round-robin-positioning? (and (empty? arrivals-on-my-route)
+                                          initializing?)
 
-        base-distance (max
-                        (vmag last-pos-on-my-route)
+        ; NOTE: We only use this "base distance" as part of round-robin
+        base-distance (when use-round-robin-positioning?
+                        (max
+                          (vmag last-pos-on-my-route)
 
-                        ; Make sure we don't spawn inside the control range
-                        (+ config/ctr-control-radius-m
-                           (nm->m 5)))
+                          ; Make sure we don't spawn inside the control range
+                          (+ config/ctr-control-radius-m
+                             (nm->m 5))))
 
         ; For spawning the initial arrivals, we choose a position some
         ; distance from the airport in the direction of the route
-        rough-initial-distance (+ base-distance
-                                  distance-from-previous)
+        rough-initial-distance (if use-round-robin-positioning?
+                                 (+ base-distance
+                                    (* (count arrivals-by-route)
+                                       lateral-spacing-m))
+
+                                 ; In the normal case, just start with
+                                 ; the *farthest* aircraft from the airport
+                                 (-> (max-by-with-size
+                                       (comp vmag2 :position)
+                                       arrivals-on-my-route)
+                                     (:size)
+                                     (sqrt) ; Only perform sqrt once!
+                                     (+ lateral-spacing-m)))
 
         spawn-distance (max
                          ; Always use the rough distance at init
@@ -120,13 +130,14 @@
                               (comp last
                                     (partial partial-arrival-route engine))
                               all-arrivals)
+          arrivals-on-my-route (get arrivals-by-route my-final-navaid)
 
           ; First, pick a rough position where we want this craft
           approx-position (compute-initial-position
                             {:initializing? (= 0 (:elapsed-s engine 0))
+                             :callsign (:callsign craft)
                              :arrivals-by-route arrivals-by-route
-                             :arrivals-on-my-route (get arrivals-by-route
-                                                        my-final-navaid)
+                             :arrivals-on-my-route arrivals-on-my-route
                              :first-pos-on-my-route (position-of
                                                       (navaid-by-id
                                                         (first my-route)))

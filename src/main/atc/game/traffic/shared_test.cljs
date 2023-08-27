@@ -60,13 +60,16 @@
                                              "KBWI")]
       (is (roughly=
             @#'shared/lateral-spacing-m
-            (aircraft-distance craft1 craft2)))
+            (aircraft-distance craft1 craft2)
+            :delta 250))
       (is (roughly=
             @#'shared/lateral-spacing-m
-            (aircraft-distance craft2 craft3)))
+            (aircraft-distance craft2 craft3)
+            :delta 350))
       (is (roughly=
             (* 2 @#'shared/lateral-spacing-m)
-            (aircraft-distance craft1 craft3)))))
+            (aircraft-distance craft1 craft3)
+            :delta 450))))
 
   (testing "The second craft on a route should be laterally-spaced"
     (let [{[craft1 craft2] :crafts} (spawn-crafts-from
@@ -74,7 +77,8 @@
                                       "KBTV")]
       (is (roughly=
             @#'shared/lateral-spacing-m
-            (aircraft-distance craft1 craft2)))))
+            (aircraft-distance craft1 craft2)
+            :delta 250))))
 
   (testing "The second craft on an overlapping route should be laterally-spaced"
     ; The LENDY8 and IGN1 routes end at LENDY
@@ -87,4 +91,32 @@
       (is (= 4 (count (distinct (map :position crafts)))))
       (is (roughly=
             @#'shared/lateral-spacing-m
-            (aircraft-distance craft1 craft2))))))
+            (aircraft-distance craft1 craft2)
+            :delta 250))))
+
+  (testing "No overlap, for reals"
+    ; A sample random set of arrivals from a real app run that caused one
+    ; overlap
+    (let [{crafts :crafts} (spawn-crafts-from
+                             "KCRQ" "KBUR" "KPHX" "KSMO" "KFMY" "KRDU"
+                             "CYYZ" "KRDU" "KORD" "KTRM")]
+      (loop [crafts crafts
+             distincts {}]
+        (when (seq crafts)
+          (let [c (first crafts)
+                existing (get distincts (:position c))]
+            (assert
+              (nil? existing)
+              (str "\nOVERLAP!\n"
+                   (:callsign c) " (" (:route c) ")\n"
+                   "COLLIDED with:\n"
+                   (:callsign existing) " (" (:route existing) ")\n"
+                   "same navaid? " (= (last (partial-arrival-route
+                                              (create-engine)
+                                              existing))
+                                      (last (partial-arrival-route
+                                              (create-engine)
+                                              c)))))
+            (recur (next crafts)
+                   (assoc distincts (:position c) c)))))
+      (is (= 10 (count (distinct (map :position crafts))))))))

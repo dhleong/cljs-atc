@@ -9,13 +9,15 @@
     (vec3 v)
     v))
 
-(defn roughly= [a b]
-  (let [a (maybe->vec3 a)
-        b (maybe->vec3 b)
-        distance (if (number? a)
-                   ; The compiler doens't believe us, but these
-                   ; *should* both be numbers. Let's reassure it!
-                   (- ^number a ^number b)
-                   (vmag (v- a b)))]
-    (<= (abs distance)
-        0.1)))
+(defn roughly=
+  ([a b] (roughly= a b :delta 0.1))
+  ([a b & {:keys [delta]}]
+   (let [a (maybe->vec3 a)
+         b (maybe->vec3 b)
+         distance (if (number? a)
+                    ; The compiler doens't believe us, but these
+                    ; *should* both be numbers. Let's reassure it!
+                    (- ^number a ^number b)
+                    (vmag (v- a b)))]
+     (<= (abs distance)
+         delta))))
