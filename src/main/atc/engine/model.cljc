@@ -39,10 +39,10 @@
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defprotocol Vector
-  (v+ [this ^Vector other])
-  (v- [this ^Vector other])
+  (v+ [this other])
+  (v- [this other])
   (v* [this other])
-  (dot* [this ^Vector other])
+  (dot* [this other])
   (vmag2 [this] "Compute the square of the magnitude of this vector"))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
@@ -83,7 +83,7 @@
          (* dy dy)
          (* dz dz)))))
 
-(defn vmag [^Vector v]
+(defn vmag [v]
   (sqrt (vmag2 v)))
 
 (def vec3? (partial instance? Vec3))
@@ -96,7 +96,7 @@
   ([x y z]
    (->Vec3 x y z)))
 
-(defn normalize [^Vector v]
+(defn normalize [v]
   (let [magnitude (vmag v)]
     (v* v (/ 1 magnitude))))
 

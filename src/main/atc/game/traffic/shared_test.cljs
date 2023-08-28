@@ -3,9 +3,10 @@
    [atc.config :as config]
    [atc.data.airports.kjfk :as kjfk]
    [atc.engine.model :refer [distance-to-squared lateral-distance-to-squared]]
-   [atc.game.traffic.shared :as shared :refer [partial-arrival-route
+   [atc.game.traffic.shared :as shared :refer [grouping-navaid-of-route
                                                position-arriving-aircraft]]
-   [atc.subs :refer [navaids-by-id]]
+   [atc.game.traffic.shared-util :refer [partial-arrival-route]]
+   [atc.subs-util :refer [navaids-by-id]]
    [atc.util.testing :refer [roughly=]]
    [cljs.test :refer-macros [deftest is testing]]
    [clojure.math :refer [sqrt]]))
@@ -59,20 +60,21 @@
       (when-not (== c1 c2)
         (let [engine (create-engine)
               c1-partial-route (partial-arrival-route engine c1)
+              c1-grouping (grouping-navaid-of-route engine c1-partial-route)
               c2-partial-route (partial-arrival-route engine c2)
+              c2-grouping (grouping-navaid-of-route engine c2-partial-route)
               delta (/ config/lateral-spacing-m 2)]
           (assert (not (roughly= (:position c1) (:position c2)
                                  :delta delta))
                   (str "\nOVERLAP! " (sqrt (distance-to-squared
                                              (:position c1)
                                              (:position c2)))  "m\n"
-                       " " (:callsign c1) " (" (:route c1)
-                       "\n -> " c1-partial-route ")\n"
+                       " " (:callsign c1) " (" (:route c1) ")"
+                       "\n -> " c1-partial-route " @ " c1-grouping "\n"
                        "COLLIDED with:\n"
-                       " " (:callsign c2) " (" (:route c2)
-                       "\n -> " c2-partial-route ")\n"
-                       "same navaid? " (= (last c1-partial-route)
-                                          (last c2-partial-route)))))))))
+                       " " (:callsign c2) " (" (:route c2) ")"
+                       "\n -> " c2-partial-route " @ " c2-grouping "\n"
+                       "same navaid? " (= c1-grouping c2-grouping))))))))
 
 (deftest position-arriving-aircraft-test
   (testing "Handle single-item route"

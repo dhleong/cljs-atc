@@ -5,24 +5,9 @@
    [atc.data.units :refer [ft->m nm->m]]
    [atc.engine.model :refer [bearing-to distance-to-squared dot* normalize v*
                              v- vec3 Vec3 vmag vmag2]]
+   [atc.game.traffic.shared-util :refer [partial-arrival-route]]
    [atc.util.coll :refer [max-by-with-size min-by]]
-   [clojure.math :refer [sqrt]]
-   [clojure.string :as str]))
-
-(defn partial-arrival-route [engine {:keys [route]}]
-  (->>
-    (str/split route #" ")
-    (drop-last)
-    (take-last 2)
-    (mapcat (fn [id]
-              (or (->> (get-in engine [:airport :arrivals id :path])
-                       (map :fix)
-                       (drop-last)
-                       (seq))
-                  (when (get-in engine [:game/navaids-by-id id])
-                    [id]))))
-    (distinct)
-    (vec)))
+   [clojure.math :refer [sqrt]]))
 
 (defn- spawn-craft [craft {:keys [heading position]}]
   (assoc craft
@@ -58,6 +43,11 @@
       (+ (:y a) (/ (* dot-prod (:y e1))
                    squared-len))
       0)))
+
+(defn grouping-navaid-of-route [engine route]
+  (let [id (last route)]
+    (get-in engine [:airport :arrival-navaid-grouping id]
+            id)))
 
 (defn- compute-initial-position [{:keys [initializing?
                                          arrivals-by-route
@@ -122,13 +112,13 @@
             (or (get-in engine [:game/navaids-by-id id])
                 (throw (ex-info (str "No such navaid: " id) {:id id}))))]
     (let [my-route (partial-arrival-route engine craft)
-          my-final-navaid (last my-route)
+          grouping-navaid (grouping-navaid-of-route engine my-route)
           all-arrivals (engine-arrivals engine)
           arrivals-by-route (group-by
-                              (comp last
+                              (comp (partial grouping-navaid-of-route engine)
                                     (partial partial-arrival-route engine))
                               all-arrivals)
-          arrivals-on-my-route (get arrivals-by-route my-final-navaid)
+          arrivals-on-my-route (get arrivals-by-route grouping-navaid)
 
           ; First, pick a rough position where we want this craft
           approx-position (compute-initial-position
