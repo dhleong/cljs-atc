@@ -43,10 +43,11 @@
 
    (testing "Multiple instructions"
     (is (= {:callsign "N2"
-            :instructions [[:adjust-altitude 11000]
+            :instructions [[:radar-contact]
+                           [:adjust-altitude 11000]
                            [:contact-other :tower {:frequency nil
                                                    :pleasant? false}]]}
-           (find-command "piper two climb maintain one one thousand contact tower"))))
+           (find-command "piper two radar contact climb maintain one one thousand contact tower"))))
 
    (testing "Handle unparseable input gracefully"
      (with-out-str ; NOTE: The (expected) failing parse below normally prints

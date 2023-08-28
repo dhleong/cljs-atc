@@ -111,6 +111,13 @@
     (-> craft
         (utter "unable direct"))))
 
+
+(defmethod dispatch-instruction
+  :radar-contact
+  [craft _context _instruction]
+  ; Pilots don't need to do anything with this.
+  craft)
+
 (defmethod dispatch-instruction
   :default
   [craft _context [instruction]]
