@@ -733,6 +733,7 @@
     :position [:N40*00'24.320 :W074*15'04.610],
     :type :fix}],
   :id "KJFK",
+  :arrival-navaid-grouping {"GAMBY" "CAMRN"},
   :center-facilities
   [{:id "COLTS NECK",
     :position [:N40*18'42.000 :W074*09'37.000],

@@ -1,5 +1,6 @@
 (ns atc.tool
   (:require
+   [atc.commands.build-airport :refer [augment-airport]]
    [atc.data.core :refer [coord-distance]]
    [atc.kmz :as kmz]
    [atc.nasr :as nasr]
@@ -283,7 +284,8 @@
         kmz-file (kmz/locate-kmz airac destination-dir)
 
         airport (with-timing "build-airport"
-                  (build-airport zip-file kmz-file icao))]
+                  (-> (build-airport zip-file kmz-file icao)
+                      (augment-airport)))]
     (pprint airport)
 
     (when-let [unpronounceable (with-timing "unpronounceable"

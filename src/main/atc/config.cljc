@@ -2,7 +2,7 @@
   (:require
    [atc.data.units :refer [nm->m]]))
 
-(goog-define server-root "")
+#?(:cljs (goog-define server-root ""))
 
 ; Aircraft may not exceed 250kts below 10K ft
 (def speed-limit-under-10k-kts 250)

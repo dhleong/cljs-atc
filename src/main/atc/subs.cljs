@@ -4,6 +4,7 @@
    [atc.data.core :refer [local-xy]]
    [atc.engine.model :refer [v* vec3]]
    [atc.structures.rolling-history :refer [most-recent-n]]
+   [atc.subs-util :refer [navaids-by-id]]
    [atc.util.subs :refer [get-or-identity]]
    [clojure.math :refer [floor]]
    [clojure.string :as str]
@@ -137,15 +138,6 @@
   :<- [::engine]
   :-> :airport)
 
-(defn navaids-by-id [airport]
-  (some->>
-    airport
-    :navaids
-    (reduce
-      (fn [m {:keys [position] :as navaid}]
-        (assoc m (:id navaid)
-               (merge navaid (local-xy position airport))))
-      {})))
 
 (reg-sub
   :game/navaids-by-id

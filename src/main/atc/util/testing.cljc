@@ -15,9 +15,10 @@
    (let [a (maybe->vec3 a)
          b (maybe->vec3 b)
          distance (if (number? a)
-                    ; The compiler doens't believe us, but these
+                    ; The compiler doesn't believe us, but these
                     ; *should* both be numbers. Let's reassure it!
-                    (- ^number a ^number b)
+                    #?(:cljs (- ^number a ^number b)
+                       :clj (- a b))
                     (vmag (v- a b)))]
      (<= (abs distance)
          delta))))

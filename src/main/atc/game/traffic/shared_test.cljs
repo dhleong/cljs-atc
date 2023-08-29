@@ -2,10 +2,11 @@
   (:require
    [atc.config :as config]
    [atc.data.airports.kjfk :as kjfk]
-   [atc.engine.model :refer [lateral-distance-to-squared]]
-   [atc.game.traffic.shared :as shared :refer [partial-arrival-route
+   [atc.engine.model :refer [distance-to-squared lateral-distance-to-squared]]
+   [atc.game.traffic.shared :as shared :refer [grouping-navaid-of-route
                                                position-arriving-aircraft]]
-   [atc.subs :refer [navaids-by-id]]
+   [atc.game.traffic.shared-util :refer [partial-arrival-route]]
+   [atc.subs-util :refer [navaids-by-id]]
    [atc.util.testing :refer [roughly=]]
    [cljs.test :refer-macros [deftest is testing]]
    [clojure.math :refer [sqrt]]))
@@ -51,6 +52,29 @@
           (assoc-in engine [:aircraft (:callsign craft)] craft)
           (next origins)
           (conj crafts craft))))))
+
+(defn- assert-no-overlap [crafts]
+  (doall
+    (for [c1 crafts
+          c2 crafts]
+      (when-not (== c1 c2)
+        (let [engine (create-engine)
+              c1-partial-route (partial-arrival-route engine c1)
+              c1-grouping (grouping-navaid-of-route engine c1-partial-route)
+              c2-partial-route (partial-arrival-route engine c2)
+              c2-grouping (grouping-navaid-of-route engine c2-partial-route)
+              delta (/ config/lateral-spacing-m 2)]
+          (assert (not (roughly= (:position c1) (:position c2)
+                                 :delta delta))
+                  (str "\nOVERLAP! " (sqrt (distance-to-squared
+                                             (:position c1)
+                                             (:position c2)))  "m\n"
+                       " " (:callsign c1) " (" (:route c1) ")"
+                       "\n -> " c1-partial-route " @ " c1-grouping "\n"
+                       "COLLIDED with:\n"
+                       " " (:callsign c2) " (" (:route c2) ")"
+                       "\n -> " c2-partial-route " @ " c2-grouping "\n"
+                       "same navaid? " (= c1-grouping c2-grouping))))))))
 
 (deftest position-arriving-aircraft-test
   (testing "Handle single-item route"
@@ -99,25 +123,16 @@
     ; A sample random set of arrivals from a real app run that caused one
     ; overlap
     (let [{crafts :crafts} (spawn-crafts-from
-                             "KCRQ" "KBUR" "KPHX" "KSMO" "KFMY" "KRDU"
-                             "CYYZ" "KRDU" "KORD" "KTRM")]
-      (loop [crafts crafts
-             distincts {}]
-        (when (seq crafts)
-          (let [c (first crafts)
-                existing (get distincts (:position c))]
-            (assert
-              (nil? existing)
-              (str "\nOVERLAP!\n"
-                   (:callsign c) " (" (:route c) ")\n"
-                   "COLLIDED with:\n"
-                   (:callsign existing) " (" (:route existing) ")\n"
-                   "same navaid? " (= (last (partial-arrival-route
-                                              (create-engine)
-                                              existing))
-                                      (last (partial-arrival-route
-                                              (create-engine)
-                                              c)))))
-            (recur (next crafts)
-                   (assoc distincts (:position c) c)))))
+                             "KCRQ" "KBUR" "KPHX" "KSMO" "KFMY"
+                             "KRDU" "CYYZ" "KRDU" "KORD" "KTRM")]
+      (assert-no-overlap crafts)
+      (is (= 10 (count (distinct (map :position crafts)))))))
+
+  (testing "No overlap, for reals - pt2"
+    ; A sample random set of arrivals from a real app run that caused one
+    ; overlap
+    (let [{crafts :crafts} (spawn-crafts-from
+                             "KRSW" "KHYA" "KCVG" "KCRQ" "KLAX"
+                             "KPWM" "KORF" "KIAD" "KSAT" "KIND")]
+      (assert-no-overlap crafts)
       (is (= 10 (count (distinct (map :position crafts))))))))
