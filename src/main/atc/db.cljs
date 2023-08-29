@@ -19,4 +19,3 @@
    :speech {:available? nil
             :speaking? false
             :queue #queue []}})
-

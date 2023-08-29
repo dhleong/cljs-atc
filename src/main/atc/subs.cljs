@@ -27,6 +27,9 @@
   :<- [::ui-config]
   :=> get-or-identity)
 
+(reg-sub
+  :game-options
+  :-> :game-options)
 
 ; ======= Voice ===========================================
 

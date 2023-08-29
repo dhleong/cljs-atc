@@ -21,6 +21,7 @@
                 ; util:
                 [applied-science/js-interop "0.2.7"]
                 [com.cemerick/url "0.1.1"]
+                [com.cognitect/transit-cljs "0.8.280"]
                 [dev.weavejester/medley "1.7.0"]
                 [funcool/promesa "11.0.671"]
                 [re-frame-utils "0.1.0"]

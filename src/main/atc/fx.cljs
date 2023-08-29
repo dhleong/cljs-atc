@@ -4,6 +4,7 @@
    [archetype.util :refer [>evt]]
    [atc.game :as game]
    [atc.speech :as speech]
+   [atc.util.local-storage :as local-storage]
    [atc.voice.core :as voice]
    [atc.voice.process :refer [find-command]]
    [promesa.core :as p]
@@ -14,6 +15,14 @@
 (reg-fx
   :nav/replace!
   nav/replace!)
+
+
+; ======= Persistence =====================================
+
+(reg-fx
+  :local-storage/save
+  (fn [[key data]]
+    (local-storage/save key data)))
 
 
 ; ======= Game setup ======================================
