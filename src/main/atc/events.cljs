@@ -1,11 +1,13 @@
 (ns atc.events
   (:require
-   [atc.db :as db]
    [atc.cofx :as cofx]
+   [atc.db :as db]
    [atc.engine.core :as engine]
    [atc.engine.model :as engine-model]
    [atc.game.keymap :as keymap]
    [atc.radio :refer [->readable ->speakable]]
+   [atc.util.interceptors :refer [persist-key]]
+   [atc.util.local-storage :as local-storage]
    [clojure.string :as str]
    [re-frame.core :refer [->interceptor dispatch get-coeffect get-effect
                           inject-cofx path reg-event-db reg-event-fx trim-v unwrap]]
@@ -62,12 +64,13 @@
                   (update-effect context' :db update :engine remove-injections)
                   context')))}))
 
-; ======= Subscriptions ===================================
+; ======= Events ==========================================
 
-(reg-event-db
+(reg-event-fx
   ::initialize-db
-  (fn [_ _]
-    db/default-db))
+  [(inject-cofx ::local-storage/load :game-options)]
+  (fn [{:keys [game-options]} _]
+    {:db (assoc db/default-db :game-options game-options)}))
 
 ; This event is unused... for now (and that's okay)
 #_:clj-kondo/ignore
@@ -87,9 +90,11 @@
 
 (reg-event-fx
   :game/init
-  [unwrap]
+  [unwrap (persist-key :game-options)]
   (fn [{:keys [db]} game-options]
-    {:db (dissoc db :last-game) ; We can release this memory, now
+    {:db (-> db
+             (dissoc :last-game)  ; We can release this memory, now
+             (assoc :game-options game-options))
      :game/init-async game-options}))
 
 (reg-event-fx

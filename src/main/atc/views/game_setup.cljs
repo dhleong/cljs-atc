@@ -1,6 +1,7 @@
 (ns atc.views.game-setup
   (:require
    [archetype.util :refer [<sub >evt]]
+   [atc.config :as config]
    [atc.data.airports :refer [list-airports]]
    [atc.styles :refer [full-screen]]
    [garden.units :refer [px]]
@@ -77,7 +78,7 @@
   [:.spacer {:height (px 8)}])
 
 (defn- start-game! [loading?-ref ^js e
-                    {:keys [airport-id use-voice-input
+                    {:keys [airport-id voice-input?
                             arrivals? departures?]}]
   (.preventDefault e)
   (p/do
@@ -86,7 +87,7 @@
     (>evt [:game/init {:airport-id airport-id
                        :arrivals? arrivals?
                        :departures? departures?
-                       :voice-input? use-voice-input}])))
+                       :voice-input? voice-input?}])))
 
 (defn- labeled-input [{:keys [type disabled label key]}]
   [:div.labeled
@@ -97,10 +98,8 @@
            :id key}]])
 
 (defn view []
-  (r/with-let [form-value (r/atom {:airport-id :kjfk
-                                   :arrivals? true
-                                   :departures? true
-                                   :use-voice-input true})
+  (r/with-let [form-value (r/atom (or (<sub [:game-options])
+                                      config/default-game-options))
                loading? (r/atom false)
                on-start-game (partial start-game! loading?)]
     [:div (setup-container-attrs)
@@ -144,7 +143,7 @@
         [labeled-input {:type :checkbox
                         :disabled @loading?
                         :label "Use voice input"
-                        :key :use-voice-input}]
+                        :key :voice-input?}]
         [:div.explanation {:id ::voice-explanation}
          "If enabled, you will be prompted to allow microphone input once the game is loaded. You can then hold the spacebar to activate the mic and talk to pilots on your frequency!"]]
 

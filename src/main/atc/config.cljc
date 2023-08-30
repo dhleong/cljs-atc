@@ -4,6 +4,12 @@
 
 #?(:cljs (goog-define server-root ""))
 
+(def default-game-options
+  {:airport-id :kjfk
+   :arrivals? true
+   :departures? true
+   :use-voice-input true})
+
 ; Aircraft may not exceed 250kts below 10K ft
 (def speed-limit-under-10k-kts 250)
 
