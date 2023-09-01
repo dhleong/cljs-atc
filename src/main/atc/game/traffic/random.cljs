@@ -38,7 +38,7 @@
        ; TODO Maybe depend on "difficulty"?
        :delay-to-next-s 240}))
 
-  (next-departure [_ {:keys [airport]}]
+  (next-departure [_ {:keys [airport] runways :game/active-runways}]
     (let [destination (pick-random
                         random
                         (-> airport :departure-routes keys))]
@@ -48,8 +48,8 @@
                   :destination destination
                   :route (-> airport (get-in [:departure-routes destination]))
 
-                  ; TODO weather; runway selection
-                  :runway (-> airport :runways first :start-id)
+                  ; TODO Round-robin runway selection, if multiple available
+                  :runway (->> runways :departures first)
                   :config configs/common-jet}
 
        ; TODO This should at least depend on the spawned aircraft's speed, etc. Maybe "difficulty"?

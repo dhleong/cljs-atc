@@ -21,7 +21,8 @@
 ; ======= Engine data injection ===========================
 
 (def injected-subscriptions
-  [[:game/airport-runway-ids]
+  [[:game/active-runways]
+   [:game/airport-runway-ids]
    [:game/navaids-by-id]])
 
 (def engine-injections
