@@ -210,7 +210,7 @@
   :<- [:engine]
   :-> :weather)
 
-(defn active-runways [airport weather]
+(defn active-runways [[airport weather]]
   ; Use the weather, Luke
   (let [select-runway (:runway-selection airport)]
     (when (and weather select-runway)
@@ -220,7 +220,7 @@
 
 (reg-sub
   :game/active-runways
-  :<- [:airport]
+  :<- [:game/airport]
   :<- [:game/weather]
   :-> active-runways)
 
