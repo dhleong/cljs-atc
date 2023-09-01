@@ -8,6 +8,9 @@
    [atc.radio :refer [->readable ->speakable]]
    [atc.util.interceptors :refer [persist-key]]
    [atc.util.local-storage :as local-storage]
+   [atc.util.spec :refer [pre-validate]]
+   [atc.weather.fx :as weather-fx]
+   [atc.weather.spec :refer [weather-spec]]
    [clojure.string :as str]
    [re-frame.core :refer [->interceptor dispatch get-coeffect get-effect
                           inject-cofx path reg-event-db reg-event-fx trim-v unwrap]]
@@ -96,6 +99,7 @@
     {:db (-> db
              (dissoc :last-game)  ; We can release this memory, now
              (assoc :game-options game-options))
+     :fx [[:dispatch [:weather/refresh]]]
      :game/init-async game-options}))
 
 (reg-event-fx
@@ -417,6 +421,23 @@
   [unwrap (path :ui-config)]
   (fn [config updates]
     (merge config updates)))
+
+; ======= Weather =========================================
+
+(reg-event-fx
+  :weather/refresh
+  (fn [{:keys [db]}]
+    {::weather-fx/fetch (name (get-in db [:game-options :airport-id]))}))
+
+(reg-event-db
+  :weather/fetched
+  [trim-v]
+  (fn [db [airport-icao wx]]
+    {:pre [(pre-validate weather-spec wx)]}
+    (let [current-airport (get-in db [:game-options :airport-id])]
+      (cond-> db
+        (= airport-icao (name current-airport))
+        (assoc-in [:engine :weather] wx)))))
 
 
 ; ======= "Help" functionality ============================
