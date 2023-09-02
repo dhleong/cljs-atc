@@ -5,9 +5,9 @@
    [instaparse.core :as insta :refer-macros [defparser]]))
 
 (defparser ^:private metar-parser
-  "<metar> = airport time wind visibility-sm clouds temp-dewpoint altimeter
+  "<metar> = airport date-time wind visibility-sm clouds temp-dewpoint altimeter
    airport = letter+
-   time = numbers <'Z'>
+   date-time = number+ 'Z'
    wind = wind-direction wind-kts (<'G'> numbers)? <'KT'>
    clouds = cloud*
    temp-dewpoint = temperature <'/'> temperature
@@ -28,7 +28,9 @@
   (->int (str/join numbers)))
 
 (def ^:private transformers
-  {:temperature (fn
+  {:date-time (fn [& parts]
+                [:date-time (str/join parts)])
+   :temperature (fn
                   ([temp] temp)
                   ([_minus temp]
                    (- temp)))
@@ -45,9 +47,10 @@
                    (map (fn [[k & v]]
                           [k v]))
                    (into {}))
-        {:keys [altimeter wind visibility-sm temp-dewpoint]} parts]
+        {:keys [altimeter date-time temp-dewpoint wind visibility-sm]} parts]
     {:altimeter (let [[a b c d] altimeter]
                   (str a b "." c d))
+     :date-time (first date-time)
      :dewpoint-c (second temp-dewpoint)
      :temperature-c (first temp-dewpoint)
      :visibility-sm (first visibility-sm)

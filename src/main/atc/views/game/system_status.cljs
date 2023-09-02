@@ -13,16 +13,25 @@
 
   [:.row {:display :flex
           :gap (px 8)
-          :flex-direction :row}])
+          :flex-direction :row
+          :width (px 800)}])
 
 (defn system-status []
   [:div (system-status-attrs)
    (when-let [weather (<sub [:game/weather])]
-     ; TODO Time, altimeter
-     ; TODO Flow (?)
-     ; TODO ATIS code, wind direction/speed, (runways below)
-     [:div (str weather)])
+     [:<>
+      [:div.row [:span (:date-time weather)] [:span (:altimeter weather)]]
+      ; TODO Flow (?)
 
-   (when-let [{:keys [arrivals departures]} (<sub [:game/active-runways])]
-     ; TODO
-     [:div.row "RWYS " (into [:span] arrivals) " / " (into [:span] departures)])])
+      [:div.row
+       [:span "B"] ; TODO atis code
+       [:span (str (:wind-heading weather)
+                   "/"
+                   (:wind-kts weather))]
+
+       (when-let [{:keys [arrivals departures]} (<sub [:game/active-runways])]
+         [:<>
+          [:span "RWYS"]
+          (into [:span] arrivals)
+          " / "
+          (into [:span] departures)])]])])

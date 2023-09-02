@@ -6,6 +6,7 @@
 (deftest parse-text-test
   (testing "Simple wind test"
     (is (= {:altimeter "30.26"
+            :date-time "012151Z"
             :dewpoint-c -13
             :temperature-c 21
             :visibility-sm 10
