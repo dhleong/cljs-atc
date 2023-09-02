@@ -11,6 +11,7 @@
    [atc.util.spec :refer [pre-validate]]
    [atc.weather.fx :as weather-fx]
    [atc.weather.spec :refer [default-wx weather-spec]]
+   [clojure.math :refer [floor]]
    [clojure.string :as str]
    [re-frame.core :refer [->interceptor dispatch get-coeffect get-effect
                           inject-cofx path reg-event-db reg-event-fx trim-v unwrap]]
@@ -436,15 +437,33 @@
   (fn [_ [airport-icao]]
     {:dispatch [:weather/fetched airport-icao default-wx]}))
 
-(reg-event-db
+(defn- increment-atis [code now]
+  (case code
+    nil (String/fromCharCode
+          (+ (.charCodeAt "A" 0)
+             (mod (floor (/ now 60000)) 25)))
+    "Z" "A"
+    (String/fromCharCode (inc (.charCodeAt "B" 0)))))
+
+(defn- update-weather [db now wx]
+  (let [wx-keys [:wind-heading :altimeter]
+        wx-changed? (not= (select-keys wx wx-keys)
+                          (select-keys
+                            (get-in db [:engine :weather])
+                            wx-keys))]
+    (cond-> db
+      wx-changed? (update-in [:engine :weather :atis] increment-atis now)
+      true (assoc-in [:engine :weather] wx))))
+
+(reg-event-fx
   :weather/fetched
-  [trim-v]
-  (fn [db [airport-icao wx]]
+  [trim-v (inject-cofx ::cofx/now)]
+  (fn [{now :now db :db} [airport-icao wx]]
     {:pre [(pre-validate weather-spec wx)]}
     (let [current-airport (get-in db [:game-options :airport-id])]
       (cond-> db
         (= airport-icao (name current-airport))
-        (assoc-in [:engine :weather] wx)))))
+        (update-weather now wx)))))
 
 
 ; ======= "Help" functionality ============================
@@ -491,6 +510,8 @@
   (dispatch [:game/reset])
 
   (dispatch [:config/set {:range-rings-nm 10}])
+
+  (dispatch [:weather/refresh])
 
   (dispatch [::voice-handle-text "delta twenty two turn right heading one eight zero"])
   (dispatch [::voice-handle-text "delta twenty two contact center point eight good day"]))

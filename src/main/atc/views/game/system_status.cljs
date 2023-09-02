@@ -21,10 +21,11 @@
    (when-let [weather (<sub [:game/weather])]
      [:<>
       [:div.row [:span (:date-time weather)] [:span (:altimeter weather)]]
+
       ; TODO Flow (?)
 
       [:div.row
-       [:span "B"] ; TODO atis code
+       [:span (:atis weather)]
        [:span (str (:wind-heading weather)
                    "/"
                    (:wind-kts weather))]
