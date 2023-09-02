@@ -10,7 +10,7 @@
    [atc.util.local-storage :as local-storage]
    [atc.util.spec :refer [pre-validate]]
    [atc.weather.fx :as weather-fx]
-   [atc.weather.spec :refer [weather-spec]]
+   [atc.weather.spec :refer [default-wx weather-spec]]
    [clojure.string :as str]
    [re-frame.core :refer [->interceptor dispatch get-coeffect get-effect
                           inject-cofx path reg-event-db reg-event-fx trim-v unwrap]]
@@ -429,6 +429,12 @@
   :weather/refresh
   (fn [{:keys [db]}]
     {::weather-fx/fetch (name (get-in db [:game-options :airport-id]))}))
+
+(reg-event-fx
+  :weather/failed
+  [trim-v]
+  (fn [_ [airport-icao]]
+    {:dispatch [:weather/fetched airport-icao default-wx]}))
 
 (reg-event-db
   :weather/fetched

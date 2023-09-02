@@ -2,6 +2,7 @@
   (:require
    ["@inlet/react-pixi" :as px]
    [archetype.util :refer [<sub]]
+   [archetype.views.error-boundary :refer [error-boundary]]
    [atc.events :as events]
    [atc.styles :refer [full-screen]] ; [atc.theme :as theme]
    [atc.theme :as theme]
@@ -123,11 +124,12 @@
       [:div (game-container-attrs)
        [game]
 
-       [:div (game-controls-container-attrs {:paused? paused?})
-        [game-controls]]
+       [error-boundary
+        [:div (game-controls-container-attrs {:paused? paused?})
+         [game-controls]]
 
-       [:div (system-status-container-attrs {:paused? paused?})
-        [system-status]]
+        [:div (system-status-container-attrs {:paused? paused?})
+         [system-status]]]
 
        (when paused?
          [pause-screen/view])])))

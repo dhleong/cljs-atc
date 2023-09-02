@@ -7,3 +7,8 @@
     {:name ::weather
      :spec {:wind-heading number?
             :wind-kts number?}}))
+
+; TODO: Should this belong to the airport?
+(def default-wx
+  {:wind-heading 300
+   :wind-kts 4})
