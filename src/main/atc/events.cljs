@@ -441,7 +441,7 @@
   (case code
     nil (String/fromCharCode
           (+ (.charCodeAt "A" 0)
-             (mod (floor (/ now 60000)) 25)))
+             (mod (floor (/ now 60000)) 26)))
     "Z" "A"
     (String/fromCharCode (inc (.charCodeAt "B" 0)))))
 
