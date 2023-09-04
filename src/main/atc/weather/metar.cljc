@@ -17,7 +17,7 @@
    temperature = 'M'? numbers
    wind-direction = number number number
    wind-kts = number number
-   visibility-sm = numbers <'SM'>
+   visibility-sm = numbers (<'/'> numbers)? <'SM'>
 
    <letter> = #'[A-Z]'
    numbers = number+
@@ -34,6 +34,10 @@
                   ([temp] temp)
                   ([_minus temp]
                    (- temp)))
+   :visibility-sm (fn visibility-sm
+                    ([n] (visibility-sm n 1))
+                    ([numer denom]
+                     [:visibility-sm (/ numer denom)]))
    :wind-direction parse-numbers
    :wind-kts parse-numbers
    :numbers parse-numbers})
