@@ -9,11 +9,18 @@
    airport = letter+
    date-time = number+ 'Z'
    wind = wind-direction wind-kts (<'G'> numbers)? <'KT'>
-   clouds = cloud*
+   clouds = (cloud | weather)*
    temp-dewpoint = temperature <'/'> temperature
    altimeter = <'A'> number number number number
 
+   (*
+   Clouds are FEW020.
+   The -/+ before Weather indicates light/heavy. Omitting it is 'moderate',
+   but that collides with our lazy definition for Clouds so it's left off.
+   *)
    cloud = #'\\w+'
+   weather = #'[-+][A-Z]+'
+
    temperature = 'M'? numbers
    wind-direction = number number number
    wind-kts = number number
@@ -52,6 +59,7 @@
                           [k v]))
                    (into {}))
         {:keys [altimeter date-time temp-dewpoint wind visibility-sm]} parts]
+    (println parts)
     {:altimeter (let [[a b c d] altimeter]
                   (str a b "." c d))
      :date-time (first date-time)
