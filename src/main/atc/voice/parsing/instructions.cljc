@@ -30,15 +30,15 @@
 
    "steer = (<'fly'> | 'turn right' | 'turn left') <'heading'> heading"
 
-   "verify-atis = (<'verify you have'> <'information'>? letter) | (<'information'> letter <'is current'>)"]
+   "verify-atis = (<'verify you have'> atis? <'information'>? letter) | (atis? <'information'> letter <'is current'>)"]
 
   [:other-position :pleasantry :frequency :navaid :altitude
-   :approach-type :runway :heading :letter])
+   :approach-type :runway :heading :atis :letter])
 
 (defrules ^:private global-command-rules
-  ["atis-update = attention-all <'atis'>? <'information'>? letter <'is current'>"]
+  ["atis-update = attention-all atis? <'information'>? letter <'is current'>"]
 
-  [:attention-all :letter])
+  [:attention-all :atis :letter])
 
 (defalternates-expr ^:hide-tag instruction
   (->> instructions-rules
@@ -56,6 +56,7 @@
    "aircraft-command = callsign instruction+"
 
    "<attention-all> = <'attention'> <'all'>? <'aircraft'>? <'on frequency'>?"
+   "<atis> = <'ay tis'>"
    "approach-type = 'i l s' | 'r nav' | 'visual'"
    "runway = number-sequence (letter | 'left' | 'right' | 'north' | 'south')?"]
   {:other-position other-position
