@@ -73,7 +73,12 @@
               {:from (aircraft/build-utterance-from aircraft)
                ; TODO: include approach/departure "name"
                ; (eg: "New York Departure")
-               :message [named-position ", " aircraft ". With you"
+               :message [named-position ", " aircraft ". "
+                         (cond
+                           (get-in aircraft [:behavior :will-get-weather?])
+                           (str "With the weather,")
+
+                           :else "With you")
                          [:altitude
                           (round-to-hundreds
                             (m->ft (:z (:position aircraft))))]

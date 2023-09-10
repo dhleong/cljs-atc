@@ -119,6 +119,12 @@
   craft)
 
 (defmethod dispatch-instruction
+  :verify-atis
+  [craft _context [_ letter]]
+  (-> craft
+      (utter "we have " [:letter letter])))
+
+(defmethod dispatch-instruction
   :default
   [craft _context [instruction]]
   (println "TODO: Unhandled craft instruction: " instruction)

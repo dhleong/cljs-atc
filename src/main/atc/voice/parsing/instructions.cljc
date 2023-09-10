@@ -28,9 +28,12 @@
 
    "direct = <'proceed direct'> navaid"
 
-   "steer = (<'fly'> | 'turn right' | 'turn left') <'heading'> heading"]
+   "steer = (<'fly'> | 'turn right' | 'turn left') <'heading'> heading"
 
-  [:other-position :pleasantry :frequency :navaid :altitude :approach-type :runway :heading])
+   "verify-atis = (<'verify you have'> <'information'>? letter) | (<'information'> letter <'is current'>)"]
+
+  [:other-position :pleasantry :frequency :navaid :altitude
+   :approach-type :runway :heading :letter])
 
 (defalternates-expr ^:hide-tag instruction
   (->> instructions-rules

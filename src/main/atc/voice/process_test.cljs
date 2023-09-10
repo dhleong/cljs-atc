@@ -114,3 +114,12 @@
     (is (= [[:cleared-approach :visual "30L"]]
            (find-instructions
              "piper one cleared visual approach runway tree zero left")))))
+
+(deftest verify-atis-test
+  (testing "Request to verify ATIS"
+    (is (= [[:verify-atis "A"]]
+           (find-instructions
+             "piper one verify you have information alpha")))
+    (is (= [[:verify-atis "A"]]
+           (find-instructions
+             "piper one information alpha is current")))))
