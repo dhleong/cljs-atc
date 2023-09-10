@@ -5,7 +5,7 @@
 (defmulti dispatch-global-instruction (fn [_engine [instruction]] instruction))
 
 (defmethod dispatch-global-instruction
-  :update-atis
+  :atis-update
   [engine [_ letter]]
   ; TODO This should probably reward/deduct points.
   ; TODO We should check if they've already done this or not
