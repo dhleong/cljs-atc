@@ -7,6 +7,8 @@
 (defmethod dispatch-global-instruction
   :update-atis
   [engine [_ letter]]
+  ; TODO This should probably reward/deduct points.
+  ; TODO We should check if they've already done this or not
   (if (= (get-in engine [:weather :atis])
          letter)
     (>evt [:help/reward "Thank you for handling the updated ATIS!"])
