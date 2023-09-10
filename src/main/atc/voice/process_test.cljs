@@ -123,3 +123,10 @@
     (is (= [[:verify-atis "A"]]
            (find-instructions
              "piper one information alpha is current")))))
+
+(deftest global-command-test
+  (testing "Notify ATIS changed"
+    (is (= {:global? true
+            :instructions [[:atis-update "A"]]}
+           (find-command
+             "attention all aircraft information alpha is current")))))

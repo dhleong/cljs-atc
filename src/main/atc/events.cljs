@@ -499,6 +499,15 @@
                    :text msg}]})))
 
 (reg-event-fx
+  :help/reward
+  [trim-v]
+  (fn [_ message]
+    {:dispatch [:radio-history/push
+                {:speaker :system/reward
+                 :text message}]}))
+
+
+(reg-event-fx
   :help/warning
   [trim-v]
   (fn [_ message]
@@ -514,4 +523,5 @@
   (dispatch [:weather/refresh])
 
   (dispatch [::voice-handle-text "delta twenty two turn right heading one eight zero"])
-  (dispatch [::voice-handle-text "delta twenty two contact center point eight good day"]))
+  (dispatch [::voice-handle-text "delta twenty two contact center point eight good day"])
+  (dispatch [::voice-handle-text "attention all aircraft information alpha is current"]))
