@@ -190,7 +190,10 @@
              (assoc :last-game (select-keys db [:engine :engine-config
                                                 :game-events :game-history
                                                 :radio-history])))
-     :dispatch [:voice/stop!]}))
+     :fx [[:dispatch [:voice/stop!]]
+
+          ; Cancel all deferrables
+          [:defer/cancel :all]]}))
 
 (reg-event-fx
   :game/set-time-scale
@@ -463,7 +466,9 @@
     (let [current-airport (get-in db [:game-options :airport-id])]
       {:db (cond-> db
              (= airport-icao (name current-airport))
-             (update-weather now wx))})))
+             (update-weather now wx))
+       :fx [[:defer {:ms (* 10 60000) ; every 10 minutes
+                     :dispatch [:weather/refresh]}]]})))
 
 
 ; ======= "Help" functionality ============================
