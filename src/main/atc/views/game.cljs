@@ -3,7 +3,7 @@
    ["@inlet/react-pixi" :as px]
    [archetype.util :refer [<sub]]
    [atc.events :as events]
-   [atc.styles :refer [full-screen]] ; [atc.theme :as theme]
+   [atc.styles :refer [full-screen]]
    [atc.theme :as theme]
    [atc.views.game-setup :as game-setup]
    [atc.views.game.controls :refer [game-controls]]
@@ -14,6 +14,7 @@
    [atc.views.game.graphics.range-rings :refer [range-rings]]
    [atc.views.game.graphics.runway :as runway]
    [atc.views.game.stage :refer [stage]]
+   [atc.views.game.system-status :refer [system-status]]
    [atc.views.game.viewport :refer [viewport]]
    [atc.views.pause-screen :as pause-screen]
    [reagent.core :as r]
@@ -25,6 +26,12 @@
 (defattrs game-controls-container-attrs [{:keys [paused?]}]
   {:position :absolute
    :bottom 0
+   :left 0
+   :visibility (when paused? :hidden)})
+
+(defattrs system-status-container-attrs [{:keys [paused?]}]
+  {:position :absolute
+   :top 0
    :left 0
    :visibility (when paused? :hidden)})
 
@@ -118,6 +125,9 @@
 
        [:div (game-controls-container-attrs {:paused? paused?})
         [game-controls]]
+
+       [:div (system-status-container-attrs {:paused? paused?})
+        [system-status]]
 
        (when paused?
          [pause-screen/view])])))

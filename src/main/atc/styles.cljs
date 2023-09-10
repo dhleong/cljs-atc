@@ -7,7 +7,8 @@
 (defglobal window-styles
   [":root" {:*background* theme/background
             :*background-secondary* theme/background-secondary
-            :*text* theme/text}]
+            :*text* theme/text
+            :*map-text* theme/map-label-opaque}]
 
   [:body {:margin 0
           :padding 0}]

@@ -28,35 +28,59 @@
 
    "direct = <'proceed direct'> navaid"
 
-   "steer = (<'fly'> | 'turn right' | 'turn left') <'heading'> heading"]
+   "steer = (<'fly'> | 'turn right' | 'turn left') <'heading'> heading"
 
-  [:other-position :pleasantry :frequency :navaid :altitude :approach-type :runway :heading])
+   "verify-atis = (<'verify you have'> <'information'>? letter) | (<'information'> letter <'is current'>)"]
+
+  [:other-position :pleasantry :frequency :navaid :altitude
+   :approach-type :runway :heading :letter])
+
+(defrules ^:private global-command-rules
+  ["atis-update = attention-all <'atis'>? <'information'>? letter <'is current'>"]
+
+  [:attention-all :letter])
 
 (defalternates-expr ^:hide-tag instruction
   (->> instructions-rules
        :grammar
        keys))
 
-(defrules ^:private core-rules
-  ["command = callsign instruction+"
+(defalternates-expr global-command
+  (->> global-command-rules
+       :grammar
+       keys))
 
+(defrules ^:private core-rules
+  ["command = aircraft-command | global-command"
+
+   "aircraft-command = callsign instruction+"
+
+   "<attention-all> = <'attention'> <'all'>? <'aircraft'>? <'on frequency'>?"
    "approach-type = 'i l s' | 'r nav' | 'visual'"
    "runway = number-sequence (letter | 'left' | 'right' | 'north' | 'south')?"]
   {:other-position other-position
    :pleasantry pleasantry
    :callsign nil
    :instruction instruction
+   :global-command global-command
    :number-sequence nil
    :letter nil})
 
 (def rules (merge-with merge
                        core-rules
-                       instructions-rules))
+                       instructions-rules
+                       global-command-rules))
 
 (def transformers
-  {:command (fn [callsign & instructions]
-              {:callsign (second callsign)
-               :instructions instructions})
+  {:command (fn [v] v)
+
+   :aircraft-command (fn [callsign & instructions]
+                       {:callsign (second callsign)
+                        :instructions instructions})
+
+   :global-command (fn [command]
+                     {:global? true
+                      :instructions [command]})
 
    :contact-other (fn [other-position & etc]
                     [:contact-other

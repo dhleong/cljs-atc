@@ -7,6 +7,7 @@
    [atc.util.local-storage :as local-storage]
    [atc.voice.core :as voice]
    [atc.voice.process :refer [find-command]]
+   [clojure.core.match :refer [match]]
    [promesa.core :as p]
    [re-frame.core :refer [reg-fx]]))
 
@@ -16,6 +17,47 @@
   :nav/replace!
   nav/replace!)
 
+
+; ======= Deferrables =====================================
+; Like dispatch-later, but cancelable!
+
+(defonce ^:private deferred-timeouts
+  (atom {}))
+
+(defn- defer-cancel [state cancel-spec]
+  (match cancel-spec
+    :all
+    (do
+      (doseq [[_ v] state]
+        (js/clearTimeout v))
+      {})
+
+    {:id id}
+    (do
+      (when-some [old (get state id)]
+        (js/clearTimeout old))
+      (dissoc state id))
+
+    :else
+    (js/console.error "Unexpected defer/cancel spec: " cancel-spec)
+    state))
+
+(defn- defer [state {:keys [id ms dispatch]}]
+  (defer-cancel state {:id id})
+
+  (assoc state id (js/setTimeout
+                    #(>evt dispatch)
+                    ms)))
+
+(reg-fx
+  :defer
+  (fn [deferrable]
+    (swap! deferred-timeouts defer deferrable)))
+
+(reg-fx
+  :defer/cancel
+  (fn [cancel-spec]
+    (swap! deferred-timeouts defer-cancel cancel-spec)))
 
 ; ======= Persistence =====================================
 

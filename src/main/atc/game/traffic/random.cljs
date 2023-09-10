@@ -6,7 +6,7 @@
    [atc.engine.model :refer [spawn-aircraft]]
    [atc.game.traffic.model :refer [ITraffic next-arrival]]
    [atc.game.traffic.shared :refer [position-arriving-aircraft]]
-   [atc.util.seedable :refer [next-int pick-random]]))
+   [atc.util.seedable :refer [next-boolean next-int pick-random]]))
 
 (defrecord RandomTraffic [random]
   ITraffic
@@ -26,31 +26,40 @@
     (let [origin (pick-random
                    random
                    (-> airport :arrival-routes keys))
+
+          ; Will this aircraft get the weather before contacting approach?
+          will-get-weather? (next-boolean random)
+
           craft {:type :airline
                  :airline (pick-random random (keys all-airlines))
                  :flight-number (next-int random 20 9999)
                  :origin origin
                  :destination (:id airport)
                  :route (-> airport (get-in [:arrival-routes origin :route]))
+                 :behavior {:will-get-weather? will-get-weather?}
                  :config configs/common-jet}]
       {:aircraft (position-arriving-aircraft engine craft)
 
        ; TODO Maybe depend on "difficulty"?
        :delay-to-next-s 240}))
 
-  (next-departure [_ {:keys [airport]}]
-    (let [destination (pick-random
-                        random
-                        (-> airport :departure-routes keys))]
-      {:aircraft {:type :airline
-                  :airline (pick-random random (keys all-airlines))
-                  :flight-number (next-int random 20 9999)
-                  :destination destination
-                  :route (-> airport (get-in [:departure-routes destination]))
+  (next-departure [_ {:keys [airport]
+                      runways :game/active-runways}]
+    (if-not runways
+      {:delay-to-next-s 1}
 
-                  ; TODO weather; runway selection
-                  :runway (-> airport :runways first :start-id)
-                  :config configs/common-jet}
+      (let [destination (pick-random
+                          random
+                          (-> airport :departure-routes keys))]
+        {:aircraft {:type :airline
+                    :airline (pick-random random (keys all-airlines))
+                    :flight-number (next-int random 20 9999)
+                    :destination destination
+                    :route (-> airport (get-in [:departure-routes destination]))
 
-       ; TODO This should at least depend on the spawned aircraft's speed, etc. Maybe "difficulty"?
-       :delay-to-next-s 240})))
+                    ; TODO Round-robin runway selection, if multiple available
+                    :runway (->> runways :departures first)
+                    :config configs/common-jet}
+
+         ; TODO This should at least depend on the spawned aircraft's speed, etc. Maybe "difficulty"?
+         :delay-to-next-s 240}))))

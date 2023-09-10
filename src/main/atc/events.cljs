@@ -8,6 +8,10 @@
    [atc.radio :refer [->readable ->speakable]]
    [atc.util.interceptors :refer [persist-key]]
    [atc.util.local-storage :as local-storage]
+   [atc.util.spec :refer [pre-validate]]
+   [atc.weather.fx :as weather-fx]
+   [atc.weather.spec :refer [default-wx weather-spec]]
+   [clojure.math :refer [floor]]
    [clojure.string :as str]
    [re-frame.core :refer [->interceptor dispatch get-coeffect get-effect
                           inject-cofx path reg-event-db reg-event-fx trim-v unwrap]]
@@ -21,7 +25,8 @@
 ; ======= Engine data injection ===========================
 
 (def injected-subscriptions
-  [[:game/airport-runway-ids]
+  [[:game/active-runways]
+   [:game/airport-runway-ids]
    [:game/navaids-by-id]])
 
 (def engine-injections
@@ -95,6 +100,7 @@
     {:db (-> db
              (dissoc :last-game)  ; We can release this memory, now
              (assoc :game-options game-options))
+     :fx [[:dispatch [:weather/refresh]]]
      :game/init-async game-options}))
 
 (reg-event-fx
@@ -184,7 +190,10 @@
              (assoc :last-game (select-keys db [:engine :engine-config
                                                 :game-events :game-history
                                                 :radio-history])))
-     :dispatch [:voice/stop!]}))
+     :fx [[:dispatch [:voice/stop!]]
+
+          ; Cancel all deferrables
+          [:defer/cancel :all]]}))
 
 (reg-event-fx
   :game/set-time-scale
@@ -418,6 +427,50 @@
     (merge config updates)))
 
 
+; ======= Weather =========================================
+
+(reg-event-fx
+  :weather/refresh
+  (fn [{:keys [db]}]
+    {::weather-fx/fetch (name (get-in db [:game-options :airport-id]))}))
+
+(reg-event-fx
+  :weather/failed
+  [trim-v]
+  (fn [_ [airport-icao]]
+    {:dispatch [:weather/fetched airport-icao default-wx]}))
+
+(defn- increment-atis [code now]
+  (case code
+    nil (String/fromCharCode
+          (+ (.charCodeAt "A" 0)
+             (mod (floor (/ now 60000)) 26)))
+    "Z" "A"
+    (String/fromCharCode (inc (.charCodeAt "B" 0)))))
+
+(defn- update-weather [db now wx]
+  (let [wx-keys [:wind-heading :altimeter]
+        wx-changed? (not= (select-keys wx wx-keys)
+                          (select-keys
+                            (get-in db [:engine :weather])
+                            wx-keys))]
+    (cond-> db
+      true (assoc-in [:engine :weather] wx)
+      wx-changed? (update-in [:engine :weather :atis] increment-atis now))))
+
+(reg-event-fx
+  :weather/fetched
+  [trim-v (inject-cofx ::cofx/now)]
+  (fn [{now :now db :db} [airport-icao wx]]
+    {:pre [(pre-validate weather-spec wx)]}
+    (let [current-airport (get-in db [:game-options :airport-id])]
+      {:db (cond-> db
+             (= airport-icao (name current-airport))
+             (update-weather now wx))
+       :fx [[:defer {:ms (* 10 60000) ; every 10 minutes
+                     :dispatch [:weather/refresh]}]]})))
+
+
 ; ======= "Help" functionality ============================
 
 (reg-event-fx
@@ -451,6 +504,15 @@
                    :text msg}]})))
 
 (reg-event-fx
+  :help/reward
+  [trim-v]
+  (fn [_ message]
+    {:dispatch [:radio-history/push
+                {:speaker :system/reward
+                 :text message}]}))
+
+
+(reg-event-fx
   :help/warning
   [trim-v]
   (fn [_ message]
@@ -463,5 +525,8 @@
 
   (dispatch [:config/set {:range-rings-nm 10}])
 
+  (dispatch [:weather/refresh])
+
   (dispatch [::voice-handle-text "delta twenty two turn right heading one eight zero"])
-  (dispatch [::voice-handle-text "delta twenty two contact center point eight good day"]))
+  (dispatch [::voice-handle-text "delta twenty two contact center point eight good day"])
+  (dispatch [::voice-handle-text "attention all aircraft information alpha is current"]))

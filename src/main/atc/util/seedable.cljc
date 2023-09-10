@@ -31,6 +31,9 @@
           (seq values))
         idx))))
 
+(defn next-boolean [random]
+  (>= (next-double random) 0.5))
+
 (defn create-random
   ([] (create-random #?(:cljs (js/Date.now)
                         :clj (System/currentTimeMiillis))))

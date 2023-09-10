@@ -4,6 +4,7 @@
    [atc.engine.model :refer [vec3]]
    [atc.game.traffic.shared-util :refer [partial-arrival-route]]
    [atc.subs-util :refer [navaids-by-id]]
+   [atc.util.numbers :refer [->int]]
    [atc.util.testing :refer [roughly=]]))
 
 (defn- overlapping-navaids [navaids]
@@ -16,6 +17,39 @@
        (keep identity)
        (distinct)
        (map vec)))
+
+(defn- runway->heading [runway]
+  (-> (->int runway)
+      (* 10)))
+
+(defn- compile-runway-selection [airport]
+  ; This is very rough and definitely not real-world accurate, but is maybe
+  ; sufficient for now
+  (let [grouped-runways (concat
+                          (->> airport
+                               :runways
+                               (group-by (comp runway->heading :start-id))
+                               (map (partial into [:start-id])))
+                          (->> airport
+                               :runways
+                               (group-by (comp runway->heading :end-id))
+                               (map (partial into [:end-id]))))
+        angle-range (/ 360 (count (keys grouped-runways)))
+        angle-radius (/ angle-range 2)
+        conditions (->> grouped-runways
+                        (map
+                          (fn [[runway-key angle runways]]
+                            [angle (mapv runway-key runways)]))
+                        (mapcat (fn [[angle runway-ids]]
+                                  [`(<= ~(- angle angle-radius)
+                                        ~'wind-heading
+                                        ~(+ angle angle-range))
+                                   {:arrivals (vec (take 1 runway-ids))
+                                    :departures (vec (take-last 1 runway-ids))}]))
+                        (cons `cond))]
+    `(fn [~'weather]
+       (let [~'wind-heading (:wind-heading ~'weather)]
+         ~conditions))))
 
 (defn augment-airport [airport]
   (let [engine {:airport airport
@@ -33,6 +67,9 @@
         ; unacceptably close together.
         arrival-navaid-grouping (->> arrival-navaids
                                      (overlapping-navaids)
-                                     (into {}))]
+                                     (into {}))
+
+        runway-selection (compile-runway-selection airport)]
     (merge airport
-             {:arrival-navaid-grouping arrival-navaid-grouping})))
+             {:runway-selection runway-selection
+              :arrival-navaid-grouping arrival-navaid-grouping})))

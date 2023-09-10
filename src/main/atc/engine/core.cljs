@@ -6,6 +6,7 @@
    [atc.data.units :refer [ft->m]]
    [atc.engine.aircraft :as aircraft]
    [atc.engine.aircraft.states :refer [update-state-machine]]
+   [atc.engine.global :refer [dispatch-global-instruction]]
    [atc.engine.model :as engine-model :refer [consume-pending-communication
                                               IGameEngine pending-communication
                                               prepare-pending-communication Simulated tick]]
@@ -112,11 +113,19 @@
   (command [this command]
     ; NOTE: The Engine actually receives a full Command object so we know where
     ; to dispatch it and to whom.
-    (let [{:keys [callsign instructions]} command]
-      (if (some? (get-in this [:aircraft callsign]))
+    (let [{:keys [callsign global? instructions]} command]
+      (cond
+        global?
+        (reduce
+          dispatch-global-instruction
+          this
+          instructions)
+
+        (some? (get-in this [:aircraft callsign]))
         (update-in this [:aircraft callsign] dispatch-instructions this instructions)
 
         ; There is no ~~spoon~~such aircraft:
+        :else
         (do
           (println "WARNING: No such aircraft: " callsign)
           ; This is a bit impure, but we're doing it for many other things...

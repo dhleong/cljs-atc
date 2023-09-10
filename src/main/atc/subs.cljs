@@ -1,5 +1,6 @@
 (ns atc.subs
   (:require
+   [atc.config :as config]
    [atc.data.airports :refer [runway->heading]]
    [atc.data.core :refer [local-xy]]
    [atc.engine.model :refer [v* vec3]]
@@ -8,8 +9,7 @@
    [atc.util.subs :refer [get-or-identity]]
    [clojure.math :refer [floor]]
    [clojure.string :as str]
-   [re-frame.core :refer [reg-sub]]
-   [atc.config :as config]))
+   [re-frame.core :refer [reg-sub]]))
 
 (reg-sub
   :page
@@ -204,6 +204,23 @@
                     (assoc :end-angle (runway->heading airport (:end-id rwy)))
                     (update :start-threshold local-xy airport)
                     (update :end-threshold local-xy airport)))))))
+
+(reg-sub
+  :game/weather
+  :<- [::engine]
+  :-> :weather)
+
+(defn active-runways [[airport weather]]
+  ; Use the weather, Luke
+  (let [select-runway (:runway-selection airport)]
+    (when (and weather select-runway)
+      (select-runway weather))))
+
+(reg-sub
+  :game/active-runways
+  :<- [:game/airport]
+  :<- [:game/weather]
+  :-> active-runways)
 
 (reg-sub
   :ui/tick

@@ -2,6 +2,7 @@
   (:require
    [atc.data.airlines :refer [all-airlines]]
    [atc.util.numbers :refer [->int]]
+   [atc.voice.parsing.letters :refer [letter]]
    [atc.voice.parsing.numbers :as numbers]
    [clojure.set :refer [map-invert]]
    [com.rpl.specter :as s]))
@@ -36,6 +37,13 @@
   [[_ v]]
   ; TODO 040 might come in as the int 40
   (-> v str seq))
+
+(def ^:private letter->speakable
+  (map-invert letter))
+
+(defmethod process-speakable :letter
+ [[_ v]]
+ (letter->speakable v))
 
 (defmethod process-speakable :runway
   [[_ string]]

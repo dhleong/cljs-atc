@@ -16,7 +16,7 @@
 (def flight-spec
   (ds/spec
     {:name ::flight
-     :spec {:aircraft traffic-aircraft-spec
+     :spec {(ds/opt :aircraft) traffic-aircraft-spec
             :delay-to-next-s number?}}))
 
 (defprotocol ITraffic

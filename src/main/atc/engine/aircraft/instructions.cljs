@@ -119,6 +119,16 @@
   craft)
 
 (defmethod dispatch-instruction
+  :verify-atis
+  [craft _context [_ letter]]
+  ; TODO: This is a bit of laziness; a more complete simulation might
+  ; have some aircraft who have an *old* ATIS (or haven't gotten any)
+  ; and need to a) go get it, and b) report back when they have it
+  (-> craft
+      (utter "we have " [:letter letter])
+      (update :behavior assoc :will-get-weather? true)))
+
+(defmethod dispatch-instruction
   :default
   [craft _context [instruction]]
   (println "TODO: Unhandled craft instruction: " instruction)

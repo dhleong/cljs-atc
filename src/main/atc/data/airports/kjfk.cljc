@@ -496,6 +496,20 @@
    {:route
     "KSBP LAS BAWER LARVE EKR BFF FOD DBQ KG75M DAFLU J70 LVZ LENDY8 KJFK"},
    "KSYR" {:route "KSYR HNK IGN IGN1 KJFK"}},
+  :runway-selection
+  (fn
+   [weather]
+   (let
+    [wind-heading (:wind-heading weather)]
+    (cond
+     (<= 85 wind-heading 220)
+     {:arrivals ["13R"], :departures ["13L"]}
+     (<= -5 wind-heading 130)
+     {:arrivals ["04R"], :departures ["04L"]}
+     (<= 265 wind-heading 400)
+     {:arrivals ["31L"], :departures ["31R"]}
+     (<= 175 wind-heading 310)
+     {:arrivals ["22L"], :departures ["22R"]}))),
   :navaids
   [{:id "ACOVE",
     :position [:N42*14'05.220 :W074*01'54.590],

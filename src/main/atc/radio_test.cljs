@@ -7,7 +7,9 @@
   (testing "Convert speakable vector objects"
     (is (= "cleared approach runway 1 3 left"
            (->speakable [["cleared approach runway"
-                          [:runway "13L"]]]))))
+                          [:runway "13L"]]])))
+    (is (= "we have alpha"
+           (->speakable [["we have" [:letter "A"]]]))))
 
   (testing "Preserve maps"
     (is (= "2 4 0 delta 22"
