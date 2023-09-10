@@ -122,7 +122,8 @@
   :verify-atis
   [craft _context [_ letter]]
   (-> craft
-      (utter "we have " [:letter letter])))
+      (utter "we have " [:letter letter])
+      (update :behavior assoc :will-get-weather? true)))
 
 (defmethod dispatch-instruction
   :default
