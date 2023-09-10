@@ -7,7 +7,6 @@
   [trim-v]
   (fn [{:keys [db]} [state]]
     (when (= :popped-out state)
-      (println "POP OUT")
       {:db (assoc-in db [:flight-strip-window] (js/window.open "" "flight-strips" "popup"))})))
 
 (comment
