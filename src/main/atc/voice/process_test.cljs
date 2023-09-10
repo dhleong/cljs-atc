@@ -129,4 +129,9 @@
     (is (= {:global? true
             :instructions [[:atis-update "A"]]}
            (find-command
-             "attention all aircraft information alpha is current")))))
+             "attention all aircraft information alpha is current")))
+
+    (is (= {:global? true
+            :instructions [[:atis-update "A"]]}
+           (find-command
+             "attention all aircraft ay tis information alpha is current")))))

@@ -7,6 +7,7 @@
    [atc.structures.rolling-history :refer [most-recent-n]]
    [atc.subs-util :refer [navaids-by-id]]
    [atc.util.subs :refer [get-or-identity]]
+   [atc.voice.pretty :refer [cleanup-spoken-text]]
    [clojure.math :refer [floor]]
    [clojure.string :as str]
    [re-frame.core :refer [reg-sub]]))
@@ -41,9 +42,10 @@
   :voice/partial
   :<- [::voice]
   (fn [voice]
-    (str/join " " (conj
-                    (:pending-results voice)
-                    (:partial-text voice)))))
+    (-> (str/join " " (conj
+                        (:pending-results voice)
+                        (:partial-text voice)))
+        (cleanup-spoken-text))))
 
 (reg-sub
   :voice/state

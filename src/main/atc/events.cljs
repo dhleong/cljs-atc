@@ -9,6 +9,7 @@
    [atc.util.interceptors :refer [persist-key]]
    [atc.util.local-storage :as local-storage]
    [atc.util.spec :refer [pre-validate]]
+   [atc.voice.pretty :refer [cleanup-spoken-text]]
    [atc.weather.fx :as weather-fx]
    [atc.weather.spec :refer [default-wx weather-spec]]
    [clojure.math :refer [floor]]
@@ -387,7 +388,7 @@
              (update :radio-history conj {:speaker "CTR" ; TODO get this from :engine
                                           :freq 127.1 ; TODO this, too
                                           :timestamp now
-                                          :text full-input
+                                          :text (cleanup-spoken-text full-input)
                                           :self? true}))
      :voice/process {:machine (:parsing-machine (:engine db))
                      :input full-input}}))
