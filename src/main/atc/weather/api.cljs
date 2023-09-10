@@ -12,4 +12,6 @@
 
 (defn fetch-weather [airport-icao]
   (p/let [text (fetch-metar-text airport-icao)]
-    (metar/parse-text text)))
+    (or (metar/parse-text text)
+        (throw (ex-info "Failed to parse METAR" {:text text
+                                                 :icao airport-icao})))))

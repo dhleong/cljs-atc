@@ -59,12 +59,13 @@
                           [k v]))
                    (into {}))
         {:keys [altimeter date-time temp-dewpoint wind visibility-sm]} parts]
-    (println parts)
-    {:altimeter (let [[a b c d] altimeter]
-                  (str a b "." c d))
-     :date-time (first date-time)
-     :dewpoint-c (second temp-dewpoint)
-     :temperature-c (first temp-dewpoint)
-     :visibility-sm (first visibility-sm)
-     :wind-heading (first wind)
-     :wind-kts (second wind)}))
+    ; We *at least* need wind to have been parsed correctly...
+    (when (seq wind)
+      {:altimeter (let [[a b c d] altimeter]
+                    (str a b "." c d))
+       :date-time (first date-time)
+       :dewpoint-c (second temp-dewpoint)
+       :temperature-c (first temp-dewpoint)
+       :visibility-sm (first visibility-sm)
+       :wind-heading (first wind)
+       :wind-kts (second wind)})))
