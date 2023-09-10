@@ -9,6 +9,7 @@
   ::fetch
   (fn [airport-icao]
     (-> (p/let [wx (api/fetch-weather airport-icao)]
+          (println "[wx] Fetched @" airport-icao ": " wx)
           (>evt [:weather/fetched airport-icao wx]))
         (p/catch (fn [e]
                    (js/console.error "[wx] Failed to fetch @"

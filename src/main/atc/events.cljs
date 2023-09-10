@@ -452,8 +452,8 @@
                             (get-in db [:engine :weather])
                             wx-keys))]
     (cond-> db
-      wx-changed? (update-in [:engine :weather :atis] increment-atis now)
-      true (assoc-in [:engine :weather] wx))))
+      true (assoc-in [:engine :weather] wx)
+      wx-changed? (update-in [:engine :weather :atis] increment-atis now))))
 
 (reg-event-fx
   :weather/fetched
@@ -461,9 +461,9 @@
   (fn [{now :now db :db} [airport-icao wx]]
     {:pre [(pre-validate weather-spec wx)]}
     (let [current-airport (get-in db [:game-options :airport-id])]
-      (cond-> db
-        (= airport-icao (name current-airport))
-        (update-weather now wx)))))
+      {:db (cond-> db
+             (= airport-icao (name current-airport))
+             (update-weather now wx))})))
 
 
 ; ======= "Help" functionality ============================
