@@ -73,6 +73,10 @@
   (r/with-let [state (swap! windows mount-configured-window config)
                window (get-in state [config :window])]
 
+    (when-some [on-close (:on-close config)]
+      (println "SET onclose" on-close)
+      (set! (.-onunload window) on-close))
+
     (react-dom/createPortal
       (r/as-element [browser-window-root window children])
       (j/get-in window [:document :body]))

@@ -31,6 +31,7 @@
   (let [state (<sub [::subs/state])]
     (if (= state :popped-out)
       [browser-window {:window-name "flight-strips"
+                       :on-close #(>evt [::events/set-state :hidden])
                        :width width
                        :height 600}
        [flight-strips]]
