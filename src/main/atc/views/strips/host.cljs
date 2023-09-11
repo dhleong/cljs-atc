@@ -1,13 +1,45 @@
 (ns atc.views.strips.host
   (:require
-   [archetype.util :refer [<sub]]
+   [archetype.util :refer [<sub >evt]]
    [atc.components.browser-window :refer [browser-window]]
+   [atc.views.strips.events :as events]
    [atc.views.strips.subs :as subs]
-   [atc.views.strips.view :refer [flight-strips]]))
+   [atc.views.strips.view :refer [flight-strips]]
+   [garden.units :refer [px]]
+   [spade.core :refer [defattrs]]))
+
+(def ^:private width 400)
+
+(defattrs flight-strips-container-attrs [expanded?]
+  {:display :flex
+   :position :absolute
+   :right (if expanded? 0 (px (- width)))
+   :transition [[:all "120ms" (if expanded?
+                                :ease-in
+                                :ease-out)]]}
+  [:.controls {:display :flex
+               :flex-direction :column}]
+  [:.actual {:width (px width)}])
 
 (defn flight-strips-host []
-  (when (= :popped-out (<sub [::subs/state]))
-    [browser-window {:window-name "flight-strips"
-                     :width 800
-                     :height 600}
-     [flight-strips]]))
+  (let [state (<sub [::subs/state])]
+    (if (= state :popped-out)
+      [browser-window {:window-name "flight-strips"
+                       :width width
+                       :height 600}
+       [flight-strips]]
+
+      [:div (flight-strips-container-attrs (= state :expanded))
+       [:div.controls
+        [:button {:on-click #(>evt [::events/set-state :popped-out])}
+         "^"]
+        (case state
+          :expanded
+          [:button {:on-click #(>evt [::events/set-state :hidden])}
+           ">>"]
+
+          [:button {:on-click #(>evt [::events/set-state :expanded])}
+           "<<"])]
+
+       [:div.actual
+        [flight-strips]]])))

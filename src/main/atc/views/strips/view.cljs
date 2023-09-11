@@ -2,6 +2,7 @@
   (:require
     [archetype.util :refer [<sub >evt]]
     [atc.views.strips.events :as events]
+    [atc.views.strips.subs :as subs]
     [spade.core :refer [defattrs]]))
 
 (defattrs flight-strips-attrs []
@@ -9,6 +10,7 @@
 
 (defn flight-strips []
   [:div (flight-strips-attrs)
-   [:button {:on-click #(>evt [::events/set-state :expanded])}
-    "Pop in"]
+   (when (= :popped-out (<sub [::subs/state]))
+     [:button {:on-click #(>evt [::events/set-state :hidden])}
+      "Pop in"])
    [:div.weather (str (<sub [:game/weather]))]])

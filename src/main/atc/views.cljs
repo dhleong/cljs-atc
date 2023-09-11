@@ -3,8 +3,7 @@
    [archetype.util :refer [<sub]]
    [archetype.views.error-boundary :refer [error-boundary]]
    [atc.views.game :as game]
-   [atc.views.home :as home]
-   [atc.views.strips.host :refer [flight-strips-host]]))
+   [atc.views.home :as home]))
 
 (def ^:private pages
   {:game #'game/view
@@ -16,6 +15,5 @@
     (println "[router]" page args page-form)
 
     [error-boundary
-     page-form
-     [flight-strips-host]]))
+     page-form]))
 
