@@ -21,17 +21,30 @@
   [:<>])
 
 (defn- open-window [{:keys [window-name] :as opts}]
-  (js/window.open
-    ""
-    (str window-name)
-    (->> (reduce-kv
-           (fn [s k v]
-             (cond-> s
-               (not= k window-name)
-               (conj (str (name k) "=" v))))
-           []
-           opts)
-         (str/join ","))))
+  (let [w (js/window.open
+            ""
+            (str window-name)
+            (->> (reduce-kv
+                   (fn [s k v]
+                     (cond-> s
+                       (not= k window-name)
+                       (conj (str (name k) "=" v))))
+                   []
+                   opts)
+                 (str/join ",")))]
+
+    (.appendChild
+      (j/get-in w [:document :head])
+      (doto (j/call-in w [:document :createElement] "meta")
+        (.setAttribute "name" "darkreader-lock")))
+
+    (.appendChild
+      (j/get-in w [:document :head])
+      (doto (j/call-in w [:document :createElement] "meta")
+        (.setAttribute "name" "darkreader")
+        (.setAttribute "content" (str "window-" window-name))))
+
+    w))
 
 (defn- browser-window-root [window children]
   (into [spade-react/with-dom (j/get-in window [:document :head])
