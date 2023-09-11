@@ -6,7 +6,9 @@
     [spade.core :refer [defattrs]]))
 
 (defattrs flight-strips-attrs []
-  {:background "red"})
+  {:background :*background-secondary*
+   :color :*text*
+   :height :100%})
 
 (defn flight-strips []
   [:div (flight-strips-attrs)

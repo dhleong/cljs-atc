@@ -12,14 +12,20 @@
 
 (defattrs flight-strips-container-attrs [expanded?]
   {:display :flex
+   :align-items :center
+   :height :100%
+   :pointer-events :none
    :position :absolute
    :right (if expanded? 0 (px (- width)))
    :transition [[:all "120ms" (if expanded?
                                 :ease-in
                                 :ease-out)]]}
   [:.controls {:display :flex
-               :flex-direction :column}]
-  [:.actual {:width (px width)}])
+               :flex-direction :column
+               :pointer-events :all}]
+  [:.actual {:pointer-events :all
+             :height :100%
+             :width (px width)}])
 
 (defn flight-strips-host []
   (let [state (<sub [::subs/state])]
@@ -31,14 +37,14 @@
 
       [:div (flight-strips-container-attrs (= state :expanded))
        [:div.controls
-        [:button {:on-click #(>evt [::events/set-state :popped-out])}
+        [:button.interactive {:on-click #(>evt [::events/set-state :popped-out])}
          "^"]
         (case state
           :expanded
-          [:button {:on-click #(>evt [::events/set-state :hidden])}
+          [:button.interactive {:on-click #(>evt [::events/set-state :hidden])}
            ">>"]
 
-          [:button {:on-click #(>evt [::events/set-state :expanded])}
+          [:button.interactive {:on-click #(>evt [::events/set-state :expanded])}
            "<<"])]
 
        [:div.actual
