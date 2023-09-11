@@ -22,7 +22,8 @@
                                 :ease-out)]]}
   [:.controls {:display :flex
                :flex-direction :column
-               :pointer-events :all}]
+               :pointer-events :all
+               :user-select :none}]
   [:.actual {:pointer-events :all
              :height :100%
              :width (px width)}])

@@ -54,6 +54,7 @@
         {:aircraft {:type :airline
                     :airline (pick-random random (keys all-airlines))
                     :flight-number (next-int random 20 9999)
+                    :origin (:id airport)
                     :destination destination
                     :route (-> airport (get-in [:departure-routes destination]))
 
