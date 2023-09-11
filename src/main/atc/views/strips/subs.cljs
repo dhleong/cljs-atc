@@ -3,5 +3,10 @@
    [re-frame.core :refer [reg-sub]]))
 
 (reg-sub
-  ::window
-  :-> :flight-strip-window)
+  ::context
+  :-> :flight-strips)
+
+(reg-sub
+  ::state
+  :<- [::context]
+  :-> :state)
