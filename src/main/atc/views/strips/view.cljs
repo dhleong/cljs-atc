@@ -2,6 +2,7 @@
   (:require
    [archetype.util :refer [<sub >evt]]
    [atc.components.icon :refer [icon]]
+   [atc.components.icon-button :refer [icon-button]]
    [atc.data.units :refer [ft->fl]]
    [atc.views.strips.events :as events]
    [atc.views.strips.subs :as subs]
@@ -14,7 +15,8 @@
 
 (defn- pop-in-button []
   (when (= :popped-out (<sub [::subs/state]))
-    [:button {:on-click #(>evt [::events/set-state :hidden])}
+    [icon-button {:on-click #(>evt [::events/set-state :hidden])
+                  :aria-label "Return flight strips back into main window"}
      (icon :pip)]))
 
 (defattrs flight-strip-attrs []

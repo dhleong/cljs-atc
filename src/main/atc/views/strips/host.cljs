@@ -3,6 +3,7 @@
    [archetype.util :refer [<sub >evt]]
    [atc.components.browser-window :refer [browser-window]]
    [atc.components.icon :refer [icon]]
+   [atc.components.icon-button :refer [icon-button]]
    [atc.views.strips.events :as events]
    [atc.views.strips.subs :as subs]
    [atc.views.strips.view :refer [flight-strips]]
@@ -21,8 +22,12 @@
    :transition [[:all "120ms" (if expanded?
                                 :ease-in
                                 :ease-out)]]}
-  [:.controls {:display :flex
+  [:.controls {:background-color :*background-secondary*
+               :border-top-left-radius (px 4)
+               :border-bottom-left-radius (px 4)
+               :display :flex
                :flex-direction :column
+               :padding (px 2)
                :pointer-events :all
                :user-select :none}]
   [:.actual {:pointer-events :all
@@ -40,14 +45,16 @@
 
       [:div (flight-strips-container-attrs (= state :expanded))
        [:div.controls
-        [:button.interactive {:on-click #(>evt [::events/set-state :popped-out])}
+        [icon-button {:on-click #(>evt [::events/set-state :popped-out])
+                      :aria-label "Pop out flight strips into separate window"}
          (icon :open-in-new)]
+
         (case state
           :expanded
-          [:button.interactive {:on-click #(>evt [::events/set-state :hidden])}
+          [icon-button {:on-click #(>evt [::events/set-state :hidden])}
            (icon :right-panel-close)]
 
-          [:button.interactive {:on-click #(>evt [::events/set-state :expanded])}
+          [icon-button {:on-click #(>evt [::events/set-state :expanded])}
            (icon :right-panel-open)])]
 
        [:div.actual

@@ -2,6 +2,7 @@
 
 (def background "#000")
 (def background-secondary "#191d24")
+(def background-hover "#475366")
 (def text "#f4f7ff")
 
 (def action-destructive "#aa3333")
