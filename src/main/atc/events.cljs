@@ -475,6 +475,25 @@
 ; ======= "Help" functionality ============================
 
 (reg-event-fx
+  :help/identify-flight-strip
+  [trim-v]
+  (fn [_ [part]]
+    (let [msg (case part
+                :altitude-assignments "A list of altitude assignments for this craft in 100's of feet"
+                :arrival-fix "The fix through which this aircraft will arrive in our airspace"
+                :callsign "The aircraft's callsign"
+                :cruise-flight-level "The altitude (as Flight Level) to which the craft eventually should climb"
+                :departure-fix "The fix from which this aircraft will depart our airspace"
+                :destination "The aircraft's destination"
+                :origin "The airport from which this aircraft departed"
+                :route "The aircraft's route"
+                :squawk "The aircraft's assigned \"squawk\" identifier code"
+                :type "The aircraft's type identifier")]
+      {:dispatch [:radio-history/push
+                  {:speaker :system/help
+                   :text msg}]})))
+
+(reg-event-fx
   :help/identify-navaid
   [trim-v injected-engine (path :engine)]
   (fn [{engine :db} [id]]

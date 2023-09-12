@@ -44,6 +44,11 @@
      [:.route {:border-left column-border
                :padding (px 4)}]]))
 
+(defn- create-help-attrs [kind]
+  {:on-context-menu (fn [e]
+                     (.preventDefault e)
+                     (>evt [:help/identify-flight-strip kind]))})
+
 (defn- flight-strip-form [{:keys [callsign config squawk
                                   col3
                                   route
@@ -51,12 +56,12 @@
                            [sc-mid sc-bottom] :squawk-column}]
   [:li (flight-strip-attrs)
    [:div.aircraft-identification
-    [:div.callsign callsign]
-    [:div.craft-type (:type config)]
+    [:div.callsign (create-help-attrs :callsign) callsign]
+    [:div.craft-type (create-help-attrs :type) (:type config)]
     [:div.blank nbsp]]
 
    [:div.squawk-column
-    [:div.squawk squawk]
+    [:div.squawk (create-help-attrs :squawk) squawk]
     [:div.middle (or sc-mid nbsp)]
     [:div.bottom (or sc-bottom nbsp)]]
 
@@ -109,11 +114,14 @@
       :config config
       :squawk squawk
       :squawk-column [nil
-                      (:arrival-fix strip)]
+                      [:span (create-help-attrs :arrival-fix)
+                       (:arrival-fix strip)]]
       :route [:<>
-              [:div.route-body [altitude-assignments
-                                (:altitude-assignments strip)]]
-              [:div.destination (:destination strip)]]}]
+              [:div.altitudes (create-help-attrs :altitude-assignments)
+               [altitude-assignments
+                (:altitude-assignments strip)]]
+              [:div.destination (create-help-attrs :destination)
+               (:destination strip)]]}]
 
     ; Departure:
     (let [{:keys [cruise-flight-level]} strip]
@@ -122,11 +130,15 @@
         :config config
         :squawk squawk
         :squawk-column [nil
-                        cruise-flight-level]
+                        [:span (create-help-attrs :cruise-flight-level)
+                         cruise-flight-level]]
         :col3 [:<>
-               [:div.origin (:origin strip)]
-               [:div.departure-fix (:departure-fix strip)]]
-        :route (get-in strip [:route :route])}])))
+               [:div.origin (create-help-attrs :origin)
+                (:origin strip)]
+               [:div.departure-fix (create-help-attrs :departure-fix)
+                (:departure-fix strip)]]
+        :route [:div.actual-route (create-help-attrs :route)
+                (get-in strip [:route :route])]}])))
 
 (defn- flight-strip-group [& {subscription :<sub :keys [title]}]
   (let [strips (<sub subscription)]
