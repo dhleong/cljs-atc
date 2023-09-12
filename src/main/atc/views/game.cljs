@@ -17,6 +17,7 @@
    [atc.views.game.system-status :refer [system-status]]
    [atc.views.game.viewport :refer [viewport]]
    [atc.views.pause-screen :as pause-screen]
+   [atc.views.strips.host :refer [flight-strips-host]]
    [reagent.core :as r]
    [spade.core :refer [defattrs]]))
 
@@ -128,6 +129,8 @@
 
        [:div (system-status-container-attrs {:paused? paused?})
         [system-status]]
+
+       [flight-strips-host]
 
        (when paused?
          [pause-screen/view])])))

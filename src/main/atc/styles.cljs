@@ -5,8 +5,10 @@
    [spade.core :refer [defclass defglobal]]))
 
 (defglobal window-styles
-  [":root" {:*background* theme/background
+  [":root" {:*accent* theme/aircraft-tracked-obj
+            :*background* theme/background
             :*background-secondary* theme/background-secondary
+            :*background-hover* theme/background-hover
             :*text* theme/text
             :*map-text* theme/map-label-opaque}]
 

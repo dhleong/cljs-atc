@@ -1,6 +1,8 @@
 (ns atc.util.testing
   (:require
-   [atc.engine.model :refer [v- vec3 vmag]]))
+   [atc.data.airports.kjfk :as kjfk]
+   [atc.engine.model :refer [v- vec3 vmag]]
+   [atc.subs-util :refer [navaids-by-id]]))
 
 (defn- maybe->vec3
   "Coerce v into a vec3, if it looks vec3-like"
@@ -22,3 +24,8 @@
                     (vmag (v- a b)))]
      (<= (abs distance)
          delta))))
+
+(defn create-engine []
+  {:airport kjfk/airport
+   :game/navaids-by-id (navaids-by-id kjfk/airport)})
+

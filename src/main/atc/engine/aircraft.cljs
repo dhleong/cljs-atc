@@ -4,9 +4,9 @@
    [atc.engine.aircraft.commands :refer [apply-commanded-inputs]]
    [atc.engine.aircraft.instructions :as instructions :refer [dispatch-instruction]]
    [atc.engine.config :refer [AircraftConfig]]
-   [atc.engine.model :refer [ICommunicator Simulated v+ Vec3 vec3]]
+   [atc.engine.model :refer [bearing-to ICommunicator Simulated v+ Vec3 vec3]]
    [atc.engine.pilot :as pilot]
-   [clojure.math :refer [cos sin to-radians]]))
+   [clojure.math :refer [cos floor sin to-radians]]))
 
 ; ======= Physics =========================================
 
@@ -20,6 +20,37 @@
 (defn altitude-agl-m [airport ^Aircraft aircraft]
   (- (:z (:position aircraft))
      (ft->m (last (:position airport)))))
+
+; ======= Helpers =========================================
+
+(defn departing-bearing [engine craft]
+  (let [id->fix (:game/navaids-by-id engine)
+        last-fix (->> craft
+                      :departure-fix
+                      id->fix)]
+    (bearing-to (:position (:airport engine))
+                last-fix)))
+
+(defn choose-cruise-altitude-fl [engine craft]
+  (let [default-fl (:cruise-flight-level (:config craft))
+        default-fl-10th (floor (/ default-fl 10))
+        alt-even? (= 0 (mod default-fl-10th 2))
+        bearing (departing-bearing engine craft)]
+    (cond
+      ; NEODD
+      (and (<= 0 bearing 179)
+           alt-even?)
+      (* 10 (- default-fl-10th 1))
+
+      (<= 0 bearing 179)
+      default-fl
+
+      ; SWEVEN
+      alt-even?
+      default-fl
+
+      :else
+      (* 10 (- default-fl-10th 1)))))
 
 
 ; ======= Radiology =======================================
@@ -41,6 +72,7 @@
                      ^String callsign, ^String radio-name, pilot
                      tx-frequency
                      state
+                     altitude-assignments
                      ^Vec3 position heading speed
                      commands]
   Simulated
@@ -76,6 +108,7 @@
                     :state :flight
                     :pilot (pilot/generate nil) ; TODO Pass in a preferred voice?
                     :position (vec3 250 250 (ft->m 20000))
+                    :altitude-assignments []
                     :heading 350
                     :speed 200}
                    data)))

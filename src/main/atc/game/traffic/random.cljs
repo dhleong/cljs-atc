@@ -8,6 +8,13 @@
    [atc.game.traffic.shared :refer [position-arriving-aircraft]]
    [atc.util.seedable :refer [next-boolean next-int pick-random]]))
 
+(defn- next-squawk [random engine]
+  (loop [random random]
+    (let [v (next-int random 1000 7300)]
+      (if (some #(= v (:squawk %)) (vals (:aircraft engine)))
+        (recur random)
+        v))))
+
 (defrecord RandomTraffic [random]
   ITraffic
   (spawn-initial-arrivals [this engine]
@@ -37,6 +44,7 @@
                  :destination (:id airport)
                  :route (-> airport (get-in [:arrival-routes origin :route]))
                  :behavior {:will-get-weather? will-get-weather?}
+                 :squawk (next-squawk random engine)
                  :config configs/common-jet}]
       {:aircraft (position-arriving-aircraft engine craft)
 
@@ -44,7 +52,8 @@
        :delay-to-next-s 240}))
 
   (next-departure [_ {:keys [airport]
-                      runways :game/active-runways}]
+                      runways :game/active-runways
+                      :as engine}]
     (if-not runways
       {:delay-to-next-s 1}
 
@@ -54,11 +63,13 @@
         {:aircraft {:type :airline
                     :airline (pick-random random (keys all-airlines))
                     :flight-number (next-int random 20 9999)
+                    :origin (:id airport)
                     :destination destination
                     :route (-> airport (get-in [:departure-routes destination]))
 
                     ; TODO Round-robin runway selection, if multiple available
                     :runway (->> runways :departures first)
+                    :squawk (next-squawk random engine)
                     :config configs/common-jet}
 
          ; TODO This should at least depend on the spawned aircraft's speed, etc. Maybe "difficulty"?

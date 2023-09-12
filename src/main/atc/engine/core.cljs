@@ -3,14 +3,15 @@
    [archetype.util :refer [>evt]]
    [atc.config :as config]
    [atc.data.airports :refer [runway->heading runway-coords]]
-   [atc.data.units :refer [ft->m]]
-   [atc.engine.aircraft :as aircraft]
+   [atc.data.units :refer [ft->m m->ft]]
+   [atc.engine.aircraft :as aircraft :refer [choose-cruise-altitude-fl]]
    [atc.engine.aircraft.states :refer [update-state-machine]]
    [atc.engine.global :refer [dispatch-global-instruction]]
    [atc.engine.model :as engine-model :refer [consume-pending-communication
                                               IGameEngine pending-communication
                                               prepare-pending-communication Simulated tick]]
    [atc.engine.queues :refer [run-queues]]
+   [atc.game.traffic.shared-util :refer [partial-arrival-route]]
    [atc.radio :as radio]
    [atc.util.maps :refer [rename-key]]
    [atc.voice.process :refer [build-machine]]))
@@ -42,14 +43,16 @@
       (>evt [:speech/enqueue enqueued]))
     (dissoc engine' :speech/enqueue)))
 
-(defn- departing-aircraft-params [this {:keys [config runway]}]
+(defn- departing-aircraft-params [this {:keys [config runway] :as craft}]
   ; FIXME: This heading doesn't seem to *look* quite correct
   ; TODO get target altitude from the airport/departure?
-  (let [position (first (runway-coords (:airport this) runway))]
+  (let [position (first (runway-coords (:airport this) runway))
+        cruise-flight-level (choose-cruise-altitude-fl this craft)]
     {:heading (runway->heading (:airport this) runway)
      :position position
      :speed 0
      :state :takeoff
+     :cruise-flight-level cruise-flight-level
      :tx-frequency (get-in (:airport this)
                            [:positions :twr :frequency])
      :commands {:target-altitude (+ (ft->m 5000)
@@ -57,11 +60,16 @@
                 :target-speed (min config/speed-limit-under-10k-kts
                                    (:cruise-speed config))}}))
 
-(defn- arriving-aircraft-params [this {:keys [config position heading]}]
+(defn- arriving-aircraft-params [this {:keys [config position heading] :as craft}]
   {:heading heading
    :position position
    :speed (:cruise-speed config)
    :state :arriving
+   :arrival-fix (->> (partial-arrival-route this craft)
+                     last)
+   :altitude-assignments [{:direction :descend
+                           :altitude-ft (-> (:z position)
+                                            (m->ft))}]
    :tx-frequency (->> (:airport this)
                       :center-facilities
                       ; TODO Pick the actual closest center facility
@@ -148,7 +156,7 @@
                      (get (:destination opts))
                      (rename-key :fix :departure-fix))
                  {:tx-frequency :self} ; NOTE: default to "my" frequency
-                 (select-keys opts [:origin :route])
+                 (select-keys opts [:origin :route :squawk])
                  (if arrival?
                    (arriving-aircraft-params this opts)
                    (departing-aircraft-params this opts)))]
