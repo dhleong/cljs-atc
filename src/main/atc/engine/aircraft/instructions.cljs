@@ -9,11 +9,18 @@
 
 (defmethod dispatch-instruction
   :adjust-altitude
-  [craft _ [_ altitude]]
+  [{craft-pos :position :as craft} _ [_ altitude]]
   ; TODO Check state; if in approach, we should reject
-  (-> craft
-      (update :commands assoc :target-altitude (units/ft->m altitude))
-      (utter "maintain" [:altitude altitude])))
+  (let [altitude-m (units/ft->m altitude)]
+    (-> craft
+        (update :commands assoc :target-altitude altitude-m)
+        (update :altitude-assignments
+                (fnil conj [])
+                {:direction (if (> altitude-m (:z craft-pos))
+                              :climb
+                              :descend)
+                 :altitude-ft altitude})
+        (utter "maintain" [:altitude altitude]))))
 
 (defmethod dispatch-instruction
   :cleared-approach
