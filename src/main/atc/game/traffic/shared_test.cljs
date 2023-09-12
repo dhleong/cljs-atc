@@ -6,14 +6,9 @@
    [atc.game.traffic.shared :as shared :refer [grouping-navaid-of-route
                                                position-arriving-aircraft]]
    [atc.game.traffic.shared-util :refer [partial-arrival-route]]
-   [atc.subs-util :refer [navaids-by-id]]
-   [atc.util.testing :refer [roughly=]]
+   [atc.util.testing :refer [create-engine roughly=]]
    [cljs.test :refer-macros [deftest is testing]]
    [clojure.math :refer [sqrt]]))
-
-(defn- create-engine []
-  {:airport kjfk/airport
-   :game/navaids-by-id (navaids-by-id kjfk/airport)})
 
 (defn- aircraft-distance [craft1 craft2]
   (sqrt

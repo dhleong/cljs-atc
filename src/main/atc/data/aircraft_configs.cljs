@@ -16,4 +16,7 @@
 
                    :min-speed 110
                    :cruise-speed 460
-                   :landing-speed 125}))
+                   :landing-speed 125
+
+                   :max-flight-level 410
+                   :cruise-flight-level 370}))
