@@ -72,6 +72,7 @@
                      ^String callsign, ^String radio-name, pilot
                      tx-frequency
                      state
+                     altitude-assignments
                      ^Vec3 position heading speed
                      commands]
   Simulated
@@ -107,6 +108,7 @@
                     :state :flight
                     :pilot (pilot/generate nil) ; TODO Pass in a preferred voice?
                     :position (vec3 250 250 (ft->m 20000))
+                    :altitude-assignments []
                     :heading 350
                     :speed 200}
                    data)))

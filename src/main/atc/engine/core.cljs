@@ -3,7 +3,7 @@
    [archetype.util :refer [>evt]]
    [atc.config :as config]
    [atc.data.airports :refer [runway->heading runway-coords]]
-   [atc.data.units :refer [ft->m]]
+   [atc.data.units :refer [ft->m m->ft]]
    [atc.engine.aircraft :as aircraft :refer [choose-cruise-altitude-fl]]
    [atc.engine.aircraft.states :refer [update-state-machine]]
    [atc.engine.global :refer [dispatch-global-instruction]]
@@ -67,6 +67,9 @@
    :state :arriving
    :arrival-fix (->> (partial-arrival-route this craft)
                      last)
+   :altitude-assignments [{:direction :descend
+                           :altitude-ft (-> (:z position)
+                                            (m->ft))}]
    :tx-frequency (->> (:airport this)
                       :center-facilities
                       ; TODO Pick the actual closest center facility

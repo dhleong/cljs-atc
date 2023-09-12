@@ -1,8 +1,10 @@
 (ns atc.views.strips.view
   (:require
    [archetype.util :refer [<sub >evt]]
+   [atc.data.units :refer [ft->fl]]
    [atc.views.strips.events :as events]
    [atc.views.strips.subs :as subs]
+   [clojure.math :refer [floor]]
    [garden.units :refer [px]]
    [goog.string :as gstring]
    [spade.core :refer [defattrs]]))
@@ -69,6 +71,37 @@
       ; TODO
       (str table)])])
 
+(defattrs altitude-assignment-attrs [expired?]
+  {:text-decoration (when expired?
+                      :line-through)
+   :text-decoration-color :red
+   :text-decoration-thickness (px 3)})
+
+(defn- altitude-assignment [{:keys [direction altitude-ft last?]}]
+  (let [altitude-fl (floor (ft->fl altitude-ft))]
+    [:span (altitude-assignment-attrs (not last?))
+     (case direction
+       :climb "↑"
+       :descend "↓")
+     (when (< altitude-fl 100)
+       "0")
+     altitude-fl]))
+
+(defattrs altitude-assignments-attrs []
+  {:display :flex
+   :flex-direction :row
+   :column-gap "1em"
+   :flex-wrap :wrap})
+
+(defn- altitude-assignments [assignments]
+  (let [last-index (dec (count assignments))]
+    [:div (altitude-assignments-attrs)
+     (for [[i {:keys [direction altitude-ft]}] (map-indexed vector assignments)]
+           ^{:key i}
+           [altitude-assignment {:direction direction
+                                 :altitude-ft altitude-ft
+                                 :last? (= last-index i)}])]))
+
 (defn- flight-strip [{:keys [callsign config arrival? squawk] :as strip}]
   (if arrival?
     [flight-strip-form
@@ -78,7 +111,8 @@
       :squawk-column [nil
                       (:arrival-fix strip)]
       :route [:<>
-              [:div.route-body "TODO assigned altitudes"]
+              [:div.route-body [altitude-assignments
+                                (:altitude-assignments strip)]]
               [:div.destination (:destination strip)]]}]
 
     ; Departure:
