@@ -39,7 +39,10 @@
              (find-command "speed bird one twelve standby"))))
     (is (= "BAW1006"
            (:callsign
-             (find-command "speed bird ten zero six standby")))))
+             (find-command "speed bird ten zero six standby"))))
+    (is (= "BAW5076"
+           (:callsign
+             (find-command "speed bird fifty seventy six standby")))))
 
    (testing "Multiple instructions"
     (is (= {:callsign "N2"

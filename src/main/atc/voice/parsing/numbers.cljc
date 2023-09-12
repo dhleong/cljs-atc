@@ -53,7 +53,7 @@
    "number-sequence = number+"
    "number = digit | double-digit"
    "digit-sequence = digit+"
-   "double-digit = (tens-value digit) | teens-value"]
+   "double-digit = tens-value | (tens-value digit) | teens-value"]
   {:digit digit
    :tens-value tens-value
    :teens-value teens-value})
@@ -73,10 +73,9 @@
   {:digit digit
    :tens-value tens-value
    :teens-value teens-value
-   :double-digit (fn [tens ones]
-                   (if (some? ones)
-                     (+ tens ones)
-                     tens))
+   :double-digit (fn double-digit
+                   ([tens] tens)
+                   ([tens ones] (+ tens ones)))
    :number identity
    :number-sequence (fn [& values] values)
 
