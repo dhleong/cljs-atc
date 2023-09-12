@@ -74,7 +74,6 @@
                window (get-in state [config :window])]
 
     (when-some [on-close (:on-close config)]
-      (println "SET onclose" on-close)
       (set! (.-onunload window) on-close))
 
     (react-dom/createPortal
