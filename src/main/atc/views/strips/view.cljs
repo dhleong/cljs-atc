@@ -82,7 +82,7 @@
               [:div.destination (:destination strip)]]}]
 
     ; Departure:
-    (let [cruise-flight-level 350] ; TODO compute
+    (let [{:keys [cruise-flight-level]} strip]
       [flight-strip-form
        {:callsign callsign
         :config config

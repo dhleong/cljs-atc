@@ -4,7 +4,7 @@
    [atc.config :as config]
    [atc.data.airports :refer [runway->heading runway-coords]]
    [atc.data.units :refer [ft->m]]
-   [atc.engine.aircraft :as aircraft]
+   [atc.engine.aircraft :as aircraft :refer [choose-cruise-altitude-fl]]
    [atc.engine.aircraft.states :refer [update-state-machine]]
    [atc.engine.global :refer [dispatch-global-instruction]]
    [atc.engine.model :as engine-model :refer [consume-pending-communication
@@ -43,14 +43,16 @@
       (>evt [:speech/enqueue enqueued]))
     (dissoc engine' :speech/enqueue)))
 
-(defn- departing-aircraft-params [this {:keys [config runway]}]
+(defn- departing-aircraft-params [this {:keys [config runway] :as craft}]
   ; FIXME: This heading doesn't seem to *look* quite correct
   ; TODO get target altitude from the airport/departure?
-  (let [position (first (runway-coords (:airport this) runway))]
+  (let [position (first (runway-coords (:airport this) runway))
+        cruise-flight-level (choose-cruise-altitude-fl this craft)]
     {:heading (runway->heading (:airport this) runway)
      :position position
      :speed 0
      :state :takeoff
+     :cruise-flight-level cruise-flight-level
      :tx-frequency (get-in (:airport this)
                            [:positions :twr :frequency])
      :commands {:target-altitude (+ (ft->m 5000)
