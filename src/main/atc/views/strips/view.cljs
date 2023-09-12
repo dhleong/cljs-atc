@@ -7,37 +7,57 @@
    [goog.string :as gstring]
    [spade.core :refer [defattrs]]))
 
+(def ^:private nbsp (gstring/unescapeEntities "&nbsp;"))
+
 (defn- pop-in-button []
   (when (= :popped-out (<sub [::subs/state]))
     [:button {:on-click #(>evt [::events/set-state :hidden])}
      "Pop in"]))
 
 (defattrs flight-strip-attrs []
-  {:display :flex
-   :font-family :monospace
-   :width :100%
-   :height (px 70)
-   :cursor :default}
+  (let [column-border [[(px 1) :solid :*text*]]]
+    [:&
+     {:display :grid
+      :grid-template-columns [["1fr" "1fr" "1fr" "3fr"]]
+      :font-family :monospace
+      :width :100%
+      ; :height (px 70)
+      :cursor :default}
 
-  [:.aircraft-identification :.col2 :.col3 :.route
-   {:display :flex
-    :flex-direction :column
-    :justify-content :space-between
-    :height :100%
-    :padding (px 4)}])
+     [:.aircraft-identification :.squawk-column :.col3 :.route
+      {:display :flex
+       :flex-direction :column
+       :justify-content :space-between
+       :height :100%
+       :padding [[(px 4) 0]]}]
+
+     [:.aircraft-identification :.squawk-column :.col3
+      {:text-align :center}]
+
+     [:.squawk-column {:border-left column-border
+                       :border-right column-border}
+      [:.middle {:padding (px 4)}]
+      [:.middle {:border-top column-border
+                 :border-bottom column-border}]]
+
+     [:.route {:border-left column-border
+               :padding (px 4)}]]))
 
 (defn- flight-strip-form [{:keys [callsign config
-                                  col2 col3
+                                  col3
                                   route
-                                  table]}]
+                                  table]
+                           [sc-mid sc-bottom] :squawk-column}]
   [:li (flight-strip-attrs)
    [:div.aircraft-identification
     [:div.callsign callsign]
     [:div.craft-type (:type config)]
-    [:div.blank (gstring/unescapeEntities "&nbsp;")]]
+    [:div.blank nbsp]]
 
-   [:div.col2
-    col2]
+   [:div.squawk-column
+    [:div.squask nbsp] ; TODO
+    [:div.middle (or sc-mid nbsp)]
+    [:div.bottom (or sc-bottom nbsp)]]
 
    [:div.col3
     col3]
@@ -45,27 +65,32 @@
    [:div.route
     route]
 
-   [:div.table
-    ; TODO
-    (str table)]])
+   (when table
+     [:div.table
+      ; TODO
+      (str table)])])
 
 (defn- flight-strip [{:keys [callsign config arrival?] :as strip}]
   (if arrival?
     [flight-strip-form
      {:callsign callsign
       :config config
-      :col2 nil ; TODO entry fix
-      :route [:<> "TODO altitudes"]}]
+      :squawk-column [nil
+                      nil ; TODO entry fix
+]
+      :route [:<> "TODO assigned altitudes"]}]
 
     ; Departure:
-    [flight-strip-form
-     {:callsign callsign
-      :config config
-      :col2 nil ; TODO cruise flight level
-      :col3 [:<>
-             [:div.origin (:origin strip)]
-             [:div.departure-fix (:departure-fix strip)]]
-      :route (:route strip)}]))
+    (let [cruise-flight-level 350] ; TODO compute
+      [flight-strip-form
+       {:callsign callsign
+        :config config
+        :squawk-column [nil
+                        cruise-flight-level]
+        :col3 [:<>
+               [:div.origin (:origin strip)]
+               [:div.departure-fix (:departure-fix strip)]]
+        :route (get-in strip [:route :route])}])))
 
 (defn- flight-strip-group [& {subscription :<sub :keys [title]}]
   (let [strips (<sub subscription)]
