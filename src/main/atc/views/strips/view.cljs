@@ -24,7 +24,7 @@
       :font-family :monospace
       :cursor :default}
 
-     [:.aircraft-identification :.squawk-column :.col3 :.route
+     [:.aircraft-identification :.col3 :.route
       {:display :flex
        :flex-direction :column
        :justify-content :space-between
@@ -35,7 +35,7 @@
 
      [:.squawk-column {:border-left column-border
                        :border-right column-border}
-      [:.middle {:padding (px 4)}]
+      [:.squawk :.middle :.bottom {:padding (px 4)}]
       [:.middle {:border-top column-border
                  :border-bottom column-border}]]
 
@@ -54,7 +54,7 @@
     [:div.blank nbsp]]
 
    [:div.squawk-column
-    [:div.squask nbsp] ; TODO
+    [:div.squawk nbsp] ; TODO
     [:div.middle (or sc-mid nbsp)]
     [:div.bottom (or sc-bottom nbsp)]]
 
