@@ -75,8 +75,7 @@
      {:callsign callsign
       :config config
       :squawk-column [nil
-                      nil ; TODO entry fix
-]
+                      (:arrival-fix strip)]
       :route [:<>
               [:div.route-body "TODO assigned altitudes"]
               [:div.destination (:destination strip)]]}]

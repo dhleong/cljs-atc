@@ -11,6 +11,7 @@
                                               IGameEngine pending-communication
                                               prepare-pending-communication Simulated tick]]
    [atc.engine.queues :refer [run-queues]]
+   [atc.game.traffic.shared-util :refer [partial-arrival-route]]
    [atc.radio :as radio]
    [atc.util.maps :refer [rename-key]]
    [atc.voice.process :refer [build-machine]]))
@@ -57,11 +58,13 @@
                 :target-speed (min config/speed-limit-under-10k-kts
                                    (:cruise-speed config))}}))
 
-(defn- arriving-aircraft-params [this {:keys [config position heading]}]
+(defn- arriving-aircraft-params [this {:keys [config position heading] :as craft}]
   {:heading heading
    :position position
    :speed (:cruise-speed config)
    :state :arriving
+   :arrival-fix (->> (partial-arrival-route this craft)
+                     last)
    :tx-frequency (->> (:airport this)
                       :center-facilities
                       ; TODO Pick the actual closest center facility
