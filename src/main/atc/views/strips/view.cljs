@@ -17,18 +17,17 @@
 (defattrs flight-strip-attrs []
   (let [column-border [[(px 1) :solid :*text*]]]
     [:&
-     {:display :grid
+     {:border [[(px 2) :outset :*map-text*]]
+      :border-radius (px 2)
+      :display :grid
       :grid-template-columns [["1fr" "1fr" "1fr" "3fr"]]
       :font-family :monospace
-      :width :100%
-      ; :height (px 70)
       :cursor :default}
 
      [:.aircraft-identification :.squawk-column :.col3 :.route
       {:display :flex
        :flex-direction :column
        :justify-content :space-between
-       :height :100%
        :padding [[(px 4) 0]]}]
 
      [:.aircraft-identification :.squawk-column :.col3
@@ -78,7 +77,9 @@
       :squawk-column [nil
                       nil ; TODO entry fix
 ]
-      :route [:<> "TODO assigned altitudes"]}]
+      :route [:<>
+              [:div.route-body "TODO assigned altitudes"]
+              [:div.destination (:destination strip)]]}]
 
     ; Departure:
     (let [cruise-flight-level 350] ; TODO compute
@@ -107,8 +108,18 @@
    :cursor :default
    :height :100%
    :overflow-y :auto
+   :padding (px 4)
    :user-select :none}
+  [:.strips-group-title {:background-color :*accent*
+                         :border [[(px 2) :outset :*map-text*]]
+                         :border-radius (px 2)
+                         :font-family :sans-serif
+                         :margin 0
+                         :padding (px 12)
+                         :text-align :center
+                         :text-transform :uppercase}]
   [:.strips-group {:padding 0
+                   :margin 0
                    :list-style-type :none}])
 
 (defn flight-strips []
