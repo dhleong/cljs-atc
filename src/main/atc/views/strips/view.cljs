@@ -15,7 +15,8 @@
 
 (defn- pop-in-button []
   (when (= :popped-out (<sub [::subs/state]))
-    [icon-button {:on-click #(>evt [::events/set-state :hidden])
+    [icon-button {:class :pop-in-button
+                  :on-click #(>evt [::events/set-state :hidden])
                   :aria-label "Return flight strips back into main window"}
      (icon :pip)]))
 
@@ -160,6 +161,10 @@
    :overflow-y :auto
    :padding (px 4)
    :user-select :none}
+
+  ; Make it full width:
+  [:.pop-in-button {:display :flex}]
+
   [:.strips-group-title {:background-color :*accent*
                          :border [[(px 2) :outset :*map-text*]]
                          :border-radius (px 2)

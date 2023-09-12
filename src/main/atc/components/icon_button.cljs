@@ -3,6 +3,13 @@
    [garden.units :refer [px]]
    [spade.core :refer [defclass]]))
 
+(defn- prepend-class [old-class new-class]
+  (println "prepend" new-class " to " old-class)
+  (cond
+    (nil? old-class) new-class
+    (coll? old-class) (cons new-class old-class)
+    :else [new-class old-class]))
+
 (defn- prevent-default [f]
   (when f
     (fn [e]
@@ -21,6 +28,6 @@
 
 (defn icon-button [opts content]
   [:a (-> opts
-          (assoc :class (icon-button-class))
+          (update :class prepend-class (icon-button-class))
           (update :on-click prevent-default))
    content])
