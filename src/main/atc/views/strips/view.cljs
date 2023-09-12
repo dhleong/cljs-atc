@@ -42,7 +42,7 @@
      [:.route {:border-left column-border
                :padding (px 4)}]]))
 
-(defn- flight-strip-form [{:keys [callsign config
+(defn- flight-strip-form [{:keys [callsign config squawk
                                   col3
                                   route
                                   table]
@@ -54,7 +54,7 @@
     [:div.blank nbsp]]
 
    [:div.squawk-column
-    [:div.squawk nbsp] ; TODO
+    [:div.squawk squawk]
     [:div.middle (or sc-mid nbsp)]
     [:div.bottom (or sc-bottom nbsp)]]
 
@@ -69,11 +69,12 @@
       ; TODO
       (str table)])])
 
-(defn- flight-strip [{:keys [callsign config arrival?] :as strip}]
+(defn- flight-strip [{:keys [callsign config arrival? squawk] :as strip}]
   (if arrival?
     [flight-strip-form
      {:callsign callsign
       :config config
+      :squawk squawk
       :squawk-column [nil
                       (:arrival-fix strip)]
       :route [:<>
@@ -85,6 +86,7 @@
       [flight-strip-form
        {:callsign callsign
         :config config
+        :squawk squawk
         :squawk-column [nil
                         cruise-flight-level]
         :col3 [:<>

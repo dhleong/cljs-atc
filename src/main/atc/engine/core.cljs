@@ -151,7 +151,7 @@
                      (get (:destination opts))
                      (rename-key :fix :departure-fix))
                  {:tx-frequency :self} ; NOTE: default to "my" frequency
-                 (select-keys opts [:origin :route])
+                 (select-keys opts [:origin :route :squawk])
                  (if arrival?
                    (arriving-aircraft-params this opts)
                    (departing-aircraft-params this opts)))]
