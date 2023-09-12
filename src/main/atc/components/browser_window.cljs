@@ -4,6 +4,7 @@
    [applied-science.js-interop :as j]
    [atc.styles :refer [window-styles]]
    [clojure.string :as str]
+   [goog.dom :as gdom]
    [reagent.core :as r]
    [spade.react :as spade-react]
    [spade.runtime :as spade-runtime]))
@@ -33,11 +34,13 @@
                    opts)
                  (str/join ",")))]
 
-    (.appendChild
-      (j/get-in w [:document :head])
-      (doto (j/call-in w [:document :createElement] "meta")
-        (.setAttribute "name" "darkreader-lock")))
+    ; Just copy all of the parent doc's <head> tags into the child
+    (doseq [node (gdom/getChildren js/window.document.head)]
+      (.appendChild
+        (j/get-in w [:document :head])
+        (.cloneNode node)))
 
+    ; Plus a special one to ensure we disable darkreader on safari
     (.appendChild
       (j/get-in w [:document :head])
       (doto (j/call-in w [:document :createElement] "meta")

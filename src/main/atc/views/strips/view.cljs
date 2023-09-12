@@ -1,6 +1,7 @@
 (ns atc.views.strips.view
   (:require
    [archetype.util :refer [<sub >evt]]
+   [atc.components.icon :refer [icon]]
    [atc.data.units :refer [ft->fl]]
    [atc.views.strips.events :as events]
    [atc.views.strips.subs :as subs]
@@ -14,7 +15,7 @@
 (defn- pop-in-button []
   (when (= :popped-out (<sub [::subs/state]))
     [:button {:on-click #(>evt [::events/set-state :hidden])}
-     "Pop in"]))
+     (icon :pip)]))
 
 (defattrs flight-strip-attrs []
   (let [column-border [[(px 1) :solid :*text*]]]
