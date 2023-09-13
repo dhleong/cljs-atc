@@ -1,6 +1,8 @@
 (ns atc.engine.aircraft.instructions
   (:require
-   [atc.data.units :as units]))
+   [atc.data.units :as units :refer [ft->m]]
+   [atc.engine.aircraft.commands.visual-approach :refer [can-see-airport?]]
+   [atc.engine.model :refer [vec3]]))
 
 (defn- utter [craft & utterance]
   (update craft ::utterance-parts conj utterance))
@@ -124,6 +126,23 @@
   [craft _context _instruction]
   ; Pilots don't need to do anything with this.
   craft)
+
+(defmethod dispatch-instruction
+  :report-field-in-sight
+  [craft {:keys [airport weather]} _instruction]
+  (if (can-see-airport? craft airport weather)
+    (-> craft
+        (utter "field in sight"))
+
+    (-> craft
+        (utter "looking for the field")
+        ; NOTE: Eventually we might support destinations other than
+        ; the primary airport; in that case we just provide the
+        ; relevant airport's relative position
+        (update :commands assoc :report-field-in-sight
+                {:airport-position (vec3 0 0 (ft->m
+                                               (last (:position airport))))
+                 :weather weather}))))
 
 (defmethod dispatch-instruction
   :verify-atis

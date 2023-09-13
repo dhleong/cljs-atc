@@ -3,6 +3,8 @@
   (:require
    [atc.data.airports :as airports]
    [atc.data.units :refer [nm->m]]
+   [atc.engine.aircraft.commands.visual-approach
+    :refer [apply-report-field-in-sight]]
    [atc.engine.model :refer [angle-down-to bearing-to distance-to-squared]]
    [clojure.math :refer [pow]]))
 
@@ -194,5 +196,8 @@
     (:heading commands) (apply-steering (:heading commands) dt)
     (:direct commands) (apply-direct (:direct commands) dt)
     (:cleared-approach commands) (apply-approach (:cleared-approach commands) dt)
+    (:report-field-in-sight commands) (apply-report-field-in-sight
+                                        (:report-field-in-sight commands)
+                                        dt)
     (:target-altitude commands) (apply-altitude (:target-altitude commands) dt)
     (:target-speed commands) (apply-target-speed (:target-speed commands) dt)))
