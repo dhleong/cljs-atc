@@ -3,63 +3,13 @@
   (:require
    [atc.data.airports :as airports]
    [atc.data.units :refer [nm->m]]
+   [atc.engine.aircraft.commands.altitude :refer [apply-altitude]]
+   [atc.engine.aircraft.commands.helpers :refer [apply-rate normalize-heading]]
+   [atc.engine.aircraft.commands.steering :refer [apply-steering]]
    [atc.engine.aircraft.commands.visual-approach
-    :refer [apply-report-field-in-sight]]
+    :refer [apply-report-field-in-sight apply-visual-approach]]
    [atc.engine.model :refer [angle-down-to bearing-to distance-to-squared]]
    [clojure.math :refer [pow]]))
-
-(defn- normalize-heading [h]
-  (if (< h 0)
-    (+ h 360)
-    (mod h 360)))
-
-(defn- apply-rate [aircraft command-key path rate-keys from commanded-value dt]
-  (let [sign (if (> commanded-value from) 1 -1)
-        rate-key (rate-keys sign)
-        rate (get-in aircraft [:config rate-key])
-        new-speed (+ from (* sign rate dt))]
-    (if (<= (abs (- commanded-value new-speed))
-            (* rate 0.5))
-      (-> aircraft
-          (assoc-in path commanded-value)  ; close enough; snap to
-          (update :commands dissoc command-key))
-
-      (-> aircraft
-          (assoc-in path new-speed)))))
-
-
-; ======= Steering ========================================
-
-(defn shorter-steer-direction [from to]
-  ; With thanks to: https://math.stackexchange.com/a/2898118
-  (let [delta (- (mod (- to from -540)
-                      360)
-                 180)]
-    (if (>= delta 0)
-      :right
-      :left)))
-
-(defn- apply-steering [{from :heading commands :commands :as aircraft}
-                       commanded-to dt]
-  (if (= from commanded-to)
-    aircraft
-
-    ; TODO at slower speeds, small craft might use a turn 2 rate (IE: 2x turn rate)
-    ; TODO similarly, at higher speeds, large craft might use a half turn rate
-    (let [turn-sign (case (or (:steer-direction commands)
-                              (shorter-steer-direction from commanded-to))
-                      :right  1
-                      :left  -1)
-          degrees-per-second (get-in aircraft [:config :turn-rate])
-          turn-amount (* degrees-per-second dt)
-          new-heading (normalize-heading (+ from (* turn-sign turn-amount)))]
-      (if (<= (abs (- commanded-to new-heading))
-              (* turn-amount 0.5))
-        (-> aircraft
-            (assoc :heading commanded-to)  ; close enough; snap to
-            (update :commands dissoc :steer-direction))
-        (assoc aircraft :heading new-heading)))))
-
 
 ; ======= Direct-to-point nav =============================
 
@@ -79,24 +29,6 @@
 
       (let [bearing-to-destination (bearing-to (:position aircraft) commanded-to)]
         (apply-steering aircraft bearing-to-destination dt)))))
-
-
-; ======= Altitude ========================================
-
-(defn- apply-altitude [{{from :z} :position :as aircraft} commanded-altitude dt]
-  (if (or (= from commanded-altitude)
-          ; The aircraft cannot climb if it's going too slow! There's a bit
-          ; of an assumption here that the :landing-speed will never be less
-          ; than this, but that seems... safe?
-          (< (:speed aircraft) (:min-speed (:config aircraft))))
-    aircraft
-
-    (apply-rate
-      aircraft
-      :target-altitude [:position :z]
-      {-1 :descent-rate
-       1 :climb-rate}
-      from commanded-altitude dt)))
 
 
 ; ======= Approach course following =======================
@@ -173,9 +105,7 @@
 (defn- apply-approach [aircraft {:keys [approach-type] :as command} dt]
   (case approach-type
     :ils (apply-ils-approach aircraft command dt)
-
-    ; TODO special visual approach logic, probably
-    :visual (apply-ils-approach aircraft command dt)))
+    :visual (apply-visual-approach aircraft command dt)))
 
 
 ; ======= Speed ===========================================
