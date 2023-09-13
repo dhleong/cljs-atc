@@ -3,6 +3,7 @@
    [atc.config :as config]
    [atc.data.units :refer [m->ft]]
    [atc.engine.aircraft :as aircraft]
+   [atc.engine.aircraft.commands.helpers :refer [build-utterance-from]]
    [atc.engine.model :refer [lateral-distance-to-squared]]
    [atc.util.numbers :refer [round-to-hundreds]]))
 
@@ -70,7 +71,7 @@
       ; TODO simulate comms on frequency here, first (or at least
       ; wait some time as though it were happening)
       (update :speech/enqueue conj
-              {:from (aircraft/build-utterance-from aircraft)
+              {:from (build-utterance-from aircraft)
                ; TODO: include approach/departure "name"
                ; (eg: "New York Departure")
                :message [named-position ", " aircraft ". "
