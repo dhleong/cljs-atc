@@ -3,6 +3,8 @@
    [atc.util.instaparse :refer-macros [defalternates
                                        defalternates-expr
                                        defrules]]
+   [atc.voice.parsing.instructions.visual-approach :refer [visual-approach-instruction-rules
+                                                           visual-approach-rules]]
    [clojure.string :as str]))
 
 (defalternates other-position
@@ -41,9 +43,13 @@
   [:attention-all :atis :letter])
 
 (defalternates-expr ^:hide-tag instruction
-  (->> instructions-rules
-       :grammar
-       keys))
+  (concat
+    (->> instructions-rules
+         :grammar
+         keys)
+    (->> visual-approach-instruction-rules
+         :grammar
+         keys)))
 
 (defalternates-expr global-command
   (->> global-command-rules
@@ -70,6 +76,7 @@
 (def rules (merge-with merge
                        core-rules
                        instructions-rules
+                       visual-approach-rules
                        global-command-rules))
 
 (def transformers

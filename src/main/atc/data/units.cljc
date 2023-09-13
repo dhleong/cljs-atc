@@ -20,3 +20,6 @@
 
 (defn nm->m [nautical-miles]
   (* 1852 nautical-miles))
+
+(defn sm->m [statute-miles]
+  (* 1609.34 statute-miles))
