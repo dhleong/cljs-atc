@@ -172,7 +172,10 @@
 ; I suppose this could be a defmulti...
 (defn- apply-approach [aircraft {:keys [approach-type] :as command} dt]
   (case approach-type
-    :ils (apply-ils-approach aircraft command dt)))
+    :ils (apply-ils-approach aircraft command dt)
+
+    ; TODO special visual approach logic, probably
+    :visual (apply-ils-approach aircraft command dt)))
 
 
 ; ======= Speed ===========================================

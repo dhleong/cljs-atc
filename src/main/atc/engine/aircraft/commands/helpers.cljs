@@ -1,4 +1,10 @@
-(ns atc.engine.aircraft.commands.helpers)
+(ns atc.engine.aircraft.commands.helpers
+  (:require
+   [atc.data.units :refer [ft->m]]
+   [atc.engine.model :refer [vec3]]))
+
+(defn primary-airport-position [airport]
+  (vec3 0 0 (ft->m (last (:position airport)))))
 
 ; ======= Radiology =======================================
 
