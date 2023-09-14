@@ -92,7 +92,7 @@
   (fn [engine [command]]
     (when engine
       (println "dispatching command: " command)
-      (engine-model/command engine command))))
+      (engine-model/command engine command nil))))
 
 (reg-event-fx
   :game/init

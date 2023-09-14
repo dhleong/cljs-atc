@@ -7,7 +7,7 @@
 (defn- utter [craft & utterance]
   (update craft ::utterance-parts conj utterance))
 
-(defmulti dispatch-instruction (fn [_craft _context [instruction]] instruction))
+(defmulti dispatch-instruction (fn [_craft _engine [instruction]] instruction))
 
 (defmethod dispatch-instruction
   :adjust-altitude

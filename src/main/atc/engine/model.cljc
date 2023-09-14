@@ -8,7 +8,7 @@
   (tick [this dt]
         "Update this simulated item by [dt] seconds")
 
-  (command [this instruction]
+  (command [this context instruction]
            "Process an instruction, of the form [:instruction ...args]"))
 
 (defprotocol ICommunicator

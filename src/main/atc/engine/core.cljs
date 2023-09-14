@@ -21,9 +21,7 @@
     (loop [simulated (prepare-pending-communication simulated)
            instructions (vec instructions)]
       (if (seq instructions)
-        (recur (engine-model/command simulated (with-meta
-                                                 (first instructions)
-                                                 {:context context}))
+        (recur (engine-model/command simulated context (first instructions))
                (next instructions))
 
         (do
@@ -118,9 +116,9 @@
           ; And process any "queued" events (like generating departures)
           (run-queues))))
 
-  (command [this command]
-    ; NOTE: The Engine actually receives a full Command object so we know where
-    ; to dispatch it and to whom.
+  (command [this command _instuction]
+    ; NOTE: The Engine receives a full Command object as its context, so we
+    ; know where to dispatch it and to whom.
     (let [{:keys [callsign global? instructions]} command]
       (cond
         global?

@@ -84,8 +84,8 @@
           velocity-vector (vec3 vx vy 0)]
       (update this :position v+ velocity-vector)))
 
-  (command [this instruction]
-    (dispatch-instruction this (:context (meta instruction)) instruction))
+  (command [this engine instruction]
+    (dispatch-instruction this engine instruction))
 
   ICommunicator
   (pending-communication [this]
