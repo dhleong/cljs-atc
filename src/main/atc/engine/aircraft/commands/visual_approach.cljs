@@ -117,7 +117,7 @@
         ; We can turn base if:
         ;  - We have not been commanded to extend our downwind, AND
         ;  - The angle from us to the ruway is 45 or less, AND
-        ;  - TODO There are no other aircraft on base
+        ;  - There are no other aircraft on base
         can-turn-base? (and (not (get-in aircraft [:behavior :extend-downwind]))
                             (<= (abs (- target-heading bearing-to-aircraft))
                                 45)
