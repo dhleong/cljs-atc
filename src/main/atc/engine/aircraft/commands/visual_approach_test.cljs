@@ -7,6 +7,12 @@
    [clojure.test :refer [deftest is testing]]))
 
 (deftest can-see-airport?-test
+  (testing "Don't break when there's *no* weather"
+    (is (true? (can-see-airport?
+                 {:position (vec3 0 (nm->m 8) (ft->m 2000))}
+                 (vec3 0 0 (ft->m (last (:position kjfk/airport))))
+                 {:wind-heading 200 :wind-kts 4}))))
+
   (testing "High visibility can see the airport"
     (is (true? (can-see-airport?
                  {:position (vec3 0 (nm->m 8) (ft->m 2000))}

@@ -7,10 +7,11 @@
 
 ; ======= Report field in sight ===========================
 
-(defn can-see-airport? [craft airport-position weather]
-  (let [visibility-m (sm->m (:visibility-sm weather))
-        distance-sq (distance-to-squared (:position craft) airport-position)]
-    (<= distance-sq (* visibility-m visibility-m))))
+(defn can-see-airport? [craft airport-position {:keys [visibility-sm]}]
+  (or (nil? visibility-sm)
+      (let [visibility-m (sm->m visibility-sm)
+            distance-sq (distance-to-squared (:position craft) airport-position)]
+        (<= distance-sq (* visibility-m visibility-m)))))
 
 (defn apply-report-field-in-sight [craft {:keys [airport-position weather]} _dt]
   (cond-> craft
