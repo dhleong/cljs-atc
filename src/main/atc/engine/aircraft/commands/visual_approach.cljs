@@ -2,6 +2,7 @@
   (:require
    [atc.data.airports :as airports :refer [runway->heading runway-coords]]
    [atc.data.units :refer [ft->m sm->m]]
+   [atc.engine.aircraft.commands :refer [apply-target-speed]]
    [atc.engine.aircraft.commands.altitude :refer [apply-altitude]]
    [atc.engine.aircraft.commands.direct :refer [apply-direct]]
    [atc.engine.aircraft.commands.helpers :refer [normalize-heading utter-once]]
@@ -57,6 +58,7 @@
 
       (-> aircraft
           (apply-altitude target-altitude dt)
+          (apply-target-speed (:landing-speed (:config aircraft)) dt)
           (apply-steering target-heading dt)))))
 
 
@@ -89,6 +91,7 @@
 
       (-> aircraft
           (apply-altitude target-altitude dt)
+          (apply-target-speed (:landing-speed (:config aircraft)) dt)
           (apply-direct final-turn-position dt)))))
 
 
@@ -116,7 +119,8 @@
         ; Ensure there's no competing altitude
         (update :commands dissoc :target-altitude)
 
-        ; TODO Slow down
+        ; Slow down
+        (apply-target-speed (:min-speed (:config aircraft)) dt)
 
         ; Descend toward runway
         (apply-altitude (:z runway-start) dt))

@@ -5,7 +5,8 @@
    [atc.data.units :refer [nm->m]]
    [atc.engine.aircraft.commands.altitude :refer [apply-altitude]]
    [atc.engine.aircraft.commands.direct :refer [apply-direct]]
-   [atc.engine.aircraft.commands.helpers :refer [apply-rate normalize-heading]]
+   [atc.engine.aircraft.commands.helpers :refer [normalize-heading]]
+   [atc.engine.aircraft.commands.speed :refer [apply-target-speed]]
    [atc.engine.aircraft.commands.steering :refer [apply-steering]]
    [atc.engine.aircraft.commands.visual-approach
     :refer [apply-report-field-in-sight apply-visual-approach]]
@@ -88,20 +89,6 @@
   (case approach-type
     :ils (apply-ils-approach aircraft command dt)
     :visual (apply-visual-approach aircraft command dt)))
-
-
-; ======= Speed ===========================================
-
-(defn apply-target-speed [{from :speed :as aircraft} commanded-speed dt]
-  (if (= from commanded-speed)
-    aircraft
-
-    (apply-rate
-      aircraft
-      :target-speed [:speed]
-      {-1 :deceleration
-       1 :acceleration}
-      from commanded-speed dt)))
 
 
 ; ======= Public interface ================================
