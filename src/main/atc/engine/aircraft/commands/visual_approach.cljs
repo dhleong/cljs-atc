@@ -218,3 +218,27 @@
         (assoc-in [:behavior :visual-approach-state] leg)
         (apply-visual-approach-leg engine cmd dt))))
 
+(comment
+
+  #_{:clj-kondo/ignore [:unresolved-namespace]}
+  (let [aircraft (second (first (:aircraft (:engine @re-frame.db/app-db))))
+        {:keys [airport runway]} (get-in aircraft [:commands :cleared-approach])
+        [runway-threshold runway-end] (runway-coords airport runway)
+        bearing-to-aircraft (bearing-to runway-threshold (:position aircraft))
+        vector-to-aircraft (bearing-to->vec
+                             (:position aircraft)
+                             runway-threshold)
+        distance-to-aircraft (vmag vector-to-aircraft)
+        runway-vector (-> (bearing-to->vec
+                            runway-threshold
+                            runway-end)
+                          (normalize))
+        final-turn-position (v* runway-vector distance-to-aircraft)]
+    (cljs.pprint/pprint
+      {:behavior (get-in aircraft [:behavior])
+       :bearing-to-aircraft bearing-to-aircraft
+
+       :can-turn-final? (<= (distance-to-squared
+                              (:position aircraft)
+                              final-turn-position)
+                            turn-final-distance-sq-m)})))
