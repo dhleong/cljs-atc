@@ -2,13 +2,13 @@
   (:require
    [atc.data.airports :as airports :refer [runway->heading runway-coords]]
    [atc.data.units :refer [ft->m nm->m sm->m]]
-   [atc.engine.aircraft.commands.speed :refer [apply-target-speed]]
    [atc.engine.aircraft.commands.altitude :refer [apply-altitude]]
    [atc.engine.aircraft.commands.direct :refer [apply-direct]]
    [atc.engine.aircraft.commands.helpers :refer [normalize-heading utter-once]]
+   [atc.engine.aircraft.commands.speed :refer [apply-target-speed]]
    [atc.engine.aircraft.commands.steering :refer [apply-steering]]
    [atc.engine.model :refer [angle-down-to bearing-to bearing-to->vec
-                             distance-to-squared normalize v* vmag]]
+                             distance-to-squared normalize v* v+ vmag]]
    [atc.util.math :refer [squared]]))
 
 
@@ -152,7 +152,9 @@
                             runway-end)
                           (normalize))
 
-        final-turn-position (v* runway-vector distance-to-aircraft)
+        final-turn-position (v+
+                              runway-threshold
+                              (v* runway-vector distance-to-aircraft))
         target-altitude (ft->m (+ 500 (last (:position airport))))
 
         can-turn-final? (<= (distance-to-squared
