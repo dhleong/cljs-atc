@@ -105,10 +105,14 @@
         target-altitude (ft->m (+ 1000 (last (:position airport))))
         [runway-threshold _] (runway-coords airport runway)
         bearing-to-aircraft (bearing-to runway-threshold (:position aircraft))
+
+        ; We can turn base if:
+        ;  - We have not been commanded to extend our downwind, AND
+        ;  - The angle from us to the ruway is 45 or less, AND
+        ;  - TODO There are no other aircraft on base
         can-turn-base? (and (not (get-in aircraft [:behavior :extend-downwind]))
-                            (<= (- target-heading 45)
-                                bearing-to-aircraft
-                                (+ target-heading 45)))]
+                            (<= (abs (- target-heading bearing-to-aircraft))
+                                45))]
     (if can-turn-base?
       (-> aircraft
           (update :behavior assoc :visual-approach-state :base))
