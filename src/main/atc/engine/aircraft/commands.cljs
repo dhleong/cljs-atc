@@ -85,19 +85,19 @@
       aircraft))
 
 ; I suppose this could be a defmulti...
-(defn- apply-approach [aircraft {:keys [approach-type] :as command} dt]
+(defn- apply-approach [aircraft engine {:keys [approach-type] :as command} dt]
   (case approach-type
     :ils (apply-ils-approach aircraft command dt)
-    :visual (apply-visual-approach aircraft command dt)))
+    :visual (apply-visual-approach aircraft engine command dt)))
 
 
 ; ======= Public interface ================================
 
-(defn apply-commanded-inputs [aircraft, commands dt]
+(defn apply-commanded-inputs [aircraft engine commands dt]
   (cond-> aircraft
     (:heading commands) (apply-steering (:heading commands) dt)
     (:direct commands) (apply-direct (:direct commands) dt)
-    (:cleared-approach commands) (apply-approach (:cleared-approach commands) dt)
+    (:cleared-approach commands) (apply-approach engine (:cleared-approach commands) dt)
     (:report-field-in-sight commands) (apply-report-field-in-sight
                                         (:report-field-in-sight commands)
                                         dt)

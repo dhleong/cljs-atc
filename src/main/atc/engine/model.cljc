@@ -5,7 +5,7 @@
 (defprotocol Simulated
   "Anything that is managed by the simulation"
 
-  (tick [this dt]
+  (tick [this context dt]
         "Update this simulated item by [dt] seconds")
 
   (command [this context instruction]

@@ -86,7 +86,7 @@
   ; since we aren't, properly. Technically we should have a separate Simulator
   ; protocol and implement that to be more correct...
   Simulated
-  (tick [this _dt]
+  (tick [this _context _dt]
     (let [now (js/Date.now)
 
           dt (* time-scale
@@ -98,7 +98,7 @@
           ; Tick all aircraft
           updated-aircraft (reduce
                              (fn [m callsign]
-                               (update m callsign tick dt))
+                               (update m callsign tick this dt))
                              aircraft
                              (keys aircraft))
 

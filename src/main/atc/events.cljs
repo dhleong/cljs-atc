@@ -143,7 +143,7 @@
   [injected-engine]
   (fn [{:keys [db]} _]
     (when-let [engine (:engine db)]
-      (let [engine' (engine-model/tick engine nil)
+      (let [engine' (engine-model/tick engine nil nil)
             event-metadata {:elapsed-s (:elapsed-s engine')}
             new-events (map
                          (fn [event-vec]

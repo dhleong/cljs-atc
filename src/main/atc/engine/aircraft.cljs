@@ -73,8 +73,8 @@
                      ^Vec3 position heading speed
                      commands]
   Simulated
-  (tick [this dt]
-    (let [this (apply-commanded-inputs this commands dt)
+  (tick [this engine dt]
+    (let [this (apply-commanded-inputs this engine commands dt)
           ; TODO: Vertical speed?
           raw-speed (* (speed->mps speed) dt)
           heading-radians (heading->radians (:heading this))

@@ -73,7 +73,7 @@
       :else :enter-downwind)))
 
 (defmulti ^:private apply-visual-approach-leg
-  (fn [aircraft _cmd _dt]
+  (fn [aircraft _engine _cmd _dt]
     (get-in aircraft [:behavior :visual-approach-state])))
 
 
@@ -82,7 +82,7 @@
 (def ^:private downwind-leg-distance-sq (squared (nm->m 5.5)))
 
 (defmethod apply-visual-approach-leg :enter-downwind
-  [aircraft {:keys [airport _runway]} dt]
+  [aircraft _engine {:keys [airport _runway]} dt]
   (let [distance-sq (distance-to-squared
                       aircraft
                       (:position airport))]
@@ -98,7 +98,7 @@
 ; ======= Downwind leg ====================================
 
 (defmethod apply-visual-approach-leg :downwind
-  [aircraft {:keys [airport runway]} dt]
+  [aircraft _engine {:keys [airport runway]} dt]
   (let [target-heading (-> (runway->heading airport runway)
                            (+ 180)
                            (normalize-heading))
@@ -124,7 +124,7 @@
 (def ^:private turn-final-distance-sq-m (squared 500))
 
 (defmethod apply-visual-approach-leg :base
-  [aircraft {:keys [airport runway]} dt]
+  [aircraft _engine {:keys [airport runway]} dt]
   (let [[runway-threshold runway-end] (runway-coords airport runway)
         vector-to-aircraft (bearing-to->vec
                              (:position aircraft)
@@ -158,7 +158,7 @@
 (def ^:private min-glide-slope-degrees 1.6)
 
 (defmethod apply-visual-approach-leg :final
-  [aircraft {:keys [airport runway]} dt]
+  [aircraft _engine {:keys [airport runway]} dt]
   (let [[runway-start _] (runway-coords airport runway)
         distance-to-runway2 (distance-to-squared
                               (:position aircraft) runway-start)]
@@ -194,10 +194,10 @@
 
 ; ======= Primary entry point =============================
 
-(defn apply-visual-approach [aircraft cmd dt]
+(defn apply-visual-approach [aircraft engine cmd dt]
   (let [leg (or (get-in aircraft [:behavior :visual-approach-state])
                 (compute-approach-leg aircraft cmd))]
     (-> aircraft
         (assoc-in [:behavior :visual-approach-state] leg)
-        (apply-visual-approach-leg cmd dt))))
+        (apply-visual-approach-leg engine cmd dt))))
 
