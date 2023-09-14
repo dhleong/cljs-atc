@@ -547,6 +547,14 @@
 
   (dispatch [:weather/refresh])
 
+  (dispatch [:game/init {:airport-id :kjfk
+                         :arrivals? true
+                         :departures? true
+                         :voice-input? true
+                         :traffic :debug}])
+
+  (dispatch [::voice-handle-text "delta twenty two report field in sight"])
+
   (dispatch [::voice-handle-text "delta twenty two turn right heading one eight zero"])
   (dispatch [::voice-handle-text "delta twenty two contact center point eight good day"])
   (dispatch [::voice-handle-text "attention all aircraft information alpha is current"]))
