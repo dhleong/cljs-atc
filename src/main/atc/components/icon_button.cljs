@@ -4,7 +4,6 @@
    [spade.core :refer [defclass]]))
 
 (defn- prepend-class [old-class new-class]
-  (println "prepend" new-class " to " old-class)
   (cond
     (nil? old-class) new-class
     (coll? old-class) (cons new-class old-class)
