@@ -10,7 +10,7 @@
 
 (defn- next-squawk [random engine]
   (loop [random random]
-    (let [v (next-int random 1000 7300)]
+    (let [v (next-int random 2000 7000)]
       (if (some #(= v (:squawk %)) (vals (:aircraft engine)))
         (recur random)
         v))))
