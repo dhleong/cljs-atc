@@ -2,6 +2,13 @@
   (:require
    [atc.data.core :refer [local-xy]]))
 
+(defn airport-runway-ids [airport]
+  (when airport
+    (->> airport
+         :runways
+         (mapcat (juxt :start-id :end-id))
+         (into #{}))))
+
 (defn navaids-by-id [airport]
   (some->>
     airport

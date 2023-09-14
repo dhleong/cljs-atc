@@ -2,7 +2,7 @@
   (:require
    [atc.data.airports.kjfk :as kjfk]
    [atc.engine.model :refer [v- vec3 vmag]]
-   [atc.subs-util :refer [navaids-by-id]]))
+   [atc.subs-util :refer [airport-runway-ids navaids-by-id]]))
 
 (defn- maybe->vec3
   "Coerce v into a vec3, if it looks vec3-like"
@@ -27,5 +27,6 @@
 
 (defn create-engine []
   {:airport kjfk/airport
+   :game/airport-runway-ids (airport-runway-ids kjfk/airport)
    :game/navaids-by-id (navaids-by-id kjfk/airport)})
 

@@ -103,7 +103,8 @@
                     :callsign callsign
                     :radio-name radio-name
                     :state :flight
-                    :pilot (pilot/generate nil) ; TODO Pass in a preferred voice?
+                    :pilot (or (:pilot data)
+                               (pilot/generate nil)) ; TODO Pass in a preferred voice?
                     :position (vec3 250 250 (ft->m 20000))
                     :altitude-assignments []
                     :heading 350

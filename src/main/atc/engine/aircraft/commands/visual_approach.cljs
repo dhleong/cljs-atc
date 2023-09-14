@@ -72,6 +72,14 @@
 
       :else :enter-downwind)))
 
+(defn any-aircraft-on-leg? [engine airport-id runway leg]
+  (some
+    (fn [craft]
+      (and (= airport-id (:destination craft))
+           (= runway (get-in craft [:commands :cleared-approach :runway]))
+           (= leg (get-in craft [:behavior :visual-approach-state]))))
+    (vals (:aircraft engine))))
+
 (defmulti ^:private apply-visual-approach-leg
   (fn [aircraft _engine _cmd _dt]
     (get-in aircraft [:behavior :visual-approach-state])))
@@ -98,7 +106,7 @@
 ; ======= Downwind leg ====================================
 
 (defmethod apply-visual-approach-leg :downwind
-  [aircraft _engine {:keys [airport runway]} dt]
+  [aircraft engine {:keys [airport runway]} dt]
   (let [target-heading (-> (runway->heading airport runway)
                            (+ 180)
                            (normalize-heading))
@@ -112,7 +120,12 @@
         ;  - TODO There are no other aircraft on base
         can-turn-base? (and (not (get-in aircraft [:behavior :extend-downwind]))
                             (<= (abs (- target-heading bearing-to-aircraft))
-                                45))]
+                                45)
+                            (not (any-aircraft-on-leg?
+                                   engine
+                                   (:id airport)
+                                   runway
+                                   :base)))]
     (if can-turn-base?
       (-> aircraft
           (update :behavior assoc :visual-approach-state :base))

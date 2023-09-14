@@ -5,7 +5,7 @@
    [atc.data.core :refer [local-xy]]
    [atc.engine.model :refer [v* vec3]]
    [atc.structures.rolling-history :refer [most-recent-n]]
-   [atc.subs-util :refer [navaids-by-id]]
+   [atc.subs-util :refer [airport-runway-ids navaids-by-id]]
    [atc.util.subs :refer [get-or-identity]]
    [atc.voice.pretty :refer [cleanup-spoken-text]]
    [clojure.math :refer [floor]]
@@ -186,12 +186,7 @@
 (reg-sub
   :game/airport-runway-ids
   :<- [:game/airport]
-  (fn [airport]
-    (when airport
-      (->> airport
-           :runways
-           (mapcat (juxt :start-id :end-id))
-           (into #{})))))
+  :-> airport-runway-ids)
 
 (reg-sub
   :game/runways
