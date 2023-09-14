@@ -39,7 +39,9 @@
                             runway-threshold)
         downwind-heading (-> runway-heading
                              (+ 180)
-                             (normalize-heading))]
+                             (normalize-heading))
+        left-base-heading (+ runway-heading 90)
+        right-base-heading (+ runway-heading 90)]
     (cond
       (<= (- runway-heading heading-delta)
           bearing-to-runway
@@ -51,7 +53,17 @@
           (+ downwind-heading heading-delta))
       :downwind
 
-      ; TODO base leg
+      ; left base leg
+      (<= (- left-base-heading heading-delta)
+          (:heading aircraft)
+          (+ left-base-heading heading-delta))
+      :base
+
+      ; right base leg
+      (<= (- right-base-heading heading-delta)
+          (:heading aircraft)
+          (+ right-base-heading heading-delta))
+      :base
 
       :else :enter-downwind)))
 
