@@ -20,9 +20,9 @@
             distance-sq (distance-to-squared (:position craft) airport-position)]
         (<= distance-sq (squared visibility-m)))))
 
-(defn apply-report-field-in-sight [craft {:keys [airport-position weather]} _dt]
+(defn apply-report-field-in-sight [craft engine {:keys [airport-position]} _dt]
   (cond-> craft
-    (can-see-airport? craft airport-position weather)
+    (can-see-airport? craft airport-position (:weather engine))
     (-> (update :commands dissoc :report-field-in-sight)
         (utter-once "field in sight"))))
 

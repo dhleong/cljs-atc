@@ -99,6 +99,7 @@
     (:direct commands) (apply-direct (:direct commands) dt)
     (:cleared-approach commands) (apply-approach engine (:cleared-approach commands) dt)
     (:report-field-in-sight commands) (apply-report-field-in-sight
+                                        engine
                                         (:report-field-in-sight commands)
                                         dt)
     (:target-altitude commands) (apply-altitude (:target-altitude commands) dt)

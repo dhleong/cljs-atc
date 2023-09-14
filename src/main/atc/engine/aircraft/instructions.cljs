@@ -149,8 +149,7 @@
         ; the primary airport; in that case we just provide the
         ; relevant airport's relative position
         (update :commands assoc :report-field-in-sight
-                {:airport-position (primary-airport-position airport)
-                 :weather weather}))))
+                {:airport-position (primary-airport-position airport)}))))
 
 (defmethod dispatch-instruction
   :verify-atis
