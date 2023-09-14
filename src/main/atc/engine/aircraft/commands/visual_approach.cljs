@@ -31,6 +31,11 @@
 
 (def ^:private heading-delta 15)
 
+; NOTE: We accept a smaller delta here to avoid false positives. We could
+; probably do some math to ensure we're positioned correctly relative to
+; the runway threshold instead, but... this is faster for now.
+(def ^:private base-heading-delta 5)
+
 (defn compute-approach-leg [aircraft {:keys [airport runway]}]
   (let [[runway-threshold _] (runway-coords airport runway)
         runway-heading (airports/runway->heading airport runway)
@@ -54,15 +59,15 @@
       :downwind
 
       ; left base leg
-      (<= (- left-base-heading heading-delta)
+      (<= (- left-base-heading base-heading-delta)
           (:heading aircraft)
-          (+ left-base-heading heading-delta))
+          (+ left-base-heading base-heading-delta))
       :base
 
       ; right base leg
-      (<= (- right-base-heading heading-delta)
+      (<= (- right-base-heading base-heading-delta)
           (:heading aircraft)
-          (+ right-base-heading heading-delta))
+          (+ right-base-heading base-heading-delta))
       :base
 
       :else :enter-downwind)))
