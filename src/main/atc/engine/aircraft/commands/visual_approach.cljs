@@ -1,14 +1,15 @@
 (ns atc.engine.aircraft.commands.visual-approach
   (:require
    [atc.data.airports :as airports :refer [runway->heading runway-coords]]
-   [atc.data.units :refer [ft->m sm->m]]
-   [atc.engine.aircraft.commands :refer [apply-target-speed]]
+   [atc.data.units :refer [ft->m nm->m sm->m]]
+   [atc.engine.aircraft.commands.speed :refer [apply-target-speed]]
    [atc.engine.aircraft.commands.altitude :refer [apply-altitude]]
    [atc.engine.aircraft.commands.direct :refer [apply-direct]]
    [atc.engine.aircraft.commands.helpers :refer [normalize-heading utter-once]]
    [atc.engine.aircraft.commands.steering :refer [apply-steering]]
    [atc.engine.model :refer [angle-down-to bearing-to bearing-to->vec
-                             distance-to-squared normalize v* vmag]]))
+                             distance-to-squared normalize v* vmag]]
+   [atc.util.math :refer [squared]]))
 
 
 ; ======= Report field in sight ===========================
@@ -17,7 +18,7 @@
   (or (nil? visibility-sm)
       (let [visibility-m (sm->m visibility-sm)
             distance-sq (distance-to-squared (:position craft) airport-position)]
-        (<= distance-sq (* visibility-m visibility-m)))))
+        (<= distance-sq (squared visibility-m)))))
 
 (defn apply-report-field-in-sight [craft {:keys [airport-position weather]} _dt]
   (cond-> craft
@@ -28,14 +29,53 @@
 
 ; ======= Visual Approaches ===============================
 
-(defn compute-approach-leg [_aircraft {:keys [airport runway]}]
-  (let [_runway-heading (airports/runway->heading airport runway)]
-    ; TODO
-    :enter-downwind))
+(def ^:private heading-delta 15)
+
+(defn compute-approach-leg [aircraft {:keys [airport runway]}]
+  (let [[runway-threshold _] (runway-coords airport runway)
+        runway-heading (airports/runway->heading airport runway)
+        bearing-to-runway (bearing-to
+                            (:position aircraft)
+                            runway-threshold)
+        downwind-heading (-> runway-heading
+                             (+ 180)
+                             (normalize-heading))]
+    (cond
+      (<= (- runway-heading heading-delta)
+          bearing-to-runway
+          (+ runway-heading heading-delta))
+      :final
+
+      (<= (- downwind-heading heading-delta)
+          (:heading aircraft)
+          (+ downwind-heading heading-delta))
+      :downwind
+
+      ; TODO base leg
+
+      :else :enter-downwind)))
 
 (defmulti ^:private apply-visual-approach-leg
   (fn [aircraft _cmd _dt]
     (get-in aircraft [:behavior :visual-approach-state])))
+
+
+; ======= Entering downwind ===============================
+
+(def ^:private downwind-leg-distance-sq (squared (nm->m 5.5)))
+
+(defmethod apply-visual-approach-leg :enter-downwind
+  [aircraft {:keys [airport _runway]} dt]
+  (let [distance-sq (distance-to-squared
+                      aircraft
+                      (:position airport))]
+    (if (<= distance-sq downwind-leg-distance-sq)
+      (-> aircraft
+          (update :behavior assoc :visual-approach-state :downwind))
+
+      ; TODO enter at a 45 degree angle
+      (-> aircraft
+          (apply-direct (:position airport) dt)))))
 
 
 ; ======= Downwind leg ====================================
@@ -54,7 +94,7 @@
                                 (+ target-heading 45)))]
     (if can-turn-base?
       (-> aircraft
-          (update :behavior assoc :visual-approach-state :downwind))
+          (update :behavior assoc :visual-approach-state :base))
 
       (-> aircraft
           (apply-altitude target-altitude dt)
@@ -64,7 +104,7 @@
 
 ; ======= Base leg ========================================
 
-(def ^:private turn-final-distance-sq-m (* 500 500))
+(def ^:private turn-final-distance-sq-m (squared 500))
 
 (defmethod apply-visual-approach-leg :base
   [aircraft {:keys [airport runway]} dt]
