@@ -41,7 +41,7 @@
                 craft
                 (primary-airport-position (:airport context))
                 (:weather context))))
-    (utter craft "unable; I can't see the field yet")
+    (utter craft "unable visual approach; I can't see the field yet")
 
     :else (-> craft
             (assoc :state :cleared-approach)
