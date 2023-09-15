@@ -148,8 +148,8 @@
                              runway-threshold)
         distance-to-aircraft (vmag vector-to-aircraft)
         runway-vector (-> (bearing-to->vec
-                            runway-threshold
-                            runway-end)
+                            runway-end
+                            runway-threshold)
                           (normalize))
 
         final-turn-position (v+
@@ -232,8 +232,8 @@
                              runway-threshold)
         distance-to-aircraft (vmag vector-to-aircraft)
         runway-vector (-> (bearing-to->vec
-                            runway-threshold
-                            runway-end)
+                            runway-end
+                            runway-threshold)
                           (normalize))
         final-turn-position (v* runway-vector distance-to-aircraft)]
     (cljs.pprint/pprint
