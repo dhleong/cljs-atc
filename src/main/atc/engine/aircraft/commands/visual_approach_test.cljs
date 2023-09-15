@@ -4,7 +4,8 @@
    [atc.data.units :refer [ft->m nm->m]]
    [atc.engine.aircraft.commands.helpers :refer [primary-airport-position]]
    [atc.engine.aircraft.commands.visual-approach :refer [any-aircraft-on-leg?
-                                                         can-see-airport?]]
+                                                         can-see-airport?
+                                                         compute-approach-leg]]
    [atc.engine.core :refer [map->Engine]]
    [atc.engine.model :refer [command spawn-aircraft vec3]]
    [atc.util.testing :refer [create-engine]]
@@ -50,3 +51,11 @@
       (is (some?
             (any-aircraft-on-leg?
               engine "KJFK" "13L" :base))))))
+
+(deftest compute-approach-leg-test
+  (testing "Detect base leg approach"
+    ; Right base:
+    (let [cmd {:aircraft kjfk/airport
+               :runway "04L"}
+          aircraft {:heading 310}]
+      (is (= :base (compute-approach-leg aircraft cmd))))))

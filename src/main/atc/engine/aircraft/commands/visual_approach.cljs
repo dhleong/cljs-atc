@@ -45,8 +45,12 @@
         downwind-heading (-> runway-heading
                              (+ 180)
                              (normalize-heading))
-        left-base-heading (+ runway-heading 90)
-        right-base-heading (+ runway-heading 90)]
+        left-base-heading (-> runway-heading
+                             (+ 90)
+                             (normalize-heading))
+        right-base-heading (-> runway-heading
+                               (- 90)
+                               (normalize-heading))]
     (cond
       (<= (- runway-heading heading-delta)
           bearing-to-runway
@@ -238,6 +242,28 @@
         (select-keys [:behavior])))
 
   (let [aircraft (second (first (:aircraft (:engine @re-frame.db/app-db))))
+        cmd {:airport (:airport (:engine @re-frame.db/app-db))
+             :runway "04L"}
+        {:keys [airport runway]} cmd
+        [runway-threshold _] (runway-coords airport runway)
+        runway-heading (airports/runway->heading airport runway)
+        bearing-to-runway (bearing-to
+                            (:position aircraft)
+                            runway-threshold)
+        downwind-heading (-> runway-heading
+                             (+ 180)
+                             (normalize-heading))
+        left-base-heading (+ runway-heading 90)
+        right-base-heading (+ runway-heading 90)]
+    (cljs.pprint/pprint
+      {:cmd (:commands aircraft)
+       :approach-leg (compute-approach-leg aircraft cmd)
+       :bearing-to-runway bearing-to-runway
+       :downwind-heading downwind-heading
+       :left-base-heading left-base-heading
+       :right-base-heading right-base-heading}))
+
+  (let [aircraft (second (first (:aircraft (:engine @re-frame.db/app-db))))
         {:keys [airport runway]} (get-in aircraft [:commands :cleared-approach])
         [runway-threshold runway-end] (runway-coords airport runway)
         bearing-to-aircraft (bearing-to runway-threshold (:position aircraft))
@@ -270,8 +296,8 @@
                                 final-turn-position)
        :can-turn-final? ['<= (js/Math.sqrt
                                (distance-to-squared
-                                (:position aircraft)
-                                final-turn-position))
+                                 (:position aircraft)
+                                 final-turn-position))
                          (js/Math.sqrt turn-final-distance-sq-m)]
 
        :angle-to-runway (angle-down-to (:position aircraft) runway-threshold)})))

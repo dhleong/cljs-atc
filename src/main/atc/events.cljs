@@ -554,7 +554,7 @@
                          :traffic :debug}])
 
   (dispatch [::voice-handle-text "delta twenty two report field in sight"])
-  (dispatch [::voice-handle-text "delta twenty two cleared visual approach runway one three right"])
+  (dispatch [::voice-handle-text "delta twenty two cleared visual approach runway zero four left"])
 
   (dispatch [::voice-handle-text "delta twenty two turn right heading one eight zero"])
   (dispatch [::voice-handle-text "delta twenty two contact center point eight good day"])
