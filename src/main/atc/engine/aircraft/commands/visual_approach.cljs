@@ -193,7 +193,7 @@
             (+ (:z runway-threshold)
                landed-altitude-delta-m)))))
 
-(def ^:private min-glide-slope-degrees 0.6)
+(def ^:private min-glide-slope-degrees 1.6)
 
 (defmethod apply-visual-approach-leg :final
   [aircraft _engine {:keys [airport runway]} dt]
