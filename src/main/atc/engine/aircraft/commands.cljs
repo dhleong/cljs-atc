@@ -9,7 +9,7 @@
    [atc.engine.aircraft.commands.speed :refer [apply-target-speed]]
    [atc.engine.aircraft.commands.steering :refer [apply-steering]]
    [atc.engine.aircraft.commands.visual-approach
-    :refer [apply-report-field-in-sight apply-visual-approach]]
+    :refer [apply-report-field-in-sight apply-visual-approach landed?]]
    [atc.engine.model :refer [angle-down-to bearing-to distance-to-squared]]
    [clojure.math :refer [pow]]))
 
@@ -24,8 +24,6 @@
 
 (def ^:private glide-slope-angle-degrees 3)
 (def ^:private glide-slope-width-degrees 1.4)
-
-(def ^:private landed-distance-m 5)
 
 (defn- within-localizer?
   "Returns the [runway-threshold distance2] if within the runway's localizer, else nil"
@@ -49,8 +47,7 @@
     ;  that's no good. 
     (cond-> aircraft
       ; Detect "landing"
-      (<= distance-to-runway2
-          landed-distance-m)
+      (landed? aircraft runway-start distance-to-runway2)
       (assoc :state :landed
              :commands {})
 

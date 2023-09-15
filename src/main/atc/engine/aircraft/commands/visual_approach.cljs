@@ -173,18 +173,30 @@
 
 ; ======= Final approach ==================================
 
-(def ^:private landed-distance-m 5)
-(def ^:private min-glide-slope-degrees 1.6)
+(def ^:private landed-threshold-distance-m2 (squared 50))
+(def ^:private landed-altitude-delta-m (ft->m 50))
+
+(defn landed?
+  ([aircraft runway-threshold]
+   (let [distance-to-runway2 (distance-to-squared
+                               (:position aircraft)
+                               runway-threshold)]
+     (landed? aircraft runway-threshold distance-to-runway2)))
+  ([aircraft runway-threshold distance-to-runway2]
+   (and (<= distance-to-runway2
+            landed-threshold-distance-m2)
+        (<= (:z (:position aircraft))
+            (+ (:z runway-threshold)
+               landed-altitude-delta-m)))))
+
+(def ^:private min-glide-slope-degrees 0.6)
 
 (defmethod apply-visual-approach-leg :final
   [aircraft _engine {:keys [airport runway]} dt]
-  (let [[runway-start _] (runway-coords airport runway)
-        distance-to-runway2 (distance-to-squared
-                              (:position aircraft) runway-start)]
+  (let [[runway-start _] (runway-coords airport runway)]
     (cond-> aircraft
       ; Detect "landing"
-      (<= distance-to-runway2
-          landed-distance-m)
+      (landed? aircraft runway-start)
       (assoc :state :landed
              :commands {})
 
@@ -192,20 +204,18 @@
       (>= (angle-down-to (:position aircraft) runway-start)
           min-glide-slope-degrees)
       (->
-        ; Ensure there's no competing altitude
-        (update :commands dissoc :target-altitude)
-
-        ; Slow down
-        (apply-target-speed (:min-speed (:config aircraft)) dt)
-
         ; Descend toward runway
         (apply-altitude (:z runway-start) dt))
 
       ; Always ensure we turn onto course
       :always
       (->
-        ; We no longer need to maintain any specific heading
-        (update :commands dissoc :heading :steer-direction)
+        ; We no longer need to maintain any specific heading; plus
+        ; ensure there's no competing altitude
+        (update :commands dissoc :heading :steer-direction :target-altitude)
+
+        ; Slow down
+        (apply-target-speed (:min-speed (:config aircraft)) dt)
 
         ; Steer toward the runway threshold
         (apply-direct runway-start dt)))))
@@ -220,13 +230,20 @@
         (assoc-in [:behavior :visual-approach-state] leg)
         (apply-visual-approach-leg engine cmd dt))))
 
+#_{:clj-kondo/ignore [:unresolved-namespace]}
 (comment
 
-  #_{:clj-kondo/ignore [:unresolved-namespace]}
+  (cljs.pprint/pprint
+    (-> (second (first (:aircraft (:engine @re-frame.db/app-db))))
+        (select-keys [:behavior])))
+
   (let [aircraft (second (first (:aircraft (:engine @re-frame.db/app-db))))
         {:keys [airport runway]} (get-in aircraft [:commands :cleared-approach])
         [runway-threshold runway-end] (runway-coords airport runway)
         bearing-to-aircraft (bearing-to runway-threshold (:position aircraft))
+        target-heading (-> (runway->heading airport runway)
+                           (+ 180)
+                           (normalize-heading))
         vector-to-aircraft (bearing-to->vec
                              (:position aircraft)
                              runway-threshold)
@@ -235,12 +252,26 @@
                             runway-end
                             runway-threshold)
                           (normalize))
-        final-turn-position (v* runway-vector distance-to-aircraft)]
+        final-turn-position (v+
+                              runway-threshold
+                              (v* runway-vector distance-to-aircraft))]
     (cljs.pprint/pprint
       {:behavior (get-in aircraft [:behavior])
        :bearing-to-aircraft bearing-to-aircraft
+       :aircraft-bearing (:heading aircraft)
+       :delta-to-runway-angle ['<= (abs (- target-heading bearing-to-aircraft))
+                               45]
 
-       :can-turn-final? (<= (distance-to-squared
-                              (:position aircraft)
-                              final-turn-position)
-                            turn-final-distance-sq-m)})))
+       :distance-to-aircraft distance-to-aircraft
+
+
+       :bearing-to-final-turn (bearing-to
+                                (:position aircraft)
+                                final-turn-position)
+       :can-turn-final? ['<= (js/Math.sqrt
+                               (distance-to-squared
+                                (:position aircraft)
+                                final-turn-position))
+                         (js/Math.sqrt turn-final-distance-sq-m)]
+
+       :angle-to-runway (angle-down-to (:position aircraft) runway-threshold)})))
