@@ -283,6 +283,7 @@
                               (v* runway-vector distance-to-aircraft))]
     (cljs.pprint/pprint
       {:behavior (get-in aircraft [:behavior])
+       :altitude-ft (atc.data.units/m->ft (get-in aircraft [:position :z]))
        :bearing-to-aircraft bearing-to-aircraft
        :aircraft-bearing (:heading aircraft)
        :delta-to-runway-angle ['<= (abs (- target-heading bearing-to-aircraft))
