@@ -128,8 +128,7 @@
         to (vec3 to)
         elevation (- (:z from) (:z to))]
     (to-degrees
-      ; NOTE: Rather than involve any sqrts we just square elevation
-      (atan2 (* elevation elevation)
-             (vmag2
+      (atan2 elevation
+             (vmag
                (v- (vec3 from 0)
                    (vec3 to 0)))))))
