@@ -92,7 +92,7 @@
   (fn [engine [command]]
     (when engine
       (println "dispatching command: " command)
-      (engine-model/command engine command))))
+      (engine-model/command engine command nil))))
 
 (reg-event-fx
   :game/init
@@ -143,7 +143,7 @@
   [injected-engine]
   (fn [{:keys [db]} _]
     (when-let [engine (:engine db)]
-      (let [engine' (engine-model/tick engine nil)
+      (let [engine' (engine-model/tick engine nil nil)
             event-metadata {:elapsed-s (:elapsed-s engine')}
             new-events (map
                          (fn [event-vec]
@@ -546,6 +546,15 @@
   (dispatch [:config/set {:range-rings-nm 10}])
 
   (dispatch [:weather/refresh])
+
+  (dispatch [:game/init {:airport-id :kjfk
+                         :arrivals? true
+                         :departures? true
+                         :voice-input? true
+                         :traffic :debug}])
+
+  (dispatch [::voice-handle-text "delta twenty two report field in sight"])
+  (dispatch [::voice-handle-text "delta twenty two cleared visual approach runway zero four left"])
 
   (dispatch [::voice-handle-text "delta twenty two turn right heading one eight zero"])
   (dispatch [::voice-handle-text "delta twenty two contact center point eight good day"])

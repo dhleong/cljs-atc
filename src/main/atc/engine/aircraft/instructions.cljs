@@ -1,13 +1,13 @@
 (ns atc.engine.aircraft.instructions
   (:require
-   [atc.data.units :as units :refer [ft->m]]
-   [atc.engine.aircraft.commands.visual-approach :refer [can-see-airport?]]
-   [atc.engine.model :refer [vec3]]))
+   [atc.data.units :as units]
+   [atc.engine.aircraft.commands.helpers :refer [primary-airport-position]]
+   [atc.engine.aircraft.commands.visual-approach :refer [can-see-airport?]]))
 
 (defn- utter [craft & utterance]
   (update craft ::utterance-parts conj utterance))
 
-(defmulti dispatch-instruction (fn [_craft _context [instruction]] instruction))
+(defmulti dispatch-instruction (fn [_craft _engine [instruction]] instruction))
 
 (defmethod dispatch-instruction
   :adjust-altitude
@@ -31,8 +31,17 @@
     (not (contains? (:game/airport-runway-ids context) runway))
     (utter craft "unable" runway)
 
-    (contains? #{:visual :rnav} approach-type)
+    (= :rnav approach-type)
     (utter craft "unable" (name approach-type))
+
+    ; TODO Actually you shouldn't clear for visual approach
+    ; unless they've reported the field in sight
+    (and (= :visual approach-type)
+         (not (can-see-airport?
+                craft
+                (primary-airport-position (:airport context))
+                (:weather context))))
+    (utter craft "unable visual approach; I can't see the field yet")
 
     :else (-> craft
             (assoc :state :cleared-approach)
@@ -140,9 +149,7 @@
         ; the primary airport; in that case we just provide the
         ; relevant airport's relative position
         (update :commands assoc :report-field-in-sight
-                {:airport-position (vec3 0 0 (ft->m
-                                               (last (:position airport))))
-                 :weather weather}))))
+                {:airport-position (primary-airport-position airport)}))))
 
 (defmethod dispatch-instruction
   :verify-atis

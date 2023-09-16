@@ -1,6 +1,6 @@
-(ns atc.engine.aircraft.commands-test
+(ns atc.engine.aircraft.commands.steering-test
   (:require [cljs.test :refer-macros [deftest is testing]]
-            [atc.engine.aircraft.commands :refer [shorter-steer-direction]]))
+            [atc.engine.aircraft.commands.steering :refer [shorter-steer-direction]]))
 
 (deftest shorter-steer-direction-test
   (testing "Simple checks"

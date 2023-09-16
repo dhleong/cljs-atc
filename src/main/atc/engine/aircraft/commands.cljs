@@ -3,100 +3,15 @@
   (:require
    [atc.data.airports :as airports]
    [atc.data.units :refer [nm->m]]
+   [atc.engine.aircraft.commands.altitude :refer [apply-altitude]]
+   [atc.engine.aircraft.commands.direct :refer [apply-direct]]
+   [atc.engine.aircraft.commands.helpers :refer [normalize-heading]]
+   [atc.engine.aircraft.commands.speed :refer [apply-target-speed]]
+   [atc.engine.aircraft.commands.steering :refer [apply-steering]]
    [atc.engine.aircraft.commands.visual-approach
-    :refer [apply-report-field-in-sight]]
+    :refer [apply-report-field-in-sight apply-visual-approach landed?]]
    [atc.engine.model :refer [angle-down-to bearing-to distance-to-squared]]
    [clojure.math :refer [pow]]))
-
-(defn- normalize-heading [h]
-  (if (< h 0)
-    (+ h 360)
-    (mod h 360)))
-
-(defn- apply-rate [aircraft command-key path rate-keys from commanded-value dt]
-  (let [sign (if (> commanded-value from) 1 -1)
-        rate-key (rate-keys sign)
-        rate (get-in aircraft [:config rate-key])
-        new-speed (+ from (* sign rate dt))]
-    (if (<= (abs (- commanded-value new-speed))
-            (* rate 0.5))
-      (-> aircraft
-          (assoc-in path commanded-value)  ; close enough; snap to
-          (update :commands dissoc command-key))
-
-      (-> aircraft
-          (assoc-in path new-speed)))))
-
-
-; ======= Steering ========================================
-
-(defn shorter-steer-direction [from to]
-  ; With thanks to: https://math.stackexchange.com/a/2898118
-  (let [delta (- (mod (- to from -540)
-                      360)
-                 180)]
-    (if (>= delta 0)
-      :right
-      :left)))
-
-(defn- apply-steering [{from :heading commands :commands :as aircraft}
-                       commanded-to dt]
-  (if (= from commanded-to)
-    aircraft
-
-    ; TODO at slower speeds, small craft might use a turn 2 rate (IE: 2x turn rate)
-    ; TODO similarly, at higher speeds, large craft might use a half turn rate
-    (let [turn-sign (case (or (:steer-direction commands)
-                              (shorter-steer-direction from commanded-to))
-                      :right  1
-                      :left  -1)
-          degrees-per-second (get-in aircraft [:config :turn-rate])
-          turn-amount (* degrees-per-second dt)
-          new-heading (normalize-heading (+ from (* turn-sign turn-amount)))]
-      (if (<= (abs (- commanded-to new-heading))
-              (* turn-amount 0.5))
-        (-> aircraft
-            (assoc :heading commanded-to)  ; close enough; snap to
-            (update :commands dissoc :steer-direction))
-        (assoc aircraft :heading new-heading)))))
-
-
-; ======= Direct-to-point nav =============================
-
-; This is the distance in meters squared at which an aircraft is considered
-; to have "arrived" at its :direct target. We include quite a bit of slop
-; to avoid excess steering, since you should maintain heading if you pass
-; the point and don't have any other direction
-(def ^:private over-coordinate-distance-m2 (pow 6500 2.))
-
-(defn- apply-direct [aircraft commanded-to dt]
-  ; NOTE: This is temporary; the real logic should account for resuming course,
-  ; intercept heading, crossing altitude, etc.
-  (let [distance2 (distance-to-squared (:position aircraft) commanded-to)]
-    (if (< distance2 over-coordinate-distance-m2)
-      ; We're "at" the destination; we can stop heading towards it now
-      (update aircraft :commands dissoc :direct)
-
-      (let [bearing-to-destination (bearing-to (:position aircraft) commanded-to)]
-        (apply-steering aircraft bearing-to-destination dt)))))
-
-
-; ======= Altitude ========================================
-
-(defn- apply-altitude [{{from :z} :position :as aircraft} commanded-altitude dt]
-  (if (or (= from commanded-altitude)
-          ; The aircraft cannot climb if it's going too slow! There's a bit
-          ; of an assumption here that the :landing-speed will never be less
-          ; than this, but that seems... safe?
-          (< (:speed aircraft) (:min-speed (:config aircraft))))
-    aircraft
-
-    (apply-rate
-      aircraft
-      :target-altitude [:position :z]
-      {-1 :descent-rate
-       1 :climb-rate}
-      from commanded-altitude dt)))
 
 
 ; ======= Approach course following =======================
@@ -109,8 +24,6 @@
 
 (def ^:private glide-slope-angle-degrees 3)
 (def ^:private glide-slope-width-degrees 1.4)
-
-(def ^:private landed-distance-m 5)
 
 (defn- within-localizer?
   "Returns the [runway-threshold distance2] if within the runway's localizer, else nil"
@@ -134,8 +47,7 @@
     ;  that's no good. 
     (cond-> aircraft
       ; Detect "landing"
-      (<= distance-to-runway2
-          landed-distance-m)
+      (landed? aircraft runway-start distance-to-runway2)
       (assoc :state :landed
              :commands {})
 
@@ -170,33 +82,21 @@
       aircraft))
 
 ; I suppose this could be a defmulti...
-(defn- apply-approach [aircraft {:keys [approach-type] :as command} dt]
+(defn- apply-approach [aircraft engine {:keys [approach-type] :as command} dt]
   (case approach-type
-    :ils (apply-ils-approach aircraft command dt)))
-
-
-; ======= Speed ===========================================
-
-(defn apply-target-speed [{from :speed :as aircraft} commanded-speed dt]
-  (if (= from commanded-speed)
-    aircraft
-
-    (apply-rate
-      aircraft
-      :target-speed [:speed]
-      {-1 :deceleration
-       1 :acceleration}
-      from commanded-speed dt)))
+    :ils (apply-ils-approach aircraft command dt)
+    :visual (apply-visual-approach aircraft engine command dt)))
 
 
 ; ======= Public interface ================================
 
-(defn apply-commanded-inputs [aircraft, commands dt]
+(defn apply-commanded-inputs [aircraft engine commands dt]
   (cond-> aircraft
     (:heading commands) (apply-steering (:heading commands) dt)
     (:direct commands) (apply-direct (:direct commands) dt)
-    (:cleared-approach commands) (apply-approach (:cleared-approach commands) dt)
+    (:cleared-approach commands) (apply-approach engine (:cleared-approach commands) dt)
     (:report-field-in-sight commands) (apply-report-field-in-sight
+                                        engine
                                         (:report-field-in-sight commands)
                                         dt)
     (:target-altitude commands) (apply-altitude (:target-altitude commands) dt)

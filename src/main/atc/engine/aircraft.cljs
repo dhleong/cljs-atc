@@ -73,8 +73,8 @@
                      ^Vec3 position heading speed
                      commands]
   Simulated
-  (tick [this dt]
-    (let [this (apply-commanded-inputs this commands dt)
+  (tick [this engine dt]
+    (let [this (apply-commanded-inputs this engine commands dt)
           ; TODO: Vertical speed?
           raw-speed (* (speed->mps speed) dt)
           heading-radians (heading->radians (:heading this))
@@ -84,8 +84,8 @@
           velocity-vector (vec3 vx vy 0)]
       (update this :position v+ velocity-vector)))
 
-  (command [this instruction]
-    (dispatch-instruction this (:context (meta instruction)) instruction))
+  (command [this engine instruction]
+    (dispatch-instruction this engine instruction))
 
   ICommunicator
   (pending-communication [this]
@@ -103,7 +103,8 @@
                     :callsign callsign
                     :radio-name radio-name
                     :state :flight
-                    :pilot (pilot/generate nil) ; TODO Pass in a preferred voice?
+                    :pilot (or (:pilot data)
+                               (pilot/generate nil)) ; TODO Pass in a preferred voice?
                     :position (vec3 250 250 (ft->m 20000))
                     :altitude-assignments []
                     :heading 350

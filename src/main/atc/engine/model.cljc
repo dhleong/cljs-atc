@@ -5,10 +5,10 @@
 (defprotocol Simulated
   "Anything that is managed by the simulation"
 
-  (tick [this dt]
+  (tick [this context dt]
         "Update this simulated item by [dt] seconds")
 
-  (command [this instruction]
+  (command [this context instruction]
            "Process an instruction, of the form [:instruction ...args]"))
 
 (defprotocol ICommunicator
@@ -128,8 +128,7 @@
         to (vec3 to)
         elevation (- (:z from) (:z to))]
     (to-degrees
-      ; NOTE: Rather than involve any sqrts we just square elevation
-      (atan2 (* elevation elevation)
-             (vmag2
+      (atan2 elevation
+             (vmag
                (v- (vec3 from 0)
                    (vec3 to 0)))))))

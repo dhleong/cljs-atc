@@ -14,7 +14,8 @@
 
 (def ^:private traffic-spec
   (ds/or {:random (ds/or {:with-seed {(ds/opt :seed) number?}
-                          :default-seed (s/spec #{:random})})}))
+                          :default-seed (s/spec #{:random})})
+          :debug (s/spec #{:debug})}))
 
 (def ^:private game-options-spec
   (ds/spec

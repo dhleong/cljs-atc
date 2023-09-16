@@ -21,9 +21,7 @@
     (loop [simulated (prepare-pending-communication simulated)
            instructions (vec instructions)]
       (if (seq instructions)
-        (recur (engine-model/command simulated (with-meta
-                                                 (first instructions)
-                                                 {:context context}))
+        (recur (engine-model/command simulated context (first instructions))
                (next instructions))
 
         (do
@@ -88,7 +86,7 @@
   ; since we aren't, properly. Technically we should have a separate Simulator
   ; protocol and implement that to be more correct...
   Simulated
-  (tick [this _dt]
+  (tick [this _context _dt]
     (let [now (js/Date.now)
 
           dt (* time-scale
@@ -100,7 +98,7 @@
           ; Tick all aircraft
           updated-aircraft (reduce
                              (fn [m callsign]
-                               (update m callsign tick dt))
+                               (update m callsign tick this dt))
                              aircraft
                              (keys aircraft))
 
@@ -118,9 +116,9 @@
           ; And process any "queued" events (like generating departures)
           (run-queues))))
 
-  (command [this command]
-    ; NOTE: The Engine actually receives a full Command object so we know where
-    ; to dispatch it and to whom.
+  (command [this command _instuction]
+    ; NOTE: The Engine receives a full Command object as its context, so we
+    ; know where to dispatch it and to whom.
     (let [{:keys [callsign global? instructions]} command]
       (cond
         global?
@@ -156,7 +154,7 @@
                      (get (:destination opts))
                      (rename-key :fix :departure-fix))
                  {:tx-frequency :self} ; NOTE: default to "my" frequency
-                 (select-keys opts [:origin :route :squawk])
+                 (select-keys opts [:origin :pilot :route :squawk])
                  (if arrival?
                    (arriving-aircraft-params this opts)
                    (departing-aircraft-params this opts)))]

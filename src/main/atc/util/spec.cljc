@@ -10,4 +10,5 @@
       (tap> value)
       (let [explanation (s/explain-str spec value)]
         (println "Spec check failed: " explanation)
+        (println " value: " value)
         false))))
