@@ -5,6 +5,7 @@
    [atc.engine.core :as engine]
    [atc.engine.model :as engine-model]
    [atc.game.keymap :as keymap]
+   [atc.help :as help]
    [atc.radio :refer [->readable ->speakable]]
    [atc.util.interceptors :refer [persist-key]]
    [atc.util.local-storage :as local-storage]
@@ -478,20 +479,10 @@
 ; ======= "Help" functionality ============================
 
 (reg-event-fx
-  :help/identify-flight-strip
+  :help/identify-span
   [trim-v]
   (fn [_ [part]]
-    (let [msg (case part
-                :altitude-assignments "A list of altitude assignments for this craft in 100's of feet"
-                :arrival-fix "The fix through which this aircraft will arrive in our airspace"
-                :callsign "The aircraft's callsign"
-                :cruise-flight-level "The altitude (as Flight Level) to which the craft eventually should climb"
-                :departure-fix "The fix from which this aircraft will depart our airspace"
-                :destination "The aircraft's destination"
-                :origin "The airport from which this aircraft departed"
-                :route "The aircraft's route"
-                :squawk "The aircraft's assigned \"squawk\" identifier code"
-                :type "The aircraft's type identifier")]
+    (let [msg (help/build-help part)]
       {:dispatch [:radio-history/push
                   {:speaker :system/help
                    :text msg}]})))

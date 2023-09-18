@@ -1,6 +1,7 @@
 (ns atc.views.strips.view
   (:require
    [archetype.util :refer [<sub >evt]]
+   [atc.components.help-span :refer [help-span]]
    [atc.components.icon :refer [icon]]
    [atc.components.icon-button :refer [icon-button]]
    [atc.data.units :refer [ft->fl]]
@@ -48,11 +49,6 @@
      [:.route {:border-left column-border
                :padding (px 4)}]]))
 
-(defn- create-help-attrs [kind]
-  {:on-context-menu (fn [e]
-                     (.preventDefault e)
-                     (>evt [:help/identify-flight-strip kind]))})
-
 (defn- flight-strip-form [{:keys [callsign config squawk
                                   col3
                                   route
@@ -60,12 +56,12 @@
                            [sc-mid sc-bottom] :squawk-column}]
   [:li (flight-strip-attrs)
    [:div.aircraft-identification
-    [:div.callsign (create-help-attrs :callsign) callsign]
-    [:div.craft-type (create-help-attrs :type) (:type config)]
+    [help-span {:as :div.callsign} callsign]
+    [help-span {:as :div.craft-type} (:type config)]
     [:div.blank nbsp]]
 
    [:div.squawk-column
-    [:div.squawk (create-help-attrs :squawk) squawk]
+    [help-span {:as :div.squawk} squawk]
     [:div.middle (or sc-mid nbsp)]
     [:div.bottom (or sc-bottom nbsp)]]
 
@@ -118,13 +114,14 @@
       :config config
       :squawk squawk
       :squawk-column [nil
-                      [:span (create-help-attrs :arrival-fix)
+                      [help-span :arrival-fix
                        (:arrival-fix strip)]]
       :route [:<>
-              [:div.altitudes (create-help-attrs :altitude-assignments)
+              [help-span {:as :div.altitudes
+                          :key :altitude-assignments}
                [altitude-assignments
                 (:altitude-assignments strip)]]
-              [:div.destination (create-help-attrs :destination)
+              [help-span {:as :div.destination}
                (:destination strip)]]}]
 
     ; Departure:
@@ -134,14 +131,15 @@
         :config config
         :squawk squawk
         :squawk-column [nil
-                        [:span (create-help-attrs :cruise-flight-level)
+                        [help-span :cruise-flight-level
                          cruise-flight-level]]
         :col3 [:<>
-               [:div.origin (create-help-attrs :origin)
+               [help-span {:as :div.origin}
                 (:origin strip)]
-               [:div.departure-fix (create-help-attrs :departure-fix)
+               [help-span {:as :div.departure-fix}
                 (:departure-fix strip)]]
-        :route [:div.actual-route (create-help-attrs :route)
+        :route [help-span {:as :div.actual-route
+                           :key :route}
                 (get-in strip [:route :route])]}])))
 
 (defn- flight-strip-group [& {subscription :<sub :keys [title]}]
