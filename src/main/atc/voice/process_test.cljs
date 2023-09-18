@@ -97,7 +97,18 @@
              "piper one expect i l s runway two two left")))
     (is (= [[:expect-runway "22L" {:approach-type nil}]]
            (find-instructions
-             "piper one expect runway two two left")))))
+             "piper one expect runway two two left"))))
+
+  (testing "Handle optional words"
+    (is (= [[:expect-runway "22L" {:approach-type :ils}]]
+           (find-instructions
+             "piper one expect the i l s runway two two left")
+           (find-instructions
+             "piper one expect vectors i l s runway two two left")
+           (find-instructions
+             "piper one expect vectors for i l s runway two two left")
+           (find-instructions
+             "piper one expect vectors for the i l s runway two two left")))))
 
 (deftest steer-test
   (testing "Process steer direction"

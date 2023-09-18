@@ -22,7 +22,7 @@
 
    "adjust-altitude = (<'climb'> | <'descend'>)? <'and'>? <'maintain'> altitude"
 
-   "expect-runway = <'expect'> approach-type? <'runway'> runway"
+   "expect-runway = <'expect'> (<'vectors'> <'for'>?)? <'the'>? approach-type? <'runway'> runway"
    "cleared-approach = <'cleared'> approach-type <'approach'>? <'runway'>? runway <'approach'>?"
    "cancel-approach = <'cancel'> <'approach clearance'>"
 
