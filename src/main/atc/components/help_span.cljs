@@ -6,7 +6,9 @@
 (defn- create-help-attrs [kind]
   {:on-context-menu (fn [e]
                      (.preventDefault e)
-                     (>evt [:help/identify-span kind]))})
+                     (>evt [:help/identify-span
+                            kind
+                            (.. e -target -innerText)]))})
 
 (defn help-span [help-key-or-opts & content]
   (let [element (:as help-key-or-opts :span)

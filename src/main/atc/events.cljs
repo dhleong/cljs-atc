@@ -480,9 +480,9 @@
 
 (reg-event-fx
   :help/identify-span
-  [trim-v]
-  (fn [_ [part]]
-    (let [msg (help/build-help part)]
+  [trim-v injected-engine (path :engine)]
+  (fn [{engine :db} [part content]]
+    (let [msg (help/build-help engine part content)]
       {:dispatch [:radio-history/push
                   {:speaker :system/help
                    :text msg}]})))
