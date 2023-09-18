@@ -2,7 +2,8 @@
   (:require
    [atc.data.units :as units]
    [atc.engine.aircraft.commands.helpers :refer [primary-airport-position]]
-   [atc.engine.aircraft.commands.visual-approach :refer [can-see-airport?]]))
+   [atc.engine.aircraft.commands.visual-approach :refer [can-see-airport?]]
+   [atc.config :as config]))
 
 (defn- utter [craft & utterance]
   (update craft ::utterance-parts conj utterance))
@@ -22,7 +23,13 @@
                               :climb
                               :descend)
                  :altitude-ft altitude})
-        (utter "maintain" [:altitude altitude]))))
+        (utter "maintain" [:altitude altitude])
+
+        (cond->
+          ; If we were commanded to below 10K, ensure that we slow down to meet the "speed limit"
+          (<= altitude 10000) (update-in [:commands :target-speed]
+                                         min
+                                         config/speed-limit-under-10k-kts)))))
 
 (defmethod dispatch-instruction
   :cleared-approach
