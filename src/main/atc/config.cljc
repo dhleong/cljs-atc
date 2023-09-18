@@ -22,7 +22,7 @@
 (def ctr-control-radius-m-sq (* ctr-control-radius-m
                                 ctr-control-radius-m))
 
-(def lateral-spacing-m (nm->m 10))
+(def arrivals-lateral-spacing-m (nm->m 20))
 
 ; UI Config
 (def default-range-ring-nm 5)
@@ -30,3 +30,6 @@
 
 ; Game Config
 (def initial-arrivals-to-spawn 10)
+
+; If two navaids are within this distance, they are "overlapping"
+(def navaid-overlap-m (nm->m 5))

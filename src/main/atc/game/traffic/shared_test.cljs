@@ -58,7 +58,7 @@
               c1-grouping (grouping-navaid-of-route engine c1-partial-route)
               c2-partial-route (partial-arrival-route engine c2)
               c2-grouping (grouping-navaid-of-route engine c2-partial-route)
-              delta (/ config/lateral-spacing-m 2)]
+              delta (/ config/arrivals-lateral-spacing-m 2)]
           (assert (not (roughly= (:position c1) (:position c2)
                                  :delta delta))
                   (str "\nOVERLAP! " (sqrt (distance-to-squared
@@ -79,15 +79,15 @@
                                              "KBWI"
                                              "KBWI")]
       (is (roughly=
-            config/lateral-spacing-m
+            config/arrivals-lateral-spacing-m
             (aircraft-distance craft1 craft2)
             :delta 250))
       (is (roughly=
-            config/lateral-spacing-m
+            config/arrivals-lateral-spacing-m
             (aircraft-distance craft2 craft3)
             :delta 350))
       (is (roughly=
-            (* 2 config/lateral-spacing-m)
+            (* 2 config/arrivals-lateral-spacing-m)
             (aircraft-distance craft1 craft3)
             :delta 450))))
 
@@ -96,7 +96,7 @@
                                       "KBTV"
                                       "KBTV")]
       (is (roughly=
-            config/lateral-spacing-m
+            config/arrivals-lateral-spacing-m
             (aircraft-distance craft1 craft2)
             :delta 250))))
 
@@ -110,7 +110,7 @@
           [craft1 craft2] crafts]
       (is (= 4 (count (distinct (map :position crafts)))))
       (is (roughly=
-            config/lateral-spacing-m
+            config/arrivals-lateral-spacing-m
             (aircraft-distance craft1 craft2)
             :delta 250))))
 

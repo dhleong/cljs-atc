@@ -75,7 +75,7 @@
         rough-initial-distance (if use-round-robin-positioning?
                                  (+ base-distance
                                     (* (count arrivals-by-route)
-                                       config/lateral-spacing-m))
+                                       config/arrivals-lateral-spacing-m))
 
                                  ; In the normal case, just start with
                                  ; the *farthest* aircraft from the airport
@@ -84,7 +84,7 @@
                                        arrivals-on-my-route)
                                      (:size)
                                      (sqrt) ; Only perform sqrt once!
-                                     (+ config/lateral-spacing-m)))
+                                     (+ config/arrivals-lateral-spacing-m)))
 
         spawn-distance (max
                          ; Always use the rough distance at init

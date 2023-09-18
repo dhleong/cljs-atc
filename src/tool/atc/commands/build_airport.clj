@@ -12,7 +12,7 @@
              n2 navaids]
          (when-not (= n1 n2)
            (when (roughly= (vec3 n1 0) (vec3 n2 0)
-                           :delta (/ config/lateral-spacing-m 2))
+                           :delta config/navaid-overlap-m)
              #{(:id n1) (:id n2)})))
        (keep identity)
        (distinct)
