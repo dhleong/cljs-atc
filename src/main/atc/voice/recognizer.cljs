@@ -4,6 +4,7 @@
    ["vosk-browser" :as Vosk]
    [applied-science.js-interop :as j]
    [atc.config :as config]
+   [atc.util.with-timing :refer-macros [with-timing]]
    [atc.voice.const :as const]
    [atc.voice.grammar :as grammar]
    [promesa.core :as p]))
@@ -58,7 +59,8 @@
                    KaldiRecognizer (j/get model :KaldiRecognizer)
                    grammar-content (when grammar
                                      (println "Generating grammar..." (count grammar))
-                                     (time (grammar/generate grammar)))
+                                     (with-timing "Generate grammar"
+                                       (grammar/generate grammar)))
 
                    _ (println "Prepared grammar: " (count grammar-content))
 
