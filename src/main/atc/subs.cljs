@@ -131,11 +131,11 @@
   (fn [[current history]]
     (->> current
          (mapcat (fn [{:keys [callsign]}]
-                   (map-indexed
+                   (keep-indexed
                      (fn [i history-entry]
-                       (-> history-entry
-                           (get-in [:aircraft callsign])
-                           (assoc :history-n i)))
+                       (some-> history-entry
+                               (get-in [:aircraft callsign])
+                               (assoc :history-n i)))
                      history))))))
 
 (reg-sub
