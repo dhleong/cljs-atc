@@ -454,10 +454,13 @@
         wx-changed? (not= (select-keys wx wx-keys)
                           (select-keys
                             (get-in db [:engine :weather])
-                            wx-keys))]
+                            wx-keys))
+        missing-atis? (nil? (get-in db [:engine :weather :atis]))
+        increment-atis? (or wx-changed?
+                            missing-atis?)]
     (cond-> db
       true (assoc-in [:engine :weather] wx)
-      wx-changed? (update-in [:engine :weather :atis] increment-atis now))))
+      increment-atis? (update-in [:engine :weather :atis] increment-atis now))))
 
 (reg-event-fx
   :weather/fetched
