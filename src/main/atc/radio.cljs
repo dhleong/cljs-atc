@@ -82,9 +82,20 @@
       (str
         (process-speakable [:number hundred-digits])
         " "
-        (process-speakable [:number (- v (* hundred-digits 100))])))
+        (process-speakable [:group-form/half (- v (* hundred-digits 100))])))
 
     ; TODO >4 digits
+    :else v))
+
+(defmethod process-speakable :group-form/half
+  [[_ v]]
+  (cond
+    ; eg "zero niner"
+    (< v 10)
+    (str "zero "
+         (process-speakable [:number v]))
+
+    ; eg "ten" or "22"
     :else v))
 
 (defmethod process-speakable :default [v]

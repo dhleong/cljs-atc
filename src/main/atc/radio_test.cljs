@@ -27,7 +27,10 @@
   (testing "Support four-digit flight-numbers"
     (is (= {:callsign "DAL4297"
             :radio-name "delta 42 97"}
-           (format-airline-radio "DAL" 4297))))
+           (format-airline-radio "DAL" 4297)))
+    (is (= {:callsign "DAL4207"
+            :radio-name "delta 42 zero seven"}
+           (format-airline-radio "DAL" 4207))))
   (testing "Support three-digit flight-numbers"
     (is (= {:callsign "DAL942"
             :radio-name "delta niner 42"}
