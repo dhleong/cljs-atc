@@ -40,6 +40,9 @@
     (is (= "BAW1006"
            (:callsign
              (find-command "speed bird ten zero six standby"))))
+    (is (= "BAW1009"
+           (:callsign
+             (find-command "speed bird ten o niner standby"))))
     (is (= "BAW5076"
            (:callsign
              (find-command "speed bird fifty seventy six standby")))))

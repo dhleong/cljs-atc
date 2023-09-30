@@ -6,6 +6,7 @@
 ; so it's used instead of the "plain" word when we do map-invert
 (defalternates digit
   {"zero" 0
+   "o" 0
    "one" 1
    "two" 2
    "three" 3
