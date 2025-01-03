@@ -7,8 +7,8 @@
     "private": true,
     "dependencies": {
         "@inlet/react-pixi": "^6.8.0",
-        "@pixi/math-extras": "^6.5.1",
         "@mintplex-labs/piper-tts-web": "^1.0.4",
+        "@pixi/math-extras": "^6.5.1",
         "microphone-stream": "^6.0.1",
         "pixi-viewport": "^4.34.4",
         "pixi.js": "^6.5.1",
@@ -43,5 +43,10 @@
         "tool": "clojure -Mtool"
     },
     "author": "",
-    "license": "ISC"
+    "license": "ISC",
+    "pnpm": {
+        "patchedDependencies": {
+            "readable-stream@3.6.0": "patches/readable-stream@3.6.0.patch"
+        }
+    }
 }

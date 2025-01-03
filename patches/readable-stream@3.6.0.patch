@@ -1,0 +1,26 @@
+diff --git a/lib/_stream_readable.js b/lib/_stream_readable.js
+index 192d451488f2089652e6166557439646a00c92a4..fbde99d406fd67a73680017c6f09077a11171f5e 100644
+--- a/lib/_stream_readable.js
++++ b/lib/_stream_readable.js
+@@ -45,7 +45,7 @@ var Stream = require('./internal/streams/stream');
+ 
+ var Buffer = require('buffer').Buffer;
+ 
+-var OurUint8Array = global.Uint8Array || function () {};
++var OurUint8Array = globalThis.Uint8Array || function () {};
+ 
+ function _uint8ArrayToBuffer(chunk) {
+   return Buffer.from(chunk);
+diff --git a/lib/_stream_writable.js b/lib/_stream_writable.js
+index a2634d7c24fd5eebf75693c6019fd45972be29e9..3e7a79424e1a9c94ac72e082154da0893026d64c 100644
+--- a/lib/_stream_writable.js
++++ b/lib/_stream_writable.js
+@@ -69,7 +69,7 @@ var Stream = require('./internal/streams/stream');
+ 
+ var Buffer = require('buffer').Buffer;
+ 
+-var OurUint8Array = global.Uint8Array || function () {};
++var OurUint8Array = globalThis.Uint8Array || function () {};
+ 
+ function _uint8ArrayToBuffer(chunk) {
+   return Buffer.from(chunk);
