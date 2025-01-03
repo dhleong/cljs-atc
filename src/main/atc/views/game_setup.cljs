@@ -1,5 +1,6 @@
 (ns atc.views.game-setup
   (:require
+   ["tone" :as Tone]
    [archetype.util :refer [<sub >evt]]
    [atc.config :as config]
    [atc.data.airports :refer [list-airports]]
@@ -78,9 +79,15 @@
   [:.spacer {:height (px 8)}])
 
 (defn- start-game! [loading?-ref ^js e
-                    {:keys [airport-id voice-input?
+                    {:keys [airport-id voice-input? enhanced-audio?
                             arrivals? departures?]}]
   (.preventDefault e)
+
+  (when enhanced-audio?
+    ; NOTE: We need to initialize the audio context from a user interaction
+    ; TODO: Hide this in a cljs module pls. Also, start warming up the module!
+    (Tone/start))
+
   (p/do
     (reset! loading?-ref true)
     (p/delay 10) ; Leave time to show loading state
@@ -89,11 +96,12 @@
                        :departures? departures?
                        :voice-input? voice-input?}])))
 
-(defn- labeled-input [{:keys [type disabled label key]}]
+(defn- labeled-input [{:keys [type disabled label key on-click]}]
   [:div.labeled
    [:label {:for key} label]
    [input {:type type
            :disabled disabled
+           :on-click on-click
            :key key
            :id key}]])
 
@@ -145,7 +153,16 @@
                         :label "Use voice input"
                         :key :voice-input?}]
         [:div.explanation {:id ::voice-explanation}
-         "If enabled, you will be prompted to allow microphone input once the game is loaded. You can then hold the spacebar to activate the mic and talk to pilots on your frequency!"]]
+         "If enabled, you will be prompted to allow microphone input once the game is loaded. You can then hold the spacebar to activate the mic and talk to pilots on your frequency!"]
+
+        [:div.spacer]
+
+        [labeled-input {:type :checkbox
+                        :disabled @loading?
+                        :label "Use enhanced audio"
+                        :key :enhanced-audio?}]
+        [:div.explanation {:id ::enhanced-audio-explanation}
+         "Enhance! This will use a local AI model to generate more realistic-sounding radio audio, which may be taxing for your machine."]]
 
        [:div.spacer]
 

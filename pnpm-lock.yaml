@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
+  '@diffusionstudio/vits-web':
+    hash: mcg4oc6silpionujqylxjnv5jm
+    path: patches/@diffusionstudio__vits-web.patch
   readable-stream@3.6.0:
     hash: j5rx3snuqoupavbs44r26lk4zq
     path: patches/readable-stream@3.6.0.patch
@@ -13,6 +16,9 @@ importers:
 
   .:
     dependencies:
+      '@diffusionstudio/vits-web':
+        specifier: ^1.0.3
+        version: 1.0.3(patch_hash=mcg4oc6silpionujqylxjnv5jm)
       '@inlet/react-pixi':
         specifier: ^6.8.0
         version: 6.8.0(pixi.js@6.5.1)(prop-types@15.8.1)(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
@@ -40,6 +46,9 @@ importers:
       readable-stream:
         specifier: ^4.1.0
         version: 4.6.0
+      tone:
+        specifier: ^15.0.4
+        version: 15.0.4
       vosk-browser:
         specifier: ^0.0.8
         version: 0.0.8
@@ -74,9 +83,16 @@ importers:
 
 packages:
 
+  '@babel/runtime@7.26.0':
+    resolution: {integrity: sha512-FDSOghenHTiToteC/QRlv2q3DhPZ/oOXTBoirfWNx1Cx3TMVcGWQtMMmQcSvb/JjpNeGzx8Pq/b4fKEJuWm1sw==}
+    engines: {node: '>=6.9.0'}
+
   '@colors/colors@1.5.0':
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
     engines: {node: '>=0.1.90'}
+
+  '@diffusionstudio/vits-web@1.0.3':
+    resolution: {integrity: sha512-xvOmc3CTWXGKbyiLbsrMczNArm7Z0Bi0h3pij0RTX6SytY/NSqd7h5DdPNUUhBt0nSjWGbo5RIrJLoCQTUQ0nQ==}
 
   '@esbuild/aix-ppc64@0.24.2':
     resolution: {integrity: sha512-thpVCb/rhxE/BnMLQ7GReQLLN8q9qbHmI55F4489/ByVg2aQaQ6kbcLb6FHkocZzQhxc4gx0sCk0tJkKBFzDhA==}
@@ -755,6 +771,10 @@ packages:
   assert@1.5.0:
     resolution: {integrity: sha512-EDsgawzwoun2CZkCgtxJbv392v4nbk9XDD06zI+kQYoBM/3RBWLlEyJARDOmhAAosBjWACEkKL6S+lIZtcAubA==}
 
+  automation-events@7.1.4:
+    resolution: {integrity: sha512-KCkUSGBKlZz2DTnjzHLnPzlTayExlkeIrzIgq5OqZgwvZsmgSsyQOXv/L+r8P14yR69xfSnwL2FmmzSCzI9o/g==}
+    engines: {node: '>=18.2.0'}
+
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
 
@@ -1257,8 +1277,14 @@ packages:
   once@1.4.0:
     resolution: {integrity: sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==}
 
+  onnxruntime-common@1.18.0:
+    resolution: {integrity: sha512-lufrSzX6QdKrktAELG5x5VkBpapbCeS3dQwrXbN0eD9rHvU0yAWl7Ztju9FvgAKWvwd/teEKJNj3OwM6eTZh3Q==}
+
   onnxruntime-common@1.20.1:
     resolution: {integrity: sha512-YiU0s0IzYYC+gWvqD1HzLc46Du1sXpSiwzKb63PACIJr6LfL27VsXSXQvt68EzD3V0D5Bc0vyJTjmMxp0ylQiw==}
+
+  onnxruntime-web@1.18.0:
+    resolution: {integrity: sha512-o1UKj4ABIj1gmG7ae0RKJ3/GT+3yoF0RRpfDfeoe0huzRW4FDRLfbkDETmdFAvnJEXuYDE0YT+hhkia0352StQ==}
 
   onnxruntime-web@1.20.1:
     resolution: {integrity: sha512-TePF6XVpLL1rWVMIl5Y9ACBQcyCNFThZON/jgElNd9Txb73CIEGlklhYR3UEr1cp5r0rbGI6nDwwrs79g7WjoA==}
@@ -1412,6 +1438,9 @@ packages:
     resolution: {integrity: sha512-gNva8/6UAe8QYepIQH/jQ2qn91Qj0B9sYjMBBs3QOB8F2CXcKgLxQaJRP76sWVRQt+QU+8fAkCbCvjjMFu7Ycw==}
     engines: {node: '>= 0.8.0'}
 
+  regenerator-runtime@0.14.1:
+    resolution: {integrity: sha512-dYnhHh0nJoMfnkZs6GmmhFknAGRrLznOu5nc9ML+EJxGvrx6H7teuevqVqCuPcPK//3eDrrjQhehXVx9cnkGdw==}
+
   require-directory@2.1.1:
     resolution: {integrity: sha512-fGxEI7+wsG9xrvdjsrlmL22OMTTiHRwAMroiEeMgq8gzoLC/PQr7RsRDSTLUg/bZAZtF+TVIkHc6/4RIKrui+Q==}
     engines: {node: '>=0.10.0'}
@@ -1494,6 +1523,9 @@ packages:
     resolution: {integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==}
     engines: {node: '>=0.10.0'}
 
+  standardized-audio-context@25.3.77:
+    resolution: {integrity: sha512-Ki9zNz6pKcC5Pi+QPjPyVsD9GwJIJWgryji0XL9cAJXMGyn+dPOf6Qik1AHei0+UNVcc4BOCa0hWLBzlwqsW/A==}
+
   statuses@1.5.0:
     resolution: {integrity: sha512-OpZ3zP+jT1PI7I8nemJX4AKmAX070ZkYPVWV/AaKTJl+tXCTGyVdC1a4SL8RUQYEwk/f34ZX8UTykN68FwrqAA==}
     engines: {node: '>= 0.6'}
@@ -1544,6 +1576,12 @@ packages:
   toidentifier@1.0.1:
     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
     engines: {node: '>=0.6'}
+
+  tone@15.0.4:
+    resolution: {integrity: sha512-Fr2xATgdkNhzwMZhrU0DXpkXQyambq73hjHRrBiC0Wkc6aPYRdmkySE9kRFAW878zgMiD+Lqvn/uNHt/7hbdnQ==}
+
+  tslib@2.8.1:
+    resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
   tty-browserify@0.0.0:
     resolution: {integrity: sha512-JVa5ijo+j/sOoHGjw0sxw734b1LhBkQ3bvUGNdxnVXDCX81Yx7TFgnZygxrIIWn23hbfTaMYLwRmAxFyDuFmIw==}
@@ -1693,7 +1731,15 @@ packages:
 
 snapshots:
 
+  '@babel/runtime@7.26.0':
+    dependencies:
+      regenerator-runtime: 0.14.1
+
   '@colors/colors@1.5.0': {}
+
+  '@diffusionstudio/vits-web@1.0.3(patch_hash=mcg4oc6silpionujqylxjnv5jm)':
+    dependencies:
+      onnxruntime-web: 1.18.0
 
   '@esbuild/aix-ppc64@0.24.2':
     optional: true
@@ -2198,6 +2244,11 @@ snapshots:
     dependencies:
       object-assign: 4.1.1
       util: 0.10.3
+
+  automation-events@7.1.4:
+    dependencies:
+      '@babel/runtime': 7.26.0
+      tslib: 2.8.1
 
   balanced-match@1.0.2: {}
 
@@ -2820,7 +2871,18 @@ snapshots:
     dependencies:
       wrappy: 1.0.2
 
+  onnxruntime-common@1.18.0: {}
+
   onnxruntime-common@1.20.1: {}
+
+  onnxruntime-web@1.18.0:
+    dependencies:
+      flatbuffers: 1.12.0
+      guid-typescript: 1.0.9
+      long: 5.2.3
+      onnxruntime-common: 1.18.0
+      platform: 1.3.6
+      protobufjs: 7.4.0
 
   onnxruntime-web@1.20.1:
     dependencies:
@@ -3039,6 +3101,8 @@ snapshots:
 
   readline-sync@1.4.10: {}
 
+  regenerator-runtime@0.14.1: {}
+
   require-directory@2.1.1: {}
 
   requires-port@1.0.0: {}
@@ -3152,6 +3216,12 @@ snapshots:
 
   source-map@0.6.1: {}
 
+  standardized-audio-context@25.3.77:
+    dependencies:
+      '@babel/runtime': 7.26.0
+      automation-events: 7.1.4
+      tslib: 2.8.1
+
   statuses@1.5.0: {}
 
   statuses@2.0.1: {}
@@ -3210,6 +3280,13 @@ snapshots:
       is-number: 7.0.0
 
   toidentifier@1.0.1: {}
+
+  tone@15.0.4:
+    dependencies:
+      standardized-audio-context: 25.3.77
+      tslib: 2.8.1
+
+  tslib@2.8.1: {}
 
   tty-browserify@0.0.0: {}
 
