@@ -1,7 +1,5 @@
 ;; shadow-cljs configuration
-{:dev-http {8080 "public"}
-
- :source-paths ["src/main" "src/test"]
+{:source-paths ["src/main" "src/test"]
 
  :dependencies [; core:
                 [reagent "1.2.0"]
