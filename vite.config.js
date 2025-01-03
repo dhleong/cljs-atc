@@ -11,7 +11,15 @@ export default defineConfig({
     watch: {
       // Exclude .cljs files
       // so changes dont trigger multiple reloads
-      ignored: "**/*.cljs",
+      ignored: [
+        "**/*.cljs",
+        "**/*.edn",
+        "module-loader.json",
+        "**/js/main.js",
+        "**/js/imports.js",
+        "**/js/airport-kjfk.js",
+        "**/cljs-runtime/**"
+      ],
     },
   },
 })
