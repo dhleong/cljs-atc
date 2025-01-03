@@ -36,7 +36,11 @@
                 :output-dir "public/js"
                 :asset-path "/js"
 
-                :module-loader true
+                :js-options {:js-provider :external
+                             :external-index "public/js/imports.js"
+                             :external-index-format :esm}
+
+                ; :module-loader true
                 :modules {:main {:init-fn atc.core/init}
                           :airport-kjfk {:entries [atc.data.airports.kjfk]
                                          :depends-on #{:main}}}}
