@@ -9,7 +9,7 @@
                 [net.dhleong/archetype "0.1.0-SNAPSHOT"]
 
                 ; style/ui/ux:
-                [net.dhleong/spade "2.0.0-SNAPSHOT"]
+                [net.dhleong/spade "2.1.0-SNAPSHOT"]
                 [net.dhleong/santiago "0.1.0-SNAPSHOT"]
 
                 ; input processing
