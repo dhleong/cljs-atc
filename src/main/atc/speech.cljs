@@ -1,9 +1,25 @@
 (ns atc.speech
   (:require
+   ; NOTE: Sadly this module seems to have some issues for some reason... so we
+   ; use our custom-patched version of vits-web, which performs the same
+   ; ["@mintplex-labs/piper-tts-web" :as tts]
+   ["@diffusionstudio/vits-web" :as tts]
+   ["tone" :as Tone]
    [applied-science.js-interop :as j]
    [archetype.util :refer [>evt]]
    [promesa.core :as p]
    [clojure.string :as str]))
+
+(defn- speak []
+  (-> (p/let [_ (println "starting up...")
+              voice-id "en_US-libritts_r-medium"
+              wav (tts/predict #js {:text "Hello world"
+                                    :voiceId voice-id})
+              ^js player (Tone/Player. (js/URL.createObjectURL wav))]
+        (Tone/loaded)
+        (.toDestination player)
+        (.start player))
+      (p/catch println)))
 
 (defn- load-voices []
   (->> (js/window.speechSynthesis.getVoices)
@@ -31,29 +47,29 @@
 (defn say! [{:keys [message pitch rate voice]
              :or {rate 1 pitch 1}}]
   (p/create
-    (fn [p-resolve p-reject]
-      (let [clear-active #(swap! state dissoc :active)
-            utt (doto (js/SpeechSynthesisUtterance. message)
-                  (j/assoc! :rate rate)
-                  (j/assoc! :pitch pitch)
-                  (j/assoc! :voice (::instance voice voice))
+   (fn [p-resolve p-reject]
+     (let [clear-active #(swap! state dissoc :active)
+           utt (doto (js/SpeechSynthesisUtterance. message)
+                 (j/assoc! :rate rate)
+                 (j/assoc! :pitch pitch)
+                 (j/assoc! :voice (::instance voice voice))
 
-                  (.addEventListener "start" (fn []
-                                               (let [{:keys [timeout]} @state]
-                                                 (js/clearTimeout timeout))))
-                  (.addEventListener "end" (comp p-resolve clear-active))
-                  (.addEventListener "error" (comp p-reject clear-active)))]
+                 (.addEventListener "start" (fn []
+                                              (let [{:keys [timeout]} @state]
+                                                (js/clearTimeout timeout))))
+                 (.addEventListener "end" (comp p-resolve clear-active))
+                 (.addEventListener "error" (comp p-reject clear-active)))]
         ; NOTE: We stash the utterance in some state to avoid it getting GC'd before
         ; it completes (which could result in listeners not firing)
         ; NOTE: Also, occasionally it seems like the speech never starts.
         ; So, we set a timeout here and clear it on `start`---that's the
         ; common (success) case; if the timeout actually fires, we'll reject
         ; the promise to allow the voice state to get cleared out.
-        (reset! state {:active utt
-                       :timeout (js/setTimeout
-                                  (partial
-                                    (p-reject
-                                      (ex-info "Speech synthesis timeout"
-                                               {:message message})))
-                                  750)})
-        (js/window.speechSynthesis.speak utt)))))
+       (reset! state {:active utt
+                      :timeout (js/setTimeout
+                                (partial
+                                 (p-reject
+                                  (ex-info "Speech synthesis timeout"
+                                           {:message message})))
+                                750)})
+       (js/window.speechSynthesis.speak utt)))))
