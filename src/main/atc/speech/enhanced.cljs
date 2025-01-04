@@ -63,9 +63,12 @@
         delay-ms (+ 100 (rand-int 400))
         delay-node (Tone/Delay. (/ delay-ms 1000)) ; ms -> seconds
 
+        promise (p/deferred)
+
         on-stop (fn on-stop []
                   ; Stop playing the noise when the transmission ends:
-                  (.stop noise))]
+                  (.stop noise)
+                  (p/resolve! promise))]
 
     ; NOTE: the player's onstop doesn't account for its output delay, and
     ; the Delay node doesn't have onstop, so we "fake" it here:
@@ -76,7 +79,9 @@
     (.connect filter-frequency-modulator (.-frequency bandpass))
 
     ; TODO: Rate? pitch shift?
-    (.chain player delay-node bandpass distortion Tone/Destination)))
+    (.chain player delay-node bandpass distortion Tone/Destination)
+
+    promise))
 
 ; Imported lazily in atc.speech
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
@@ -87,16 +92,24 @@
                             :speaker-id voice})
               ^Tone/Player player (Tone/Player. (js/URL.createObjectURL wav))
 
-              radio? (and simulate-radio? radio?)]
+              radio? (and simulate-radio? radio?)
 
-        (if radio?
-          ; TODO: We could compute the distance of the craft to the tower
-          (radioify! player {:distance distance})
+              ; NOTE: We wrap in a vec to prevent p/let from awaiting it
+              [promise] (if radio?
+                          ; TODO: We could compute the distance of the craft to the tower
+                          [(radioify! player {:distance distance})]
 
-          (.toDestination player))
+                          (do (.toDestination player)
+
+                              [(p/create
+                                (fn [p-resolve]
+                                  (j/assoc! player :onstop p-resolve)))]))]
 
         (Tone/loaded)
-        (.start player))
+        (.start player)
+
+        ; Return a promise that resolves when the utterence completes
+        promise)
       (p/catch (partial js/console.error "[enhanced] error"))))
 
 ; Imported lazily in atc.speech
