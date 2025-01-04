@@ -40,6 +40,8 @@
 
                 :module-loader true
                 :modules {:main {:init-fn atc.core/init}
+                          :speech.enhanced {:entries [atc.speech.enhanced]
+                                            :depends-on #{:main}}
                           :airport-kjfk {:entries [atc.data.airports.kjfk]
                                          :depends-on #{:main}}}}
 

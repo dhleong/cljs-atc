@@ -3,14 +3,13 @@
    [atc.data.core :refer [local-xy]]
    [atc.data.units :refer [ft->m]]
    [atc.engine.model :refer [vec3]]
+   [atc.util.lazy :as lazy]
    [atc.util.numbers :refer [->int]]
    [clojure.string :as str]
-   [promesa.core :as p]
-   [shadow.lazy :as lazy]))
+   [promesa.core :as p]))
 
 ; NOTE: We explicitly do NOT want to require these namespaces,
 ; since they should be code-split
-#_{:clj-kondo/ignore [:unresolved-namespace]}
 (def ^:private airport-loadables
   {:kjfk (lazy/loadable atc.data.airports.kjfk/exports)})
 
@@ -23,26 +22,20 @@
 
 (defn load-airport [airport-id]
   (if-some [loadable (get airport-loadables airport-id)]
-    (if (lazy/ready? loadable)
-      (:airport @loadable)
-      (-> ; NOTE: lazy/load *should* return a promise, but it
-          ; does not seem to play well with promesa, so...
-          (p/create
-            (fn [p-resolve p-reject]
-              (lazy/load loadable p-resolve p-reject)))
-          (p/then :airport)
-          (p/catch #?(:clj (partial println "[ERROR]")
-                      :cljs js/console.error))))
+    (-> (p/let [{:keys [airport]} (lazy/unpack loadable)]
+          airport)
+        (p/catch #?(:clj (partial println "[ERROR]")
+                    :cljs js/console.error)))
     (throw (ex-info "No such airport: " {:id airport-id}))))
 
 (defn airport-parsing-rules [airport-id]
   (:navaid-pronounced
-    @(get airport-loadables airport-id)))
+   @(get airport-loadables airport-id)))
 
 (defn airport-parsing-transformers [airport-id]
   {:navaid-pronounced
    (:navaids-by-pronunciation
-     @(get airport-loadables airport-id))})
+    @(get airport-loadables airport-id))})
 
 (defn runway-coords [airport runway]
   (when-let [runway-object (->> airport
