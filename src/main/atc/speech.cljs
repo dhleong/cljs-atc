@@ -6,6 +6,11 @@
    [promesa.core :as p]
    [atc.util.lazy :as lazy]))
 
+(def ^:private mode (atom :builtin))
+
+; Declaring this here is a bit yuck, but lets us avoid having to resolve a promise
+(def ^:private enhanced-voices-count 904)
+
 ; NOTE: We explicitly do NOT want to require these namespaces,
 ; since they should be code-split
 (def ^:private enhanced-init
@@ -37,14 +42,18 @@
     (>evt [:speech/on-voices-changed (load-voices)])))
 
 (defn prepare! [{:keys [enhanced?]}]
+  (reset! mode (if enhanced? :enhanced :builtin))
   (when enhanced?
     (println "preparing enhanced audio...")
     (-> (enhanced-init)
         (p/catch (fn [e]
+                   (reset! mode :builtin)
                    (js/console.warn "Failed to initialize enhanced audio..." e))))))
 
 (defn pick-random-voice []
-  (rand-nth @shared-voices))
+  (case @mode
+    :builtin (rand-nth @shared-voices)
+    :enhanced (rand-int enhanced-voices-count)))
 
 (defn- say-synthesis! [{:keys [message pitch rate voice]
                         :or {rate 1 pitch 1}}]
@@ -77,7 +86,9 @@
        (js/window.speechSynthesis.speak utt)))))
 
 (defn say! [{:keys [enhanced?] :as task}]
-  ; TODO: actually set this value... somewhere
-  (if enhanced?
+  ; NOTE: We don't normally set enhanced? one way or another... but could be nice?
+  (if (or (and (not (false? enhanced?))
+               (= @mode :enhanced))
+          (true? enhanced?))
     (enhanced-speak task)
     (say-synthesis! task)))
