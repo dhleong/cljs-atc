@@ -90,5 +90,10 @@
   (if (or (and (not (false? enhanced?))
                (= @mode :enhanced))
           (true? enhanced?))
-    (enhanced-speak task)
+    (-> (enhanced-speak task)
+        (p/catch (fn [e]
+                   (js/console.error "Failed to enhanced-speak" e)
+                   (println "Task: " task)
+                   ; Fall back to builtin speech, just in case
+                   (reset! mode :builtin))))
     (say-synthesis! task)))
