@@ -13,7 +13,7 @@
 (def ^:private speakers-count 904) ; TODO: use this to select a "voice" (speaker-id)
 (def ^:private simulate-radio? true)
 
-(def ^:private max-distance 10000)
+(def ^:private max-distance 100000)
 
 (defn- predict [{:keys [text speaker-id] :or {speaker-id 0}}]
   (tts/predict #js {:text text
@@ -26,7 +26,8 @@
   (rand-int speakers-count))
 
 (defn- radioify! [^Tone/Player player {:keys [distance]}]
-  (let [distance-factor (/ distance max-distance)
+  (let [distance-factor (min (/ distance max-distance)
+                             1.1)
 
         ; Use bandpath to limit the frequency range
         bandpass (Tone/BiquadFilter.
@@ -88,6 +89,7 @@
 (defn speak [{:keys [voice message radio? distance]
               :or {radio? true
                    distance (/ max-distance 2)}}]
+  (println "speak with " voice " @ " distance)
   (-> (p/let [wav (predict {:text message
                             :speaker-id voice})
               ^Tone/Player player (Tone/Player. (js/URL.createObjectURL wav))
