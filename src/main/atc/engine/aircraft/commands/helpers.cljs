@@ -17,11 +17,14 @@
   (assoc (:pilot craft)
          :name (:callsign craft)))
 
+(defn message-from [craft message]
+  {:message message
+   :craft craft
+   :from (build-utterance-from craft)})
+
 (defn utter-once [craft & parts]
   (when (seq parts)
-    {:message (concat ["center," craft ";"] parts)
-     :from (build-utterance-from craft)}))
-
+    (message-from craft (concat ["center," craft ";"] parts))))
 
 ; ======= Building blocks =================================
 
