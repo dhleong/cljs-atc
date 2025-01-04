@@ -1,25 +1,20 @@
 (ns atc.speech
   (:require
-   ; NOTE: Sadly this module seems to have some issues for some reason... so we
-   ; use our custom-patched version of vits-web, which performs the same
-   ; ["@mintplex-labs/piper-tts-web" :as tts]
-   ["@diffusionstudio/vits-web" :as tts]
-   ["tone" :as Tone]
    [applied-science.js-interop :as j]
    [archetype.util :refer [>evt]]
+   [clojure.string :as str]
    [promesa.core :as p]
-   [clojure.string :as str]))
+   [atc.util.lazy :as lazy]))
 
-(defn- speak []
-  (-> (p/let [_ (println "starting up...")
-              voice-id "en_US-libritts_r-medium"
-              wav (tts/predict #js {:text "Hello world"
-                                    :voiceId voice-id})
-              ^js player (Tone/Player. (js/URL.createObjectURL wav))]
-        (Tone/loaded)
-        (.toDestination player)
-        (.start player))
-      (p/catch println)))
+; NOTE: We explicitly do NOT want to require these namespaces,
+; since they should be code-split
+(def ^:private enhanced-init
+  (lazy/function
+   (lazy/loadable atc.speech.enhanced/init)))
+
+(def ^:private enhanced-speak
+  (lazy/function
+   (lazy/loadable atc.speech.enhanced/speak)))
 
 (defn- load-voices []
   (->> (js/window.speechSynthesis.getVoices)
@@ -41,11 +36,18 @@
     (>evt [:speech/unavailable])
     (>evt [:speech/on-voices-changed (load-voices)])))
 
+(defn prepare! [{:keys [enhanced?]}]
+  (when enhanced?
+    (println "preparing enhanced audio...")
+    (-> (enhanced-init)
+        (p/catch (fn [e]
+                   (js/console.warn "Failed to initialize enhanced audio..." e))))))
+
 (defn pick-random-voice []
   (rand-nth @shared-voices))
 
-(defn say! [{:keys [message pitch rate voice]
-             :or {rate 1 pitch 1}}]
+(defn- say-synthesis! [{:keys [message pitch rate voice]
+                        :or {rate 1 pitch 1}}]
   (p/create
    (fn [p-resolve p-reject]
      (let [clear-active #(swap! state dissoc :active)
@@ -73,3 +75,9 @@
                                            {:message message})))
                                 750)})
        (js/window.speechSynthesis.speak utt)))))
+
+(defn say! [{:keys [enhanced?] :as task}]
+  ; TODO: actually set this value... somewhere
+  (if enhanced?
+    (enhanced-speak task)
+    (say-synthesis! task)))

@@ -18,7 +18,9 @@ export default defineConfig({
         // "correctly" then that'd be nice, but I don't want to waste more time
         // NOTE: Similarly, we can't "just" ignore cljs-runtime files etc., as
         // changes will be "lost" on refresh due to vite's caching.
-        const ignoredFiles = ["imports.js", "main.js", "airports-kjfk.js"];
+        // FIXME: We should load this list from the :external-index and
+        // :modules from shadow-cljs.edn
+        const ignoredFiles = ["imports.js", "main.js", "speech.enhanced.js", "airports-kjfk.js"];
         const ignoredFilePaths = new Set(ignoredFiles.map((file) => `${server.config.root}/js/${file}`));
         if (ignoredFilePaths.has(file) || file.includes("/cljs-runtime/")) {
           return [];
