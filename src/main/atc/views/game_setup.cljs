@@ -1,9 +1,9 @@
 (ns atc.views.game-setup
   (:require
-   ["tone" :as Tone]
    [archetype.util :refer [<sub >evt]]
    [atc.config :as config]
    [atc.data.airports :refer [list-airports]]
+   [atc.speech :as speech]
    [atc.styles :refer [full-screen]]
    [garden.units :refer [px]]
    [promesa.core :as p]
@@ -83,10 +83,8 @@
                             arrivals? departures?]}]
   (.preventDefault e)
 
-  (when enhanced-audio?
-    ; NOTE: We need to initialize the audio context from a user interaction
-    ; TODO: Hide this in a cljs module pls. Also, start warming up the module!
-    (Tone/start))
+  ; NOTE: We need to initialize the audio context from a user interaction
+  (speech/prepare! {:enhanced? enhanced-audio?})
 
   (p/do
     (reset! loading?-ref true)
@@ -160,9 +158,12 @@
         [labeled-input {:type :checkbox
                         :disabled @loading?
                         :label "Use enhanced audio"
+                        :on-click (fn [e]
+                                    (when (some-> e .-target .-checked)
+                                      (speech/prepare! {:enhanced? true})))
                         :key :enhanced-audio?}]
         [:div.explanation {:id ::enhanced-audio-explanation}
-         "Enhance! This will use a local AI model to generate more realistic-sounding radio audio, which may be taxing for your machine."]]
+         "Enhance! This will download a local AI model to generate more realistic-sounding radio audio, which may be taxing for your machine."]]
 
        [:div.spacer]
 
