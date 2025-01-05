@@ -11,6 +11,14 @@
                                       shadow.lazy/load]}
 
            :unused-private-var {:exclude [cljs-atc.views.error-boundary/clear-errors]}}
+
+ ; Ignore this for now as there's no apparent way to handle
+ ; clojure-lsp/unused-public-var correctly...
+ :ignore [:redundant-ignore]
+
+ ; Not ideal, but... fine I guess?
+ :config-in-call {secretary.core/defroute {:ignore [:syntax]}}
+
  :lint-as {applied-science.js-interop/defn clojure.core/defn
            applied-science.js-interop/let clojure.core/let
            applied-science.js-interop/fn clojure.core/fn

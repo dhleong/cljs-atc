@@ -77,7 +77,7 @@
                :message [named-position ", " aircraft ". "
                          (cond
                            (get-in aircraft [:behavior :will-get-weather?])
-                           (str "With the weather,")
+                           "With the weather,"
 
                            :else "With you")
                          [:altitude
