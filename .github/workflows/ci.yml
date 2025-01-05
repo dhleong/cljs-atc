@@ -24,14 +24,14 @@ jobs:
         cli: '1.11.1.1149'
 
     - name: Clojure dependency cache
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('shadow-cljs.edn') }}
         restore-keys: |
           ${{ runner.os }}-m2-
     - name: Node dependency cache
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: '**/node_modules'
         key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
