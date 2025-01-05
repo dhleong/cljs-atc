@@ -1,8 +1,13 @@
 (ns atc.util.lazy
-  (:require-macros [atc.util.lazy])
+  #? (:cljs (:require-macros [atc.util.lazy]))
   (:require
    [promesa.core :as p]
    [shadow.lazy :as lazy]))
+
+; Re-exporting for convenience
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
+(defmacro loadable [s]
+  `(lazy/loadable ~s))
 
 (defn unpack [lazy-loadable]
   (if (lazy/ready? lazy-loadable)
