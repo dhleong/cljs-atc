@@ -10,14 +10,15 @@
   `(lazy/loadable ~s))
 
 (defn unpack [lazy-loadable]
-  (if (lazy/ready? lazy-loadable)
-    (p/do! @lazy-loadable)
+  #? (:clj (p/do! (deref lazy-loadable))
+      :cljs (if (lazy/ready? lazy-loadable)
+              (p/do! @lazy-loadable)
 
-    ; NOTE: lazy/load *should* return a promise, but it
-    ; does not seem to play well with promesa, so...
-    (p/create
-     (fn [p-resolve p-reject]
-       (lazy/load lazy-loadable p-resolve p-reject)))))
+             ; NOTE: lazy/load *should* return a promise, but it
+             ; does not seem to play well with promesa, so...
+              (p/create
+               (fn [p-resolve p-reject]
+                 (lazy/load lazy-loadable p-resolve p-reject))))))
 
 (defn function [lazy-loadable]
   (fn lazy-wrapper [& args]
