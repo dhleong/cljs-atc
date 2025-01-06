@@ -2,7 +2,7 @@
   (:require
    [atc.data.units :refer [ft->m]]
    [atc.engine.aircraft.commands :refer [apply-commanded-inputs]]
-   [atc.engine.aircraft.commands.helpers :refer [build-utterance-from]]
+   [atc.engine.aircraft.commands.helpers :refer [message-from]]
    [atc.engine.aircraft.instructions :as instructions :refer [dispatch-instruction]]
    [atc.engine.config :refer [AircraftConfig]]
    [atc.engine.model :refer [bearing-to ICommunicator Simulated v+ Vec3 vec3]]
@@ -58,8 +58,7 @@
 
 (defn- build-utterance [craft parts]
   (when (seq parts)
-    {:message (conj parts ["," craft])
-     :from (build-utterance-from craft)}))
+    (message-from craft (conj parts ["," craft]))))
 
 
 ; ======= Main record =====================================

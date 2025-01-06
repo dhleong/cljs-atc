@@ -3,7 +3,7 @@
    [atc.config :as config]
    [atc.data.units :refer [m->ft]]
    [atc.engine.aircraft :as aircraft]
-   [atc.engine.aircraft.commands.helpers :refer [build-utterance-from]]
+   [atc.engine.aircraft.commands.helpers :refer [message-from]]
    [atc.engine.model :refer [lateral-distance-to-squared]]
    [atc.util.numbers :refer [round-to-hundreds]]))
 
@@ -70,24 +70,25 @@
 
       ; TODO simulate comms on frequency here, first (or at least
       ; wait some time as though it were happening)
-      (update :speech/enqueue conj
-              {:from (build-utterance-from aircraft)
+     (update :speech/enqueue conj
+             (message-from
+              aircraft
                ; TODO: include approach/departure "name"
                ; (eg: "New York Departure")
-               :message [named-position ", " aircraft ". "
-                         (cond
-                           (get-in aircraft [:behavior :will-get-weather?])
-                           "With the weather,"
+              [named-position ", " aircraft ". "
+               (cond
+                 (get-in aircraft [:behavior :will-get-weather?])
+                 "With the weather,"
 
-                           :else "With you")
-                         [:altitude
-                          (round-to-hundreds
-                            (m->ft (:z (:position aircraft))))]
-                         (when-let [target-altitude (get-in aircraft
-                                                            [:commands
-                                                             :target-altitude])]
-                           ["for" [:altitude (round-to-hundreds
-                                               target-altitude)]])]}))))
+                 :else "With you")
+               [:altitude
+                (round-to-hundreds
+                 (m->ft (:z (:position aircraft))))]
+               (when-let [target-altitude (get-in aircraft
+                                                  [:commands
+                                                   :target-altitude])]
+                 ["for" [:altitude (round-to-hundreds
+                                    target-altitude)]])])))))
 
 (defmethod update-state-machine :arriving
   [engine callsign _dt]
@@ -98,7 +99,6 @@
     (cond-> engine
       (<= distance-sq config/ctr-control-radius-m-sq)
       (update-in [:aircraft callsign] assoc :state :handed-off-to-self))))
-
 
 (defmethod update-state-machine :landed
   [engine callsign _dt]
