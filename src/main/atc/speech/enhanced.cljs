@@ -85,10 +85,9 @@
     promise))
 
 ; Imported lazily in atc.speech
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
-(defn speak [{:keys [voice message radio? distance]
-              :or {radio? true
-                   distance (/ max-distance 2)}}]
+(defn ^:export speak [{:keys [voice message radio? distance]
+                       :or {radio? true
+                            distance (/ max-distance 2)}}]
   (println "speak with " voice " @ " distance)
   (-> (p/let [wav (predict {:text message
                             :speaker-id voice})
@@ -115,8 +114,7 @@
       (p/catch (partial js/console.error "[enhanced] error"))))
 
 ; Imported lazily in atc.speech
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
-(defn init []
+(defn ^:export init []
   (p/do!
    (println "[enhanced] init...")
    (Tone/start)

@@ -15,11 +15,11 @@
 ; since they should be code-split
 (def ^:private enhanced-init
   (lazy/function
-   (lazy/loadable atc.speech.enhanced/init)))
+   (lazy/dynamic-import 'atc.speech.enhanced/init)))
 
 (def ^:private enhanced-speak
   (lazy/function
-   (lazy/loadable atc.speech.enhanced/speak)))
+   (lazy/dynamic-import 'atc.speech.enhanced/speak)))
 
 (defn- load-voices []
   (->> (js/window.speechSynthesis.getVoices)
@@ -45,7 +45,9 @@
   (reset! mode (if enhanced? :enhanced :builtin))
   (when enhanced?
     (println "preparing enhanced audio...")
-    (-> (enhanced-init)
+    (-> (p/do!
+         (enhanced-init)
+         (println "Enhanced audio ready!"))
         (p/catch (fn [e]
                    (reset! mode :builtin)
                    (js/console.warn "Failed to initialize enhanced audio..." e))))))

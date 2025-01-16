@@ -30,20 +30,26 @@
                 [cider/cider-nrepl "0.24.0"]
                 [refactor-nrepl "2.5.0"]]
 
- :builds {:app {:target :browser
+ :builds {:app {:target :esm
                 :output-dir "public/js"
                 :asset-path "/js"
 
-                :js-options {:js-provider :external
-                             :external-index "public/js/imports.js"
-                             :external-index-format :esm}
+                :js-options {:js-provider :import}
+
+                ; :js-options {:js-provider :external
+                ;              :external-index "public/js/imports.js"
+                ;              :external-index-format :esm}
 
                 :module-loader true
-                :modules {:main {:init-fn atc.core/init}
-                          :speech.enhanced {:entries [atc.speech.enhanced]
-                                            :depends-on #{:main}}
+                :modules {:main {:init-fn atc.core/init
+                                 :depends-on #{:shared}}
+                          :shared {}
+                          :atc.speech.enhanced {:exports
+                                                {init atc.speech.enhanced/init
+                                                 speak atc.speech.enhanced/speak}
+                                                :depends-on #{:shared}}
                           :airport-kjfk {:entries [atc.data.airports.kjfk]
-                                         :depends-on #{:main}}}}
+                                         :depends-on #{:shared}}}}
 
           :ci {:target :karma
                :output-to "target/ci.js"}}}
