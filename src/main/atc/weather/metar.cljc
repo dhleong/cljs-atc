@@ -5,7 +5,7 @@
    [instaparse.core :as insta :refer-macros [defparser]]))
 
 (defparser ^:private metar-parser
-  "<metar> = airport date-time wind visibility-sm clouds temp-dewpoint altimeter
+  "<metar> = airport date-time wind visibility-sm visibility-rvr* clouds temp-dewpoint altimeter
    airport = letter+
    date-time = number+ 'Z'
    wind = wind-direction wind-kts (<'G'> numbers)? <'KT'>
@@ -25,6 +25,9 @@
    wind-direction = number number number
    wind-kts = number number
    visibility-sm = numbers (<'/'> numbers)? <'SM'>
+
+   (* NOTE: We aren't doing anything with runway visual range yet *)
+   visibility-rvr = 'R' ( letter | numbers )+ <'/'> ( letter | numbers )+
 
    <letter> = #'[A-Z]'
    numbers = number+
