@@ -4,7 +4,6 @@
     "description": "",
     "main": "index.js",
     "private": true,
-    "type": "module",
     "dependencies": {
         "@diffusionstudio/vits-web": "^1.0.3",
         "@inlet/react-pixi": "^6.8.0",
