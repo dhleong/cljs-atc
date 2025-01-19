@@ -11,7 +11,7 @@
 ; NOTE: We explicitly do NOT want to require these namespaces,
 ; since they should be code-split
 (def ^:private airport-loadables
-  {:kjfk (lazy/loadable atc.data.airports.kjfk/exports)})
+  {:kjfk (lazy/dynamic-import 'atc.data.airports.kjfk/exports)})
 
 (defn list-airports []
   (->> airport-loadables

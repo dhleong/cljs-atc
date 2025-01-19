@@ -25,7 +25,11 @@
         (or @p
             (start-load)))))
 
-#? (:cljs
+#? (:clj
+    (defn dynamic-import [s]
+      (resolve s))
+
+    :cljs
     (defn dynamic-import [s]
       (let [p (atom nil)
             state (atom nil)
@@ -34,7 +38,9 @@
                          (let [promise (p/let [m (esm/dynamic-import (str "./" (namespace s) ".js"))]
                                          (j/get m val-name))]
                            (reset! p promise)
-                           (p/then promise #(reset! state :ready))
+                           (p/then promise #(do
+                                              (reset! p %)
+                                              (reset! state :ready)))
                            promise))]
         (->DynamicImport state p start-load))))
 
