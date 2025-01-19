@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   '@diffusionstudio/vits-web':
-    hash: 4cbgqtq3gigneswdkl3hrwvpze
+    hash: mcg4oc6silpionujqylxjnv5jm
     path: patches/@diffusionstudio__vits-web.patch
   readable-stream@3.6.0:
     hash: j5rx3snuqoupavbs44r26lk4zq
@@ -18,7 +18,7 @@ importers:
     dependencies:
       '@diffusionstudio/vits-web':
         specifier: ^1.0.3
-        version: 1.0.3(patch_hash=4cbgqtq3gigneswdkl3hrwvpze)
+        version: 1.0.3(patch_hash=mcg4oc6silpionujqylxjnv5jm)
       '@inlet/react-pixi':
         specifier: ^6.8.0
         version: 6.8.0(pixi.js@6.5.1)(prop-types@15.8.1)(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
@@ -1737,7 +1737,7 @@ snapshots:
 
   '@colors/colors@1.5.0': {}
 
-  '@diffusionstudio/vits-web@1.0.3(patch_hash=4cbgqtq3gigneswdkl3hrwvpze)':
+  '@diffusionstudio/vits-web@1.0.3(patch_hash=mcg4oc6silpionujqylxjnv5jm)':
     dependencies:
       onnxruntime-web: 1.18.0
 
