@@ -1,7 +1,5 @@
 ;; shadow-cljs configuration
-{:dev-http {8080 "public"}
-
- :source-paths ["src/main" "src/test"]
+{:source-paths ["src/main" "src/test"]
 
  :dependencies [; core:
                 [reagent "1.2.0"]
@@ -32,14 +30,27 @@
                 [cider/cider-nrepl "0.24.0"]
                 [refactor-nrepl "2.5.0"]]
 
- :builds {:app {:target :browser
+ :builds {:app {:target :esm
                 :output-dir "public/js"
                 :asset-path "/js"
 
+                :js-options {:js-provider :import}
+
+                ; :js-options {:js-provider :external
+                ;              :external-index "public/js/imports.js"
+                ;              :external-index-format :esm}
+
                 :module-loader true
-                :modules {:main {:init-fn atc.core/init}
-                          :airport-kjfk {:entries [atc.data.airports.kjfk]
-                                         :depends-on #{:main}}}}
+                :modules {:main {:init-fn atc.core/init
+                                 :depends-on #{:shared}}
+                          :shared {}
+                          :atc.speech.enhanced {:exports
+                                                {init atc.speech.enhanced/init
+                                                 speak atc.speech.enhanced/speak}
+                                                :depends-on #{:shared}}
+                          :atc.data.airports.kjfk
+                          {:exports {exports atc.data.airports.kjfk/exports}
+                           :depends-on #{:shared}}}}
 
           :ci {:target :karma
                :output-to "target/ci.js"}}}

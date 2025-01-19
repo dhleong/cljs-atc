@@ -5,7 +5,9 @@
     "main": "index.js",
     "private": true,
     "dependencies": {
+        "@diffusionstudio/vits-web": "^1.0.3",
         "@inlet/react-pixi": "^6.8.0",
+        "@mintplex-labs/piper-tts-web": "^1.0.4",
         "@pixi/math-extras": "^6.5.1",
         "microphone-stream": "^6.0.1",
         "pixi-viewport": "^4.34.4",
@@ -13,23 +15,28 @@
         "react": "^17",
         "react-dom": "^17",
         "readable-stream": "^4.1.0",
+        "tone": "^15.0.4",
         "vosk-browser": "^0.0.8"
     },
     "devDependencies": {
+        "@vitejs/plugin-react-swc": "^3.7.2",
         "karma": "^6.4.0",
         "karma-chrome-launcher": "^3.0.0",
         "karma-cljs-test": "^0.1.0",
         "process": "^0.11.10",
         "react-flip-move": "^3.0.1",
         "react-highlight.js": "^1.0.7",
-        "shadow-cljs": "^2.25.1"
+        "shadow-cljs": "^2.28.20",
+        "vite": "^6.0.7"
     },
     "scripts": {
         "lint": "clojure -Sdeps '{:deps {clj-kondo/clj-kondo {:mvn/version \"RELEASE\"}}}' -M -m clj-kondo.main --lint src --config .clj-kondo/config.edn",
         "lint:init": "clojure -Sdeps '{:deps {clj-kondo/clj-kondo {:mvn/version \"RELEASE\"}}}' -M -m clj-kondo.main --lint \"$(shadow-cljs classpath)\" --config .clj-kondo/config.edn --copy-configs",
         "build": "shadow-cljs release :app",
-        "build:gh-pages": "yarn build --config-merge '{:closure-defines {atc.config/server-root \"/cljs-atc/\"} :asset-path \"/cljs-atc/js\"}'",
-        "dev": "shadow-cljs start && shadow-cljs watch :app",
+        "build:gh-pages": "pnpm build --config-merge '{:closure-defines {atc.config/server-root \"/cljs-atc/\"} :asset-path \"/cljs-atc/js\"}'",
+        "dev": "pnpm run /^dev:/",
+        "dev:vite": "vite",
+        "dev:cljs": "shadow-cljs watch :app",
         "start": "shadow-cljs start",
         "stop": "shadow-cljs stop",
         "test": "shadow-cljs compile ci && karma start --single-run",
@@ -37,5 +44,11 @@
         "tool": "clojure -Mtool"
     },
     "author": "",
-    "license": "ISC"
+    "license": "ISC",
+    "pnpm": {
+        "patchedDependencies": {
+            "@diffusionstudio/vits-web": "patches/@diffusionstudio__vits-web.patch",
+            "readable-stream@3.6.0": "patches/readable-stream@3.6.0.patch"
+        }
+    }
 }

@@ -13,7 +13,15 @@
       Javascript is required to view this page.
     </noscript>
     <div id="app"></div>
-    <script src="js/main.js"></script>
+    <script>
+    window.process ??= {
+      nextTick(callback, ...args) {
+        queueMicrotask(callback.bind(undefined, ...args));
+      }
+    };
+    </script>
+    <script type="module" src="js/imports.js"></script>
+    <script type="module" defer src="js/main.js"></script>
   </body>
 </html>
 
