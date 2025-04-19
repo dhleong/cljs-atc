@@ -24,8 +24,15 @@
   (if-some [loadable (get airport-loadables airport-id)]
     (-> (p/let [{:keys [airport]} (lazy/unpack loadable)]
           airport)
-        (p/catch #?(:clj (partial println "[ERROR]")
-                    :cljs js/console.error)))
+        (p/catch
+         (fn [e]
+           (#?(:clj println
+               :cljs js/console.error)
+            "[ERROR] Failed to load "
+            (str airport-id)
+            e)
+           ; Re-throw
+           (throw e))))
     (throw (ex-info "No such airport: " {:id airport-id}))))
 
 (defn airport-parsing-rules [airport-id]
