@@ -1,0 +1,6 @@
+#!/bin/bash
+
+for FILE in public/js/*.js; do
+    sed -i '' '/const shadow_esm_import = function(x) { return import(x) };/d' "$FILE"
+    sed -i '' 's/shadow_esm_import/import/' "$FILE"
+done

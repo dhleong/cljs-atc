@@ -32,8 +32,11 @@
     "scripts": {
         "lint": "clojure -Sdeps '{:deps {clj-kondo/clj-kondo {:mvn/version \"RELEASE\"}}}' -M -m clj-kondo.main --lint src --config .clj-kondo/config.edn",
         "lint:init": "clojure -Sdeps '{:deps {clj-kondo/clj-kondo {:mvn/version \"RELEASE\"}}}' -M -m clj-kondo.main --lint \"$(shadow-cljs classpath)\" --config .clj-kondo/config.edn --copy-configs",
-        "build": "shadow-cljs release :app",
-        "build:gh-pages": "pnpm build --config-merge '{:closure-defines {atc.config/server-root \"/cljs-atc/\"} :asset-path \"/cljs-atc/js\"}'",
+        "build:cljs": "shadow-cljs release :app && scripts/clean-shadow-esm-import",
+        "build:gh-pages": "pnpm build:cljs --config-merge '{:closure-defines {atc.config/server-root \"/cljs-atc/\"} :asset-path \"/cljs-atc/js\"}' && vite build",
+        "build:vite": "vite build",
+        "build:preview": "pnpm build:cljs && pnpm build:vite && vite preview",
+        "clean": "rm -rf public/js public/dist",
         "dev": "pnpm run /^dev:/",
         "dev:vite": "vite",
         "dev:cljs": "shadow-cljs watch :app",
