@@ -29,15 +29,21 @@
   (let [distance-factor (min (/ distance max-distance)
                              1.1)
 
-        ; Use bandpath to limit the frequency range
+        ; Use bandpass to limit the frequency range
         bandpass (Tone/BiquadFilter.
                   #js {; Increasing frequency increases clarity;
-                        ; decreasing it makes it more "muffled"
-                       :frequency 400,
-                        ; Increasing Q makes the sound more "compressed"
-                        ; like the source is further away.
+                       ; decreasing it makes it more "muffled"
+                       :frequency 1500,
+                       ; Increasing Q makes the sound more "compressed"
+                       ; like the source is further away.
                        :Q (+ 0.5 (* 3 distance-factor)),
                        :type "bandpass"})
+
+        compressor (Tone/Compressor.
+                    #js {:threshold (- -20 (* 5 distance-factor))
+                         :ratio (+ 4 (* 3 distance-factor))
+                         :attack 0.01
+                         :release 0.1})
 
         ; Add some distortion:
         ; The range "should" be [0, 1] so going over gives us some extra crunch
@@ -45,12 +51,19 @@
                      (.toDestination))
 
         ; Modulate filter frequency for a dynamic effect
-        ocillation 0.2
-        frequency-min 300
-        frequency-max 500
+        ocillation 0.1
+        frequency-min 1200
+        frequency-max 1800
         filter-frequency-modulator (doto (Tone/LFO.
                                           ocillation frequency-min frequency-max)
                                      (.start))
+
+        highpass (Tone/Filter. 300 "highpass")
+
+        ; Follow with a lowpass filter to cut off frequencies at distance
+        lowpass (Tone/Filter.
+                 (- 3000 (* 1000 distance-factor))
+                 "lowpass")
 
         ; Add a little noise during the transmission
         noise (doto (Tone/Noise. "white")
@@ -80,7 +93,12 @@
     (.connect filter-frequency-modulator (.-frequency bandpass))
 
     ; TODO: Rate? pitch shift?
-    (.chain player delay-node bandpass distortion Tone/Destination)
+    (.chain player
+            delay-node
+            compressor bandpass
+            highpass lowpass
+            distortion
+            Tone/Destination)
 
     promise))
 
