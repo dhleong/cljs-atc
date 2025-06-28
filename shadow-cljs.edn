@@ -42,6 +42,7 @@
 
                 :module-loader true
                 :modules {:main {:init-fn atc.core/init
+                                 :force-imports #{"@pixi/math-extras"}
                                  :depends-on #{:shared}}
                           :shared {}
                           :atc.speech.enhanced {:exports
