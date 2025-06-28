@@ -10,7 +10,7 @@
 ; ["@mintplex-labs/piper-tts-web" :as tts]
 
 (def ^:private voice-id  "en_US-libritts_r-medium")
-(def ^:private speakers-count 904) ; TODO: use this to select a "voice" (speaker-id)
+(def ^:private speakers-count 904)
 (def ^:private simulate-radio? true)
 
 (def ^:private max-distance 100000)
@@ -20,10 +20,10 @@
                     :voiceId voice-id
                     :speakerId speaker-id}))
 
-; TODO: Use this!
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
-(defn pick-random-voice []
-  (rand-int speakers-count))
+(defn ^:export pick-random-voice []
+  ; NOTE: We could consider random pitch/rate shifts and encode them
+  ; in this object, if we wanted:
+  {:speaker-id (rand-int speakers-count)})
 
 (defn- radioify! [^Tone/Player player {:keys [distance]}]
   (let [distance-factor (min (/ distance max-distance)
@@ -105,10 +105,11 @@
 ; Imported lazily in atc.speech
 (defn ^:export speak [{:keys [voice message radio? distance]
                        :or {radio? true
-                            distance (/ max-distance 2)}}]
+                            distance (/ max-distance 2)
+                            voice {:speaker-id 0}}}]
   (println "speak with " voice " @ " distance)
   (-> (p/let [wav (predict {:text message
-                            :speaker-id voice})
+                            :speaker-id (:speaker-id voice)})
               ^Tone/Player player (Tone/Player. (js/URL.createObjectURL wav))
 
               radio? (and simulate-radio? radio?)
@@ -116,7 +117,8 @@
               ; NOTE: We wrap in a vec to prevent p/let from awaiting it
               [promise] (if radio?
                           ; TODO: We could compute the distance of the craft to the tower
-                          [(radioify! player {:distance distance})]
+                          [(radioify! player {:distance distance
+                                              :voice voice})]
 
                           (do (.toDestination player)
 

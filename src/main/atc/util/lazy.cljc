@@ -1,6 +1,7 @@
 (ns atc.util.lazy
   #? (:cljs (:require-macros [atc.util.lazy]))
   (:require
+   [clojure.string :as str]
    #?(:cljs [shadow.esm :as esm])
    #?(:cljs [applied-science.js-interop :as j])
    [promesa.core :as p]
@@ -34,16 +35,20 @@
     (defn dynamic-import [s]
       (let [p (atom nil)
             state (atom nil)
-            val-name (name s)
-            ns-name-str (subs (namespace s)
-                              (count "atc."))
+            val-name (-> (name s)
+                         (str/replace "-" "_"))
+            ns-name-str (-> (subs (namespace s)
+                                  (count "atc."))
+                            (str/replace "-" "_"))
             start-load (fn []
                          (let [promise (p/let [m (esm/dynamic-import (js-template "./atc." ns-name-str ".js"))]
                                          (j/get m val-name))]
                            (reset! p promise)
-                           (p/then promise #(do
-                                              (reset! p %)
-                                              (reset! state :ready)))
+                           (p/then promise (fn [v]
+                                             (reset! p v)
+                                             (reset! state :ready)
+                                             ; Return the loaded value:
+                                             v))
                            promise))]
         (->DynamicImport state p start-load))))
 

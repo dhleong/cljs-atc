@@ -83,11 +83,12 @@
                             arrivals? departures?]}]
   (.preventDefault e)
 
-  ; NOTE: We need to initialize the audio context from a user interaction
-  (speech/prepare! {:enhanced? enhanced-audio?})
-
   (p/do
     (reset! loading?-ref true)
+
+    ; NOTE: We need to initialize the audio context from a user interaction
+    (speech/prepare! {:enhanced? enhanced-audio?})
+
     (p/delay 10) ; Leave time to show loading state
     (>evt [:game/init {:airport-id airport-id
                        :arrivals? arrivals?

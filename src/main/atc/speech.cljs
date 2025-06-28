@@ -6,10 +6,7 @@
    [promesa.core :as p]
    [atc.util.lazy :as lazy]))
 
-(def ^:private mode (atom :builtin))
-
-; Declaring this here is a bit yuck, but lets us avoid having to resolve a promise
-(def ^:private enhanced-voices-count 904)
+(defonce ^:private mode (atom :builtin))
 
 ; NOTE: We explicitly do NOT want to require these namespaces,
 ; since they should be code-split
@@ -20,6 +17,13 @@
 (def ^:private enhanced-speak
   (lazy/function
    (lazy/dynamic-import 'atc.speech.enhanced/speak)))
+
+; This is a bit ick but as part of prepare! we initialize
+; enhanced-pick-random-voice-state with the loaded function
+; so we can call it synchronously
+(def ^:private enhanced-pick-random-voice-import
+  (lazy/dynamic-import 'atc.speech.enhanced/pick-random-voice))
+(defonce ^:private enhanced-pick-random-voice-state (atom nil))
 
 (defn- load-voices []
   (->> (js/window.speechSynthesis.getVoices)
@@ -36,6 +40,19 @@
   (delay
     (load-voices)))
 
+(def ^:private shared-enhanced-prepare-promise
+  (delay
+    (println "preparing enhanced audio...")
+    (-> (p/let [_ (enhanced-init)
+
+                ; Initialize pick-random-voice
+                enhanced-pick-random-voice (lazy/unpack enhanced-pick-random-voice-import)]
+          (reset! enhanced-pick-random-voice-state enhanced-pick-random-voice)
+          (println "Enhanced audio ready!"))
+        (p/catch (fn [e]
+                   (reset! mode :builtin)
+                   (js/console.warn "Failed to initialize enhanced audio..." e))))))
+
 (defn init []
   (if-not js/window.speechSynthesis
     (>evt [:speech/unavailable])
@@ -44,18 +61,12 @@
 (defn prepare! [{:keys [enhanced?]}]
   (reset! mode (if enhanced? :enhanced :builtin))
   (when enhanced?
-    (println "preparing enhanced audio...")
-    (-> (p/do!
-         (enhanced-init)
-         (println "Enhanced audio ready!"))
-        (p/catch (fn [e]
-                   (reset! mode :builtin)
-                   (js/console.warn "Failed to initialize enhanced audio..." e))))))
+    @shared-enhanced-prepare-promise))
 
 (defn pick-random-voice []
   (case @mode
     :builtin (rand-nth @shared-voices)
-    :enhanced (rand-int enhanced-voices-count)))
+    :enhanced (@enhanced-pick-random-voice-state)))
 
 (defn- say-synthesis! [{:keys [message pitch rate voice]
                         :or {rate 1 pitch 1}}]
