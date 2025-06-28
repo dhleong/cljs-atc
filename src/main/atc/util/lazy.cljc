@@ -4,7 +4,7 @@
    #?(:cljs [shadow.esm :as esm])
    #?(:cljs [applied-science.js-interop :as j])
    [promesa.core :as p]
-   [shadow.cljs.modern :refer [js-template]]
+   #?(:cljs [shadow.cljs.modern :refer [js-template]])
    [shadow.lazy :as lazy :refer #?(:cljs [ILoadable Loadable]
                                    :clj [])]))
 
@@ -38,8 +38,7 @@
             ns-name-str (subs (namespace s)
                               (count "atc."))
             start-load (fn []
-                         (let [promise (p/let [m #_(esm/dynamic-import (str "./" (namespace s) ".js"))
-                                               (esm/dynamic-import (js-template "./atc." ns-name-str ".js"))]
+                         (let [promise (p/let [m (esm/dynamic-import (js-template "./atc." ns-name-str ".js"))]
                                          (j/get m val-name))]
                            (reset! p promise)
                            (p/then promise #(do
