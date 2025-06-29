@@ -29,7 +29,9 @@ export default defineConfig({
       }
     }
   ],
+
   root: "public",
+  base: process.env.NODE_ENV === "gh-pages" ? "/cljs-atc" : undefined,
 
   server: {
     port: 8080,
