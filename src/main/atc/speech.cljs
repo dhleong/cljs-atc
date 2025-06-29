@@ -52,7 +52,7 @@
 
           (println "Enhanced audio ready!"))
         (p/catch (fn [e]
-                   (reset! mode :builtin)
+                   (reset! mode :builtin-only)
                    (js/console.warn "Failed to initialize enhanced audio..." e))))))
 
 (defn init []
@@ -61,13 +61,19 @@
     (>evt [:speech/on-voices-changed (load-voices)])))
 
 (defn prepare! [{:keys [enhanced?]}]
-  (reset! mode (if enhanced? :enhanced :builtin))
+  (swap! mode (fn [existing]
+                (cond
+                  ; If :builtin-only, we failed to initialize enhanced
+                  (= existing :builtin-only) :builtin-only
+                  enhanced? :enhanced
+                  :else :builtin)))
+
   (when enhanced?
     @shared-enhanced-prepare-promise))
 
 (defn pick-random-voice []
   (case @mode
-    :builtin (rand-nth @shared-voices)
+    (:builtin :builtin-only) (rand-nth @shared-voices)
     :enhanced (@enhanced-pick-random-voice)))
 
 (defn- say-synthesis! [{:keys [message pitch rate voice]
@@ -110,5 +116,5 @@
                    (js/console.error "Failed to enhanced-speak" e)
                    (println "Task: " task)
                    ; Fall back to builtin speech, just in case
-                   (reset! mode :builtin))))
+                   (reset! mode :builtin-only))))
     (say-synthesis! task)))
