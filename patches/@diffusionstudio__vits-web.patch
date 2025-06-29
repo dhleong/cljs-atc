@@ -1,0 +1,77 @@
+diff --git a/dist/types.d.ts b/dist/types.d.ts
+index 86020b022af7287605774f41f97e0dd322767f19..529b2541b16a10c229981d8e9d195c16eccf74ed 100644
+--- a/dist/types.d.ts
++++ b/dist/types.d.ts
+@@ -32,5 +32,6 @@ export type Progress = {
+ export type InferenceConfg = {
+     text: string;
+     voiceId: VoiceId;
++    speakerId: number;
+ };
+ export type ProgressCallback = (progress: Progress) => void;
+diff --git a/dist/vits-web.js b/dist/vits-web.js
+index e5f8fac069027c8323c820374addfbe04357798e..0a30b5ede5844d21f3f3a97e908acdd414939878 100644
+--- a/dist/vits-web.js
++++ b/dist/vits-web.js
+@@ -176,12 +176,26 @@ function b(e, m, n) {
+   return i.buffer;
+ }
+ let h, _;
++let phenomizer;
++const sessions = {};
++async function getSession(m, path) {
++  // Reusing the session lets us save almost 2s per invocation
++  if (sessions[path] != null) {
++    console.log('reusing existing session @ ', path);
++    return sessions[path];
++  }
++  let k = await f(`${u}/${path}`, m), y = await _.InferenceSession.create(await k.arrayBuffer())
++  sessions[path] = y;
++  return y;
++}
+ async function N(e, m) {
+   h = h ?? await import("./piper-DeOu3H9E.js"), _ = _ ?? await import("onnxruntime-web");
+   const n = c[e.voiceId], o = JSON.stringify([{ text: e.text.trim() }]);
+   _.env.allowLocalModels = !1, _.env.wasm.numThreads = navigator.hardwareConcurrency, _.env.wasm.wasmPaths = B;
++  let _start1 = Date.now(), _end1 = 0;
+   const a = await f(`${u}/${n}.json`), i = JSON.parse(await a.text()), t = await new Promise(async (v) => {
+-    (await h.createPiperPhonemize({
++    // TODO: Cache the phonemizer to save ~200ms per call
++    phenomizer = (await h.createPiperPhonemize({
+       print: (l) => {
+         v(JSON.parse(l).phoneme_ids);
+       },
+@@ -189,7 +203,10 @@ async function N(e, m) {
+         throw new Error(l);
+       },
+       locateFile: (l) => l.endsWith(".wasm") ? `${x}.wasm` : l.endsWith(".data") ? `${x}.data` : l
+-    })).callMain([
++    }));
++    _end1 = Date.now();
++    console.log('phenomize...');
++    phenomizer.callMain([
+       "-l",
+       i.espeak.voice,
+       "--input",
+@@ -197,15 +214,20 @@ async function N(e, m) {
+       "--espeak_data",
+       "/espeak-ng-data"
+     ]);
+-  }), r = 0, s = i.audio.sample_rate, d = i.inference.noise_scale, g = i.inference.length_scale, U = i.inference.noise_w, k = await f(`${u}/${n}`, m), y = await _.InferenceSession.create(await k.arrayBuffer()), w = {
++  }), r = e.speakerId ?? 0, s = i.audio.sample_rate, d = i.inference.noise_scale, g = i.inference.length_scale, U = i.inference.noise_w, _start = Date.now(), y = await getSession(m, n), _end = Date.now(), w = {
+     input: new _.Tensor("int64", t, [1, t.length]),
+     input_lengths: new _.Tensor("int64", [t.length]),
+     scales: new _.Tensor("float32", [d, g, U])
+   };
++  console.log('setup took', _end1 - _start1);
++  console.log('Session.create took', _end - _start);
++  const _start2 = Date.now();
+   Object.keys(i.speaker_id_map).length && Object.assign(w, { sid: new _.Tensor("int64", [r]) });
+   const {
+     output: { data: E }
+   } = await y.run(w);
++  const _end2 = Date.now();
++  console.log('run took', _end2 - _start2)
+   return new Blob([b(E, 1, s)], { type: "audio/x-wav" });
+ }
+ async function f(e, m) {

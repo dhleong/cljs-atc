@@ -3,6 +3,7 @@
    [archetype.util :refer [<sub >evt]]
    [atc.config :as config]
    [atc.data.airports :refer [list-airports]]
+   [atc.speech :as speech]
    [atc.styles :refer [full-screen]]
    [garden.units :refer [px]]
    [promesa.core :as p]
@@ -74,26 +75,33 @@
               :user-select :none
               :align-items :center}]
   [:.explanation {:text-align :center
-                  :font-size :95%}]
+                  :font-size :95%}
+   [:.unavailable {:text-decoration :line-through}]]
   [:.spacer {:height (px 8)}])
 
 (defn- start-game! [loading?-ref ^js e
-                    {:keys [airport-id voice-input?
+                    {:keys [airport-id voice-input? enhanced-audio?
                             arrivals? departures?]}]
   (.preventDefault e)
+
   (p/do
     (reset! loading?-ref true)
+
+    ; NOTE: We need to initialize the audio context from a user interaction
+    (speech/prepare! {:enhanced? enhanced-audio?})
+
     (p/delay 10) ; Leave time to show loading state
     (>evt [:game/init {:airport-id airport-id
                        :arrivals? arrivals?
                        :departures? departures?
                        :voice-input? voice-input?}])))
 
-(defn- labeled-input [{:keys [type disabled label key]}]
+(defn- labeled-input [{:keys [type disabled label key on-click]}]
   [:div.labeled
    [:label {:for key} label]
    [input {:type type
            :disabled disabled
+           :on-click on-click
            :key key
            :id key}]])
 
@@ -101,6 +109,7 @@
   (r/with-let [form-value (r/atom (or (<sub [:game-options])
                                       config/default-game-options))
                loading? (r/atom false)
+               enhanced-disabled? (r/atom false)
                on-start-game (partial start-game! loading?)]
     [:div (setup-container-attrs)
      [last-game-info]
@@ -145,7 +154,27 @@
                         :label "Use voice input"
                         :key :voice-input?}]
         [:div.explanation {:id ::voice-explanation}
-         "If enabled, you will be prompted to allow microphone input once the game is loaded. You can then hold the spacebar to activate the mic and talk to pilots on your frequency!"]]
+         "If enabled, you will be prompted to allow microphone input once the game is loaded. You can then hold the spacebar to activate the mic and talk to pilots on your frequency!"]
+
+        [:div.spacer]
+
+        [labeled-input {:type :checkbox
+                        :disabled (or @loading?
+                                      @enhanced-disabled?)
+                        :label "Use enhanced audio"
+                        :on-click (fn [e]
+                                    (when (some-> e .-target .-checked)
+                                      (p/let [success? (speech/prepare! {:enhanced? true})]
+                                        (reset! enhanced-disabled? (not success?)))))
+                        :key :enhanced-audio?}]
+        [:div.explanation {:id ::enhanced-audio-explanation}
+         [:div.description (when @enhanced-disabled?
+                             {:class :unavailable})
+          "Enhance! This will download a local AI model to generate more realistic-sounding radio audio, which may be taxing for your machine."]
+
+         (when @enhanced-disabled?
+           [:div.error
+            "Unable to initialize; we'll use the standard speech instead. Another browser may work!"])]]
 
        [:div.spacer]
 

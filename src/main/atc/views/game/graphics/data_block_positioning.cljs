@@ -81,11 +81,12 @@
             block-offset (-> block-bounds
                              (j/get :width)
                              (* (get angle-offset-mod rounded-angle)))
-            min-length' (get angle-min-lengths rounded-angle min-length)]
+            min-length' (get angle-min-lengths rounded-angle min-length)
+            ^js global-pos (j/get-in e [:data :global])]
         (assoc s
                :length (-> (.subtract
-                             (j/get-in e [:data :global])
-                             (:reference s))
+                            global-pos
+                            (:reference s))
                            (.magnitude)
                            (abs)
                            (- block-offset)
@@ -95,17 +96,17 @@
                :angle rounded-angle)))))
 
 (defn- compute-positions [{:keys [angle] :as state}]
-  (let [angle-vec (get angle-vectors angle)
+  (let [^js angle-vec (get angle-vectors angle)
         line-start (.multiplyScalar angle-vec 10)
         container-offset-length (.multiplyScalar angle-vec (:length state))
         container-pos (.add line-start container-offset-length)
         line-end (.subtract
-                   container-pos
-                   (.multiplyScalar angle-vec
-                                    (get angle-line-length-mod angle)))
+                  container-pos
+                  (.multiplyScalar angle-vec
+                                   (get angle-line-length-mod angle)))
         pivot (.multiplyScalar
-                (get angle-pivots angle)
-                (:width state))]
+               ^js (get angle-pivots angle)
+               (:width state))]
     {:line-start line-start
      :line-end line-end
      :container-pos container-pos
@@ -120,11 +121,11 @@
                on-down (fn [e]
                          (.stopPropagation e)
                          (swap!
-                           datablock-state assoc
-                           :dragging? true
-                           :block (j/get e :target)
-                           :reference (j/call-in e [:target :parent
-                                                    :getGlobalPosition])))
+                          datablock-state assoc
+                          :dragging? true
+                          :block (j/get e :target)
+                          :reference (j/call-in e [:target :parent
+                                                   :getGlobalPosition])))
                on-up (fn [e]
                        (when (:dragging? @datablock-state)
                          (.stopPropagation e)

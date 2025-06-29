@@ -33,19 +33,19 @@
   (p/do!
     ; NOTE: It's not entirely clear why, but we need to *manually* suspend the
     ; AudioContext and stop the mic track...
-    (j/call-in (::stream state) [:context :suspend])
-    (-> (::media state) (.getTracks) (aget 0) (.stop))
+   (j/call-in (::stream state) [:context :suspend])
+   (-> (::media state) (.getTracks) (aget 0) (.stop))
 
     ; ... then *wait a frame*...
-    (p/delay 0)
+   (p/delay 0)
 
     ; ... before proceeding with the normal MicrophoneStream cleanup, in order to
     ; avoid Safari continuing to badge our tab as "producing audio." The "recording audio"
     ; indicator would be gone in this situation, at least.... But with this hack, at last
     ; no indicator remains!
-    (.stop (::stream state))
+   (.stop (::stream state))
 
-    (println "Stopped recording")))
+   (println "Stopped recording")))
 
 (defn stop! [client]
   (swap! client (fn [state]
@@ -59,16 +59,16 @@
   (let [client (atom {::stream (MicrophoneStream. #js {:bufferSize 1024
                                                        :objectMode true})})]
     (swap!
-      client
-      assoc
-      ::ready-promise
-      (p/let [media (j/call-in js/navigator [:mediaDevices :getUserMedia]
-                               #js {:video false
-                                    :audio #js {:echoCancellation true
-                                                :noiseSuppression true}})
-              {::keys [stream]} (swap! client assoc ::media media :recording? true)]
-        (println "Loaded media! " media)
-        (.setStream stream media)))
+     client
+     assoc
+     ::ready-promise
+     (p/let [media (j/call-in js/navigator [:mediaDevices :getUserMedia]
+                              #js {:video false
+                                   :audio #js {:echoCancellation true
+                                               :noiseSuppression true}})
+             {::keys [^MicrophoneStream stream]} (swap! client assoc ::media media :recording? true)]
+       (println "Loaded media! " media)
+       (.setStream stream media)))
 
     client))
 
