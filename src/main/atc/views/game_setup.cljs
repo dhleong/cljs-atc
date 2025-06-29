@@ -75,7 +75,8 @@
               :user-select :none
               :align-items :center}]
   [:.explanation {:text-align :center
-                  :font-size :95%}]
+                  :font-size :95%}
+   [:.unavailable {:text-decoration :line-through}]]
   [:.spacer {:height (px 8)}])
 
 (defn- start-game! [loading?-ref ^js e
@@ -108,6 +109,7 @@
   (r/with-let [form-value (r/atom (or (<sub [:game-options])
                                       config/default-game-options))
                loading? (r/atom false)
+               enhanced-disabled? (r/atom false)
                on-start-game (partial start-game! loading?)]
     [:div (setup-container-attrs)
      [last-game-info]
@@ -157,14 +159,22 @@
         [:div.spacer]
 
         [labeled-input {:type :checkbox
-                        :disabled @loading?
+                        :disabled (or @loading?
+                                      @enhanced-disabled?)
                         :label "Use enhanced audio"
                         :on-click (fn [e]
                                     (when (some-> e .-target .-checked)
-                                      (speech/prepare! {:enhanced? true})))
+                                      (p/let [success? (speech/prepare! {:enhanced? true})]
+                                        (reset! enhanced-disabled? (not success?)))))
                         :key :enhanced-audio?}]
         [:div.explanation {:id ::enhanced-audio-explanation}
-         "Enhance! This will download a local AI model to generate more realistic-sounding radio audio, which may be taxing for your machine."]]
+         [:div.description (when @enhanced-disabled?
+                             {:class :unavailable})
+          "Enhance! This will download a local AI model to generate more realistic-sounding radio audio, which may be taxing for your machine."]
+
+         (when @enhanced-disabled?
+           [:div.error
+            "Unable to initialize; we'll use the standard speech instead. Another browser may work!"])]]
 
        [:div.spacer]
 

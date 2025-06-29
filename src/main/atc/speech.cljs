@@ -50,10 +50,12 @@
           ; has resolved
           (lazy/unpack enhanced-pick-random-voice)
 
-          (println "Enhanced audio ready!"))
+          (println "Enhanced audio ready!")
+          true)
         (p/catch (fn [e]
                    (reset! mode :builtin-only)
-                   (js/console.warn "Failed to initialize enhanced audio..." e))))))
+                   (js/console.warn "Failed to initialize enhanced audio..." e)
+                   false)))))
 
 (defn init []
   (if-not js/window.speechSynthesis
