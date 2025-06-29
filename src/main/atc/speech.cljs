@@ -18,12 +18,11 @@
   (lazy/function
    (lazy/dynamic-import 'atc.speech.enhanced/speak)))
 
-; This is a bit ick but as part of prepare! we initialize
-; enhanced-pick-random-voice-state with the loaded function
-; so we can call it synchronously
-(def ^:private enhanced-pick-random-voice-import
+(def ^:private enhanced-pick-random-voice
+  ; NOTE: Unlike above, we want to be able to call the imported
+  ; function synchronously by deref'ing the ILoadable, so we don't
+  ; wrap in lazy/function
   (lazy/dynamic-import 'atc.speech.enhanced/pick-random-voice))
-(defonce ^:private enhanced-pick-random-voice-state (atom nil))
 
 (defn- load-voices []
   (->> (js/window.speechSynthesis.getVoices)
@@ -43,11 +42,14 @@
 (def ^:private shared-enhanced-prepare-promise
   (delay
     (println "preparing enhanced audio...")
-    (-> (p/let [_ (enhanced-init)
+    (-> (p/do
+          (enhanced-init)
 
-                ; Initialize pick-random-voice
-                enhanced-pick-random-voice (lazy/unpack enhanced-pick-random-voice-import)]
-          (reset! enhanced-pick-random-voice-state enhanced-pick-random-voice)
+          ; Initialize enhanced-pick-random-voice; unpack returns a promise,
+          ; and then we can just deref it synchronously once this promise
+          ; has resolved
+          (lazy/unpack enhanced-pick-random-voice)
+
           (println "Enhanced audio ready!"))
         (p/catch (fn [e]
                    (reset! mode :builtin)
@@ -66,7 +68,7 @@
 (defn pick-random-voice []
   (case @mode
     :builtin (rand-nth @shared-voices)
-    :enhanced (@enhanced-pick-random-voice-state)))
+    :enhanced (@enhanced-pick-random-voice)))
 
 (defn- say-synthesis! [{:keys [message pitch rate voice]
                         :or {rate 1 pitch 1}}]
